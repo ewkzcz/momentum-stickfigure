@@ -9,6 +9,12 @@
   "homepage": "",
   "scripts": {
     "format": "prettier --write .",
+    "lint": "eslint eslint.config.mjs tests scripts src/main/storage-manager.js",
+    "check:size": "node scripts/check-source-size.mjs",
+    "test": "node --test tests/regression.test.mjs",
+    "test:psd": "node --test --test-name-pattern=PSD tests/regression.test.mjs",
+    "test:storage": "node --test --test-name-pattern=配置持久化 tests/regression.test.mjs",
+    "test:record": "node tests/record-reference.mjs",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "electron-vite build",
@@ -39,6 +45,7 @@
     "electron-vite": "^3.1.0",
     "eslint": "^9.24.0",
     "eslint-plugin-vue": "^10.0.0",
+    "playwright": "1.58.2",
     "prettier": "^3.5.3",
     "vite": "^6.2.6"
   },

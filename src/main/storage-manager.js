@@ -41,6 +41,8 @@ class StorageManager {
     // 防抖定时器
     this.saveTimer = null
     this.saveDelay = 5000 // 5秒防抖延迟 - 大幅减少文件写入频率
+    this.maxSaveTimer = null
+    this.maxSaveDelay = 10000 // 持续更新时最多合并10秒，避免防抖任务一直被重置
 
     // 文件监听器
     this.fileWatcher = null
@@ -92,17 +94,25 @@ class StorageManager {
   /**
    * 保存storage到文件（防抖）
    * 处理流程：
-   * 1、取消旧保存任务，延迟合并连续修改。
-   * 2、标记写入时间，将缓存异步保存并释放写入标记。
+   * 1、重置短期防抖，并保留本轮首次变更的最长等待计时。
+   * 2、任一计时到期时取消另一计时，将最新缓存异步保存。
    */
   saveStorage() {
-    // 1、清除之前的定时器。
+    // 1、短期防抖合并连续修改，最长等待计时不随后续修改延后。
     if (this.saveTimer) {
       clearTimeout(this.saveTimer)
     }
 
-    // 2、设置新的定时器，延迟序列化并保存最新缓存。
-    this.saveTimer = setTimeout(() => {
+    /**
+     * 保存本轮合并后的最新配置。
+     * 处理流程：
+     * 1、清除本轮两个计时器，避免重复触发。
+     * 2、沿用实际文件写入与错误处理，不改变配置格式。
+     */
+    const persist = () => {
+      // 1、先释放本轮调度，后续变更可以独立安排下一轮保存。
+      this.cancelPendingSave()
+      // 2、在执行时读取最新缓存，而不是保存首次排队时的旧快照。
       try {
         // 标记正在写入
         this.isWriting = true
@@ -128,7 +138,24 @@ class StorageManager {
         this.isWriting = false
         console.error('[StorageManager] 保存storage异常:', error)
       }
-    }, this.saveDelay)
+    }
+    this.saveTimer = setTimeout(persist, this.saveDelay)
+    if (!this.maxSaveTimer) {
+      this.maxSaveTimer = setTimeout(persist, this.maxSaveDelay)
+    }
+  }
+
+  /**
+   * 取消尚未执行的合并保存。
+   * 处理流程：
+   * 1、配对清理短期防抖和最长等待计时器。
+   */
+  cancelPendingSave() {
+    // 1、清空引用，保证持久化、退出和销毁共用同一清理规则。
+    if (this.saveTimer) clearTimeout(this.saveTimer)
+    if (this.maxSaveTimer) clearTimeout(this.maxSaveTimer)
+    this.saveTimer = null
+    this.maxSaveTimer = null
   }
 
   /**
@@ -406,11 +433,8 @@ class StorageManager {
    * 2、同步写入当前缓存并释放写入标记。
    */
   flushSync() {
-    // 1、取消防抖任务，避免退出时仍有延迟写入。
-    if (this.saveTimer) {
-      clearTimeout(this.saveTimer)
-      this.saveTimer = null
-    }
+    // 1、取消两个保存计时器，避免退出时仍有延迟写入。
+    this.cancelPendingSave()
 
     try {
       this.isWriting = true
@@ -517,9 +541,7 @@ class StorageManager {
     }
 
     // 2、取消尚未执行的保存和重载任务。
-    if (this.saveTimer) {
-      clearTimeout(this.saveTimer)
-    }
+    this.cancelPendingSave()
 
     if (this.reloadTimer) {
       clearTimeout(this.reloadTimer)
