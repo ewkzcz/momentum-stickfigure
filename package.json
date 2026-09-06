@@ -9,7 +9,7 @@
   "homepage": "",
   "scripts": {
     "format": "prettier --write .",
-    "lint": "eslint eslint.config.mjs tests scripts src/main/storage-manager.js src/main/index.js src/renderer/src/components/pages/CanvasPreviewPage/CanvasPreviewPage.vue src/renderer/src/components/pages/ActionExpressionPage/components/PsdTabsBar.vue src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasPresetHoverPreview.js src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdUpload.js src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdParser.js",
+    "lint": "eslint eslint.config.mjs tests scripts src/main/storage-manager.js src/main/index.js src/renderer/src/components/pages/CanvasPreviewPage/CanvasPreviewPage.vue src/renderer/src/components/pages/ActionExpressionPage/components/PsdTabsBar.vue src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasPresetHoverPreview.js src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdUpload.js src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdParser.js src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdSession.js",
     "check:size": "node scripts/check-source-size.mjs",
     "test": "node --test --test-concurrency=1 tests/*.test.mjs",
     "test:preview": "node --test tests/preview-payload.test.mjs",

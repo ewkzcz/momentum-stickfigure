@@ -124,6 +124,8 @@ npm test
 
 主画布与预设悬浮预览可单独运行 `node --test tests/canvas-preset-hover.test.mjs`，覆盖真实鼠标移入、移动、移出及两种预览开关，核验浮层 PNG 和布局。此独立参考来自 `b2aad27` 的未迁移源码，默认子目录为 `canvas-preset-hover-renderer1024-dpr1-v1`；`tests/record-hover-preview.mjs` 只允许在该基准提交、业务源码干净时显式创建新目录，回归不会自动补建或覆盖参考。
 
+`node --test tests/psd-session.test.mjs` 验证两份不同素材各自编辑、三种互斥设置、十轮往返及关闭重导入。会话参考来自 `59eefa6`，录制入口 `tests/record-psd-session.mjs` 要求该基准提交、干净源码和独占新目录。此测试覆盖前手叶图层场景；原版另有后发图层关闭后返回时像素变化的问题，已单独记录在 `tests/evidence/psd-session-original-layer-issue-20260906.json`，常规测试通过不代表该问题已解决。
+
 ## 联系方式
 
 软件使用问题或获取帮助，可加入 QQ 群咨询：902990261

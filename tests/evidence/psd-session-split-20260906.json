@@ -1,0 +1,200 @@
+{
+  "version": 1,
+  "responsibility": "机械迁出 ActionExpressionPage.vue 的 PSD 状态保存、恢复、切换、移除四函数",
+  "originalHead": "59eefa61c4575e561f57566b30a61a2f75714a4e",
+  "originalSourceTree": "6f8ea581e02e113da12852d851d9d032c8373d35",
+  "validationRecordedBeforeCommit": true,
+  "parentReview": {
+    "astAudit": "四函数完整语法树、原页面剩余语句、模板样式、43个分组原引用以及initCanvasRender后初始化均独立复核通过",
+    "recordGate": "补充未跟踪源码干净检查并在显式录制分支重建生产产物；本次未重新录制任何参考",
+    "fullSuite": { "tests": 15, "passed": 15, "failed": 0, "skipped": 0, "durationMs": 178016.809375 },
+    "otherChecks": "lint、规模、构建均通过",
+    "temporaryAuditRemoved": true,
+    "originalHairFailure": "仍作为独立未通过场景保留，正在当前迁移产物上重现与定位；前手场景通过不替代后发恢复验收"
+  },
+  "scope": {
+    "page": "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.vue",
+    "newModule": "src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdSession.js",
+    "test": "tests/psd-session.test.mjs",
+    "scenario": "tests/scenarios/psd-session.mjs",
+    "recordEntry": "tests/record-psd-session.mjs",
+    "packageChange": "lint 仅追加新会话模块",
+    "otherBusinessChanged": false,
+    "oldReferenceChanged": false,
+    "parserFailureContractChanged": false
+  },
+  "stateOwnership": {
+    "page": ["psdFiles", "currentPsdFile", "currentPsdData", "psdPartsCache", "psdStatesCache", "currentTab", "userInteracted", "initialSorted"],
+    "useLayerTree": ["layerTreeData"],
+    "usePartsState": ["dynamicExpressionParts", "dynamicExpressionTabs", "dynamicFrontHandTabs", "dynamicBackHandTabs", "dynamicBothHandsTabs", "dynamicUpperBodyTabs", "dynamicLowerBodyTabs", "dynamicActionTabs"],
+    "useCanvasState": ["canvasRef", "canvasWidth", "canvasHeight"],
+    "usePresetData": ["presets", "selectedPresetId", "editingPresetId"],
+    "useTemplateData": ["templates", "selectedTemplate1Id", "selectedTemplate2Id", "editingTemplate1Id", "editingTemplate2Id"],
+    "commonControls": "原 useCommonControls 唯一 refs，按其原 getCommonControlsState/restoreCommonControlsState 读取恢复，不另外保存实时控制状态",
+    "newStateContainers": 0,
+    "extraPsdOrLayerTreeCopies": 0,
+    "snapshotSemantics": "仅原 save/restore 中的 JSON 图层树与 userInteracted 快照保留；没有新增副本或把预设快照混成实时编辑状态",
+    "cacheWriters": "分类缓存仍由 usePsdParser 写入；会话模块使用页面同一个缓存 ref",
+    "cacheCleanup": "原页面 onUnmounted 清空两个缓存与图层树、文件及交互引用；注册位置与顺序原样保留",
+    "templates": "全局列表不清空，仅清除两个模板的选择及编辑标识"
+  },
+  "behaviorOwnership": {
+    "page": ["setLayerVisibilityByPath", "buildExpressionMeta", "getFirstDefaultTabKey", "resetPreviewWindowViewport"],
+    "useLayerTree": ["buildLayerTree", "syncBackgroundControlFromLayerTree"],
+    "usePartsState": ["updatePartsFromClassifyResult", "clearAllPartsState"],
+    "useCanvasScale": ["updateCanvasDisplaySize"],
+    "useCanvasRender": ["renderAllLayers"],
+    "useCommonControls": ["getCommonControlsState", "restoreCommonControlsState"],
+    "usePresetData": ["loadPresets"],
+    "useTemplateData": ["loadTemplates"],
+    "naiveUi": ["message"],
+    "vueImports": ["markRaw", "nextTick"],
+    "unchangedGlobals": ["Date", "JSON", "Map", "Set", "console", "setTimeout"],
+    "thisBinding": "所有依赖直接使用原同名引用后按原调用表达式执行，未包装为上下文成员调用；message.success 仍以原 message 为接收者"
+  },
+  "functionFreeVariables": {
+    "savePsdState": ["Date", "JSON", "console", "currentTab", "getCommonControlsState", "layerTreeData", "psdStatesCache", "userInteracted"],
+    "restorePsdState": ["JSON", "console", "currentTab", "layerTreeData", "psdStatesCache", "restoreCommonControlsState", "userInteracted"],
+    "switchPsdFile": ["Map", "Set", "buildExpressionMeta", "buildLayerTree", "canvasHeight", "canvasWidth", "console", "currentPsdData", "currentPsdFile", "currentTab", "dynamicActionTabs", "dynamicBackHandTabs", "dynamicBothHandsTabs", "dynamicExpressionParts", "dynamicExpressionTabs", "dynamicFrontHandTabs", "dynamicLowerBodyTabs", "dynamicUpperBodyTabs", "editingPresetId", "editingTemplate1Id", "editingTemplate2Id", "getFirstDefaultTabKey", "initialSorted", "layerTreeData", "loadPresets", "loadTemplates", "markRaw", "message", "nextTick", "presets", "psdPartsCache", "psdStatesCache", "renderAllLayers", "resetPreviewWindowViewport", "restorePsdState", "savePsdState", "selectedPresetId", "selectedTemplate1Id", "selectedTemplate2Id", "setLayerVisibilityByPath", "setTimeout", "syncBackgroundControlFromLayerTree", "templates", "updateCanvasDisplaySize", "updatePartsFromClassifyResult", "userInteracted"],
+    "removePsdFile": ["canvasRef", "clearAllPartsState", "console", "currentPsdData", "currentPsdFile", "editingPresetId", "editingTemplate1Id", "editingTemplate2Id", "initialSorted", "layerTreeData", "message", "presets", "psdFiles", "psdPartsCache", "psdStatesCache", "selectedPresetId", "selectedTemplate1Id", "selectedTemplate2Id", "switchPsdFile", "userInteracted"]
+  },
+  "initializationProof": {
+    "choice": "显式按职责注入 43 个原引用，在页面唯一一次 initCanvasRender() 返回后立即创建 usePsdSession",
+    "noProxyOrImplicitContext": true,
+    "originalFunctionLines": { "savePsdState": 6098, "restorePsdState": 6127, "switchPsdFile": 6163, "removePsdFile": 6421 },
+    "reassignedDependenciesOriginalLines": {
+      "layerTreeData": [2706, 7843],
+      "buildLayerTree": [2715, 7847],
+      "renderAllLayers": [3934, 7619]
+    },
+    "renderAssignmentExecution": "7619 位于 initCanvasRender 函数体，其全仓唯一调用在原 7917 行；不能仅放在 syncBackgroundControlFromLayerTree 后、initCanvasRender 前",
+    "lastDeclaredDependencyOriginalLine": { "syncBackgroundControlFromLayerTree": 7914 },
+    "otherDependencies": "其余页面自由依赖为 const 或 Vue 导入，无后续重新赋值；被引用的页面 helper 闭包保持原词法读取",
+    "wholeRepositoryCallAudit": "全仓 git grep 与 espree/eslint-scope 审计：保存仅由切换调用，恢复仅由切换调用，切换仅由移除以及模板 @select 调用，移除仅由模板 @remove 调用；无 setup 同步执行或早期传参捕获",
+    "earlyUsage": "模板事件在 setup 完成、组件挂载后触发；原四个函数不存在 immediate watcher 或初始化函数的提前调用",
+    "existingPlaceholderProblemsChanged": false,
+    "lifecycleRegistrationOrderChanged": false,
+    "newLifecycleOrWatcher": false
+  },
+  "astAudit": {
+    "tooling": "临时脚本使用 @vue/compiler-sfc、espree、eslint-scope；移除 loc/range/raw 后比较完整节点",
+    "functionsEqual": 4,
+    "remainingPageExecutableStatementsEqual": true,
+    "templateExactlyEqual": true,
+    "explicitInjectionKeysMatchAllOriginalDependencies": true,
+    "operatorsBranchesParametersAndAsyncNodesEqual": true,
+    "timing": "仍按 nextTick → await loadPresets → await loadTemplates → 目标 ID 复核 → setTimeout(100) → 再次目标 ID 复核 → renderAllLayers 的原顺序执行",
+    "temporaryAuditRemoved": true
+  },
+  "reference": {
+    "directory": "temp/regression-reference-v2/psd-session-renderer1024-dpr1-front-hand-v4",
+    "recordCommand": "node tests/record-psd-session.mjs psd-session-renderer1024-dpr1-front-hand-v4",
+    "recordedBeforeBusinessMigration": true,
+    "sourceCleanCheck": "HEAD 固定原提交，git diff --exit-code HEAD -- src electron.vite.config.mjs 通过，原版 npm run build 成功后采集",
+    "exclusiveCreation": "mkdir 拒绝既有目录；PNG 与 manifest 均 flag=wx，随后设只读权限",
+    "completionRule": "全部场景通过、真实应用关闭隔离通过、素材哈希复核通过、旧参考摘要不变后，才写完整 manifest",
+    "pngCount": 28,
+    "manifestCount": 1,
+    "digest": "e73dde1c5645301008727ffbdfd7b3b31acc265c1b5e9de04d80127a17a7d73d",
+    "fixtureHashes": ["b60f61ca07ba99d22bc5cec2de3f9b29b5b2d397925438e290f1ef649e00197b", "a1cd270115d88bbf715ce1786f87e6d8a36bb6790db168542ae2ccb732300435"],
+    "environment": { "platform": "darwin", "arch": "arm64", "electron": "35.7.5", "chrome": "134.0.6998.205", "viewport": [1024, 700], "dpr": 1, "focused": true, "renderMode": "software-layout" },
+    "sameRunComparison": "每轮不仅比较只读原版参考，也与本次真实操作的 A/B 编辑图像及全部 DOM 状态比较",
+    "rgbaTolerance": 0,
+    "oldFilesIncludingHover": 220,
+    "oldBeforeDigest": "1cddf8e35590a8c80e7f7e5b618e5d1ee753281071ffeacbff3e9f35d34ddb9f",
+    "oldAfterDigest": "1cddf8e35590a8c80e7f7e5b618e5d1ee753281071ffeacbff3e9f35d34ddb9f",
+    "digestDefinition": "referenceDigest 的逐目录 localeCompare 排序相对路径到 SHA256 映射，排除本项 psd-session-* 后，对无缩进 JSON.stringify 再计算 SHA256",
+    "allRegisteredOldFilesUnchanged": true
+  },
+  "beforeMigration": {
+    "command": "npm test",
+    "productionBuildOfOriginalHead": true,
+    "tests": 15,
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 176581.803417,
+    "sessionDurationMs": 38618.466458,
+    "sessionDesktopId": "momentum-regression-MzTy0D",
+    "referenceReadonlyReplayPassedBeforeMigration": true
+  },
+  "afterMigrationTargeted": {
+    "command": "node --test --test-concurrency=1 tests/psd-session.test.mjs tests/psd-tabs.test.mjs tests/psd-upload.test.mjs",
+    "tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 58971.5975,
+    "sessionDesktopId": "momentum-regression-hTrmQo"
+  },
+  "commands": [
+    { "command": "临时 AST 迁移与注入审计", "exitCode": 0 },
+    { "command": "npm run lint", "exitCode": 0 },
+    { "command": "npm run check:size", "exitCode": 0, "sizeViolations": 0 },
+    { "command": "npm run build", "exitCode": 0 },
+    { "command": "git diff --check", "exitCode": 0 }
+  ],
+  "afterMigrationFullSuite": {
+    "command": "npm test",
+    "tests": 15,
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 176707.640375,
+    "sessionDurationMs": 38691.362625,
+    "sessionDesktopId": "momentum-regression-3MRATz",
+    "originalPsdPixelScenes": 154,
+    "hoverStates": 28,
+    "hoverPngComparisons": 12,
+    "uploadPixelComparisons": 16,
+    "newSessionReferencePngComparisons": 28,
+    "newSessionRoundTrips": 10,
+    "differentCommonControls": ["互斥", "动作互斥", "表情互斥"],
+    "closing": ["不同素材非活动文件", "不同素材当前文件", "最后文件画布清空", "两份素材重新导入初始画布及图层"],
+    "retainedCoverage": ["预设快照与编辑状态区别", "跨素材预设删除与真实应用重启", "固定 1024x700 DPR1 布局", "十标签切换关闭", "损坏 PSD 不创建标签且不计成功", "上传失败与拖放", "配置保存与预览"],
+    "isolation": "复用真实隔离 Electron 引导，禁止用户配置、密钥、Python 与外网；各桌面 close 后检查退出违规为空"
+  },
+  "lines": {
+    "pageBefore": 8534,
+    "pageAfter": 8143,
+    "pageReduction": 391,
+    "newModule": 447,
+    "scenario": 237,
+    "test": 6,
+    "recordEntry": 8,
+    "newOversizedSourceFiles": 0
+  },
+  "sourceHashes": {
+    "page": "924e2eba630bfce53d21cd0260ae916adc66d3a48bb6189632002fda6b10f621",
+    "sessionModule": "8b52b70b4a107fc8f19e8301bb5b9d3ea902f7dd0bb931685ff7c62d8ddf9ecc"
+  },
+  "independentIssues": [
+    {
+      "record": "tests/evidence/psd-session-original-layer-issue-20260906.json",
+      "finding": "原版星空后发叶图层关闭后首次切回，DOM 完全一致而画布有 33974 个 RGBA 像素差异",
+      "fixedHere": false
+    },
+    {
+      "finding": "移除当前 PSD 且还有文件时，先删除 psdStatesCache[removedId]，随后 switchPsdFile 仍保存 currentPsdFile，从而重新建立刚删除的状态缓存项",
+      "basis": "原 removePsdFile → switchPsdFile → savePsdState 顺序的静态审计",
+      "runtimePrivateStateInspected": false,
+      "fixedHere": false,
+      "preservedMechanically": true
+    }
+  ],
+  "earlyCandidates": [
+    { "directory": "psd-session-renderer1024-dpr1-v1", "completeManifest": false, "reason": "测试在展开图层遮挡部件标签时点击预设，真实指针无法到达；补上公开折叠操作，无强制点击" },
+    { "directory": "psd-session-renderer1024-dpr1-v2", "completeManifest": false, "reason": "A 素材取消第一个勾选叶图层恰好撤销刚选部件，最终画布与初始相同，被有效编辑断言拒绝；改选第二个叶图层" },
+    { "directory": "psd-session-renderer1024-dpr1-v3", "completeManifest": false, "reason": "发现并保留独立后发像素恢复问题；没有把故障输出批准为正确参考或覆盖已有文件" }
+  ],
+  "untested": [
+    "本项仅在记录的 macOS arm64 Electron 环境运行，未做其他平台、DPR 或外部素材扩展",
+    "后发故障的正确恢复期望仍失败，未修复；通过的前手场景不能代替该项验收",
+    "未新增预设与模板加载刻意延迟、100ms 内快速并发切换及过期目标分支的 UI 压力场景；原异步顺序与两次 ID 复核由 AST 完整等价核验",
+    "未通过私有 Vue 状态注入覆盖缺少 ID、找不到文件等 UI 不可达输入，相关分支原样迁移",
+    "全局模板列表及选择未新增单独 UI 生命周期场景，未移动其数据容器或改动原清选择语句",
+    "原生操作系统文件对话框与拖放人工验收未新增，仍复用隔离测试边界"
+  ]
+}
