@@ -131,3 +131,36 @@
   flex-wrap: wrap;
   gap: 12px;
 }
+
+.open-source-footer {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-top: 1px solid var(--theme-border);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.open-source-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--theme-primary);
+  text-decoration: none;
+}
+
+.open-source-link:hover,
+.open-source-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.open-source-description {
+  min-width: 0;
+  color: var(--theme-foreground-secondary);
+  overflow-wrap: anywhere;
+}

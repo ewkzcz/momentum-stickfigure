@@ -1291,6 +1291,20 @@
       </div>
 
     </div>
+    <footer class="open-source-footer">
+      <span class="open-source-description">
+        如果这个项目对你有帮助，欢迎 Star ⭐ 支持，也欢迎二次开发、提交 Issue 或 PR 一起改进。
+        <a
+          class="open-source-link"
+          :href="openSourceUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="打开 GitHub 开源仓库"
+          title="打开 GitHub 开源仓库"
+          @click="openSourceRepository"
+        ><span aria-hidden="true">↗</span></a>
+      </span>
+    </footer>
   </div>
 </template>
 
@@ -1306,6 +1320,23 @@ import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-c
 const route = useRoute()
 const message = useMessage()
 const dialog = useDialog()
+
+const openSourceUrl = 'https://github.com/ewkzcz/momentum-stickfigure'
+
+const openSourceRepository = async (event) => {
+  if (!window.electronAPI?.shell?.openExternal) return
+
+  event.preventDefault()
+  try {
+    const result = await window.electronAPI.shell.openExternal(openSourceUrl)
+    if (!result?.success) {
+      message.error('打开开源仓库失败，请稍后重试')
+    }
+  } catch (error) {
+    console.error('打开开源仓库失败:', error)
+    message.error('打开开源仓库失败，请稍后重试')
+  }
+}
 
 const SAVE_RESTART_HINT = '部分配置需要重启才能生效'
 const SAVE_RESTART_MESSAGE = `设置已保存，${SAVE_RESTART_HINT}`
