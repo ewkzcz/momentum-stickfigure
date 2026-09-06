@@ -2,7 +2,7 @@
 import vue from 'eslint-plugin-vue'
 
 const nodeGlobals = Object.fromEntries(['Buffer', 'URL', 'console', 'process', 'global', 'require', 'module', '__dirname', '__filename', 'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate'].map((name) => [name, 'readonly']))
-const browserGlobals = Object.fromEntries(['window', 'document', 'location', 'navigator', 'btoa', 'atob', 'Image', 'HTMLImageElement', 'MouseEvent', 'requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'FileReader', 'Blob', 'localStorage', 'sessionStorage', 'ResizeObserver', 'MutationObserver', 'IntersectionObserver'].map((name) => [name, 'readonly']))
+const browserGlobals = Object.fromEntries(['window', 'document', 'location', 'navigator', 'btoa', 'atob', 'Image', 'HTMLImageElement', 'MouseEvent', 'requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'FileReader', 'File', 'Blob', 'localStorage', 'sessionStorage', 'ResizeObserver', 'MutationObserver', 'IntersectionObserver'].map((name) => [name, 'readonly']))
 
 export default [
   { ignores: ['node_modules/**', 'out/**', 'dist/**', 'temp/**', 'release/**'] },

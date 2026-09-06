@@ -3870,115 +3870,6 @@ let processFile = async () => {}
  */
 let setSavePsdPathToHistory = () => {}
 
-// ==================== 文件上传处理 ====================
-// 拖拽上传逻辑已提取到 usePsdUpload composable
-// 将在 PSD 解析器初始化后再初始化上传逻辑（因为需要 processFile 依赖）
-
-/**
- * 使用Electron Dialog选择PSD文件
- * 处理流程：
- * 1、打开系统选择框并处理取消或失败结果
- * 2、过滤已打开路径，逐个读取文件并调用解析入口
- * 3、汇总加载结果、清理消息并释放上传状态
- */
-const handleSelectPsdFiles = async () => {
-  // 1、等待文件选择结果，无有效路径时提前结束
-  try {
-    const result = await window.electronAPI?.selectPsdFiles?.()
-    
-    if (!result || !result.success) {
-      if (!result?.canceled) {
-        message.error('选择文件失败')
-      }
-      return
-    }
-    
-    if (result.filePaths.length === 0) {
-      return
-    }
-    
-    console.log('📂 用户选择的文件路径:', result.filePaths)
-    
-    isUploading.value = true
-    let successCount = 0
-    let failCount = 0
-    const totalFiles = result.filePaths.length
-    
-  // 2、去重后逐个读取并处理文件，保留真实路径供后续缓存使用
-  const openedPaths = new Set(
-    psdFiles.value
-      .filter(psd => psd.filePath)
-      .map(psd => psd.filePath)
-  )
-  const uniquePaths = result.filePaths.filter(p => !openedPaths.has(p))
-  const alreadyOpenedCount = result.filePaths.length - uniquePaths.length
-
-  for (let i = 0; i < uniquePaths.length; i++) {
-    const filePath = uniquePaths[i]
-    try {
-      message.loading(`正在处理 ${i + 1}/${uniquePaths.length}: ${filePath.split(/[\\/]/).pop()}`, { 
-        duration: 0, 
-        key: 'parse-dialog' 
-      })
-      
-      // 读取文件
-      const fileBuffer = await window.electronAPI?.readFile?.(filePath)
-      if (!fileBuffer) {
-        console.error('无法读取文件:', filePath)
-        failCount++
-        continue
-      }
-      
-      // 创建File对象并添加path属性
-      const fileName = filePath.split(/[\\/]/).pop()
-      const file = new File([fileBuffer], fileName, { type: 'application/octet-stream' })
-      
-      // 强制设置path属性
-      Object.defineProperty(file, 'path', {
-        value: filePath,
-        writable: false,
-        enumerable: true,
-        configurable: false
-      })
-      
-      console.log('📁 处理文件，路径:', file.path)
-      
-      // 处理文件
-      await processFile(file, false)
-      successCount++
-    } catch (error) {
-      console.error(`处理文件失败: ${filePath}`, error)
-      failCount++
-    }
-  }
-    
-    // 3、循环结束后统一清理提示，再报告成功、已打开和失败数量
-    message.destroyAll()
-    
-    // 显示最终结果
-    if (successCount > 0 || alreadyOpenedCount > 0 || failCount > 0) {
-      const parts = []
-      if (successCount > 0) parts.push(`成功上传 ${successCount} 个`)
-      if (alreadyOpenedCount > 0) parts.push(`${alreadyOpenedCount} 个已打开`)
-      if (failCount > 0) parts.push(`${failCount} 个失败`)
-      
-      if (successCount > 0) {
-        message.success(parts.join('，'))
-      } else if (alreadyOpenedCount > 0) {
-        message.info(parts.join('，'))
-      } else {
-        message.error(parts.join('，'))
-      }
-    }
-    
-  } catch (error) {
-    console.error('选择PSD文件失败:', error)
-    message.error('选择文件失败: ' + error.message)
-  } finally {
-    isUploading.value = false
-  }
-}
-
 // ==================== PSD历史记录管理 ====================
 // 使用 composable 管理历史记录（依赖 processFile，将在 usePsdParser 初始化后再初始化）
 let psdHistoryFunctions = null
@@ -8111,7 +8002,8 @@ const {
   isDragOver,
   handleDragOver,
   handleDragLeave,
-  handleDrop
+  handleDrop,
+  handleSelectPsdFiles
 } = usePsdUpload({
   message,
   psdFiles,

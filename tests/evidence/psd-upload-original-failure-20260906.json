@@ -1,0 +1,23 @@
+{
+  "originalHead": "4e9adc6a12383a90d8acd57389a74fcf44c1a51b",
+  "desiredFailureExpectation": "损坏 PSD 应报告失败而不是新增有效标签",
+  "earlierAssertion": "成功上传 1 个，1 个失败",
+  "earlierAssertionPassed": false,
+  "observed": {
+    "tabs": [
+      "有效人物.psd",
+      "损坏人物.psd",
+      "后续有效人物.psd"
+    ],
+    "active": "有效人物.psd",
+    "messages": [
+      {
+        "text": "成功上传 2 个",
+        "className": "n-message n-message--success-type"
+      }
+    ]
+  },
+  "originalPixelsUnchanged": true,
+  "desktopId": "momentum-regression-GCOTtz",
+  "finding": "原版 PSD 服务包装响应外层 success=true，内层 data.success=false；parsePsdFile 只检查外层，将错误对象当作数据返回，processFile 新增无效标签且不抛出，选择循环将其计入 successCount。本次不修复，也不把现状断言当成损坏文件校验正确。"
+}

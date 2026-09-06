@@ -1,0 +1,382 @@
+{
+  "version": 1,
+  "responsibility": "原生 PSD 选择与批量读取协调归入已有 usePsdUpload",
+  "originalHead": "4e9adc6a12383a90d8acd57389a74fcf44c1a51b",
+  "logs": "temp/psd-upload-validation-Sg8F2S",
+  "referenceProtection": {
+    "fileCount": 220,
+    "beforeDigest": "1704dcceb234e7af2032cfcf5774f00392ee52e9120e9b64bdf9c2db5c26003b",
+    "readOnly": true,
+    "afterDigest": "1704dcceb234e7af2032cfcf5774f00392ee52e9120e9b64bdf9c2db5c26003b",
+    "allUnchanged": true
+  },
+  "earlierTestHarnessFailures": [
+    {
+      "stage": "原版首次定向测试",
+      "reason": "消息消失动画期间同时有成功和已打开两条消息，单节点 waitFor 触发严格选择器错误；改成等待消息节点总数归零，未改变业务或期望"
+    }
+  ],
+  "knownOriginalFailure": {
+    "originalHead": "4e9adc6a12383a90d8acd57389a74fcf44c1a51b",
+    "desiredFailureExpectation": "损坏 PSD 应报告失败而不是新增有效标签",
+    "earlierAssertion": "成功上传 1 个，1 个失败",
+    "earlierAssertionPassed": false,
+    "observed": {
+      "tabs": [
+        "有效人物.psd",
+        "损坏人物.psd",
+        "后续有效人物.psd"
+      ],
+      "active": "有效人物.psd",
+      "messages": [
+        {
+          "text": "成功上传 2 个",
+          "className": "n-message n-message--success-type"
+        }
+      ]
+    },
+    "originalPixelsUnchanged": true,
+    "desktopId": "momentum-regression-GCOTtz",
+    "finding": "原版 PSD 服务包装响应外层 success=true，内层 data.success=false；parsePsdFile 只检查外层，将错误对象当作数据返回，processFile 新增无效标签且不抛出，选择循环将其计入 successCount。本次不修复，也不把现状断言当成损坏文件校验正确。"
+  },
+  "beforeMigration": {
+    "command": "node --test --test-reporter=tap tests/psd-upload.test.mjs",
+    "exitCode": 0,
+    "durationMs": 15751,
+    "log": "1788730739994-node---test.log",
+    "sha256": "8bad96152605be21976204fee392b2f66d5ba59bab653eac00a7ce30ae29e629",
+    "totals": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "uploadPixelComparisons": 15,
+    "psdPixelScenes": 0,
+    "hoverStates": 0,
+    "uploadResults": [
+      {
+        "desktopId": "momentum-regression-EfBPnP",
+        "observed": {
+          "input": "真实上传按钮及合成 DataTransfer 事件，非操作系统原生拖放验收",
+          "scenes": [
+            {
+              "name": "按钮导入",
+              "message": "成功上传 1 个",
+              "type": "success",
+              "tabs": 1
+            },
+            {
+              "name": "重复已打开路径",
+              "message": "1 个已打开",
+              "type": "info",
+              "tabs": 1
+            },
+            {
+              "name": "取消并返回空路径",
+              "messages": 0,
+              "tabs": 1
+            },
+            {
+              "name": "不存在与有效文件混合",
+              "message": "成功上传 1 个，1 个失败",
+              "type": "success",
+              "tabs": 2,
+              "readFailure": "生产 read-file 返回 null"
+            },
+            {
+              "name": "损坏与有效文件混合（原版缺陷现状）",
+              "message": "成功上传 2 个",
+              "type": "success",
+              "tabs": 4,
+              "knownDefect": "内层解析失败未抛出，无效标签也被 successCount 计入成功；并非正确的损坏文件校验"
+            },
+            {
+              "name": "合成拖入及拖离",
+              "highlight": [
+                true,
+                false
+              ]
+            },
+            {
+              "name": "无路径 File 合成 drop",
+              "message": "成功加载 1 个",
+              "type": "success",
+              "tabs": 5,
+              "bytesEqual": true,
+              "savedByProductionIpc": true
+            },
+            {
+              "name": "非 PSD 拖放拒绝",
+              "message": "请拖放PSD文件",
+              "type": "warning",
+              "tabs": 5,
+              "noSavedFile": true
+            }
+          ],
+          "loadingMessagesRemaining": 0,
+          "passed": true
+        },
+        "isolationViolations": []
+      }
+    ]
+  },
+  "migration": {
+    "selectorAstUnchanged": true,
+    "originalDragModuleAstUnchanged": true,
+    "remainingPageAstUnchanged": true,
+    "templateAndStyleUnchanged": true,
+    "processFileReassignments": 1,
+    "realParserBeforeUploadBeforeHistory": true,
+    "uploadingRefCount": 1,
+    "uploadingReferencedByTemplate": false,
+    "lines": {
+      "pageBefore": 8642,
+      "pageAfter": 8534,
+      "uploadBefore": 235,
+      "uploadAfter": 341
+    }
+  },
+  "commands": [
+    {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "durationMs": 583,
+      "log": "1788731136752-npm-run.log",
+      "sha256": "0ad0029c938082154ca3f71bb20e8e37bd898ab7f2a311cad436226664a9adaf"
+    },
+    {
+      "command": "npm run check:size",
+      "exitCode": 0,
+      "durationMs": 122,
+      "log": "1788731136874-npm-run.log",
+      "sha256": "99280357f3d57bb45b8fdff697432f414ff076c7dfa51c4deaa6084d19c3ad4e"
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "durationMs": 2971,
+      "log": "1788731139846-npm-run.log",
+      "sha256": "751e051832b467d475ff39a3b451763035b1523f2b049f3c297ef026738d9b27"
+    }
+  ],
+  "afterMigration": {
+    "command": "node --test --test-reporter=tap tests/psd-upload.test.mjs",
+    "exitCode": 0,
+    "durationMs": 16066,
+    "log": "1788731155912-node---test.log",
+    "sha256": "e4903c590de340975afffa113cc3579ccb17341e4a44a108b74e7562a05157d9",
+    "totals": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "uploadPixelComparisons": 15,
+    "psdPixelScenes": 0,
+    "hoverStates": 0,
+    "uploadResults": [
+      {
+        "desktopId": "momentum-regression-L8Kt76",
+        "observed": {
+          "input": "真实上传按钮及合成 DataTransfer 事件，非操作系统原生拖放验收",
+          "scenes": [
+            {
+              "name": "按钮导入",
+              "message": "成功上传 1 个",
+              "type": "success",
+              "tabs": 1
+            },
+            {
+              "name": "重复已打开路径",
+              "message": "1 个已打开",
+              "type": "info",
+              "tabs": 1
+            },
+            {
+              "name": "取消并返回空路径",
+              "messages": 0,
+              "tabs": 1
+            },
+            {
+              "name": "不存在与有效文件混合",
+              "message": "成功上传 1 个，1 个失败",
+              "type": "success",
+              "tabs": 2,
+              "readFailure": "生产 read-file 返回 null"
+            },
+            {
+              "name": "损坏与有效文件混合（原版缺陷现状）",
+              "message": "成功上传 2 个",
+              "type": "success",
+              "tabs": 4,
+              "knownDefect": "内层解析失败未抛出，无效标签也被 successCount 计入成功；并非正确的损坏文件校验"
+            },
+            {
+              "name": "合成拖入及拖离",
+              "highlight": [
+                true,
+                false
+              ]
+            },
+            {
+              "name": "无路径 File 合成 drop",
+              "message": "成功加载 1 个",
+              "type": "success",
+              "tabs": 5,
+              "bytesEqual": true,
+              "savedByProductionIpc": true
+            },
+            {
+              "name": "非 PSD 拖放拒绝",
+              "message": "请拖放PSD文件",
+              "type": "warning",
+              "tabs": 5,
+              "noSavedFile": true
+            }
+          ],
+          "loadingMessagesRemaining": 0,
+          "passed": true
+        },
+        "isolationViolations": []
+      }
+    ]
+  },
+  "fullSuite": {
+    "command": "npm test",
+    "exitCode": 0,
+    "durationMs": 137340,
+    "log": "1788731293249-npm-test.log",
+    "sha256": "92821b09b1050e876e39ec65e122eb80302ed49164e6b288344037f6489ed42d",
+    "totals": {
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "uploadPixelComparisons": 15,
+    "psdPixelScenes": 154,
+    "hoverStates": 28,
+    "uploadResults": [
+      {
+        "desktopId": "momentum-regression-tsz3dH",
+        "observed": {
+          "input": "真实上传按钮及合成 DataTransfer 事件，非操作系统原生拖放验收",
+          "scenes": [
+            {
+              "name": "按钮导入",
+              "message": "成功上传 1 个",
+              "type": "success",
+              "tabs": 1
+            },
+            {
+              "name": "重复已打开路径",
+              "message": "1 个已打开",
+              "type": "info",
+              "tabs": 1
+            },
+            {
+              "name": "取消并返回空路径",
+              "messages": 0,
+              "tabs": 1
+            },
+            {
+              "name": "不存在与有效文件混合",
+              "message": "成功上传 1 个，1 个失败",
+              "type": "success",
+              "tabs": 2,
+              "readFailure": "生产 read-file 返回 null"
+            },
+            {
+              "name": "损坏与有效文件混合（原版缺陷现状）",
+              "message": "成功上传 2 个",
+              "type": "success",
+              "tabs": 4,
+              "knownDefect": "内层解析失败未抛出，无效标签也被 successCount 计入成功；并非正确的损坏文件校验"
+            },
+            {
+              "name": "合成拖入及拖离",
+              "highlight": [
+                true,
+                false
+              ]
+            },
+            {
+              "name": "无路径 File 合成 drop",
+              "message": "成功加载 1 个",
+              "type": "success",
+              "tabs": 5,
+              "bytesEqual": true,
+              "savedByProductionIpc": true
+            },
+            {
+              "name": "非 PSD 拖放拒绝",
+              "message": "请拖放PSD文件",
+              "type": "warning",
+              "tabs": 5,
+              "noSavedFile": true
+            }
+          ],
+          "loadingMessagesRemaining": 0,
+          "passed": true
+        },
+        "isolationViolations": []
+      }
+    ]
+  },
+  "fileDetails": {
+    "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.vue": {
+      "lines": 8534,
+      "sha256": "7ea289ce6ecd1dfc80548046a7e55fbc919c1a1547c46b7ecaf03fae2ba18e4e"
+    },
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdUpload.js": {
+      "lines": 341,
+      "sha256": "50784f3530f2615ef1a22ff322cff8cf14ad63337d8998fcf0abe47a33b7a2af"
+    },
+    "tests/psd-upload.test.mjs": {
+      "lines": 186,
+      "sha256": "0dff251cda6bff5798470fcf90f80f30b59f8f2cb6c1cb9e5995d3df7d0e5005"
+    },
+    "package.json": {
+      "lines": 56,
+      "sha256": "2f17a984ba7b93ea190b3abac2a52bb6090652668c1d3ec089e549bffa434093"
+    },
+    "eslint.config.mjs": {
+      "lines": 17,
+      "sha256": "1e811d8abf59bad2fea047b25233c0da2d43a3b6478edd0712ec73702b2d6b6a"
+    }
+  },
+  "untested": [
+    "合成输入事件桌面集成测试不等于操作系统原生拖放验收",
+    "空路径由原生对话框测试边界返回 canceled=true，未单独注入 success=true 且空路径的异常组合",
+    "仅从 DOM 确认加载消息结束；isUploading 未绑定可见加载控件，以唯一 ref 及 finally 语法树不变证明状态释放逻辑未变",
+    "未新增超过 300MB 文件、真实系统对话框人工交互、多平台、并发选择或临时文件保存失败注入测试；原算法及 300MB 运算语义均由 AST 核验保留"
+  ],
+  "parentReview": {
+    "ast": "选择函数、原拖放模块、剩余页面可执行语句及模板样式独立复核通过",
+    "commands": "lint、规模、构建与完整桌面回归重新通过",
+    "tests": 13,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 137810.363542,
+    "knownFailureDisposition": "迁移等价通过不代表损坏PSD校验正确；下一独立修复保留正确失败断言，修复前必须实际失败，修复后同断言通过",
+    "temporaryAuditRemoved": true
+  },
+  "validationRecordedBeforeCommit": true,
+  "completedAt": "2026-09-06T21:48:13.868Z",
+  "originalBuild": {
+    "command": "npm run build",
+    "exitCode": 0,
+    "observation": "首次前台命令直接输出确认，迁移前业务源码与 originalHead 一致"
+  },
+  "auditNote": "首次 npm test 实际为 13 项全通过，但统计器只接受 TAP 的 # 前缀，遇到默认报告器 ℹ 汇总时明确报错；没有把解析失败当作零。已兼容两种实际格式并修正悬浮日志前缀，重新完整执行全部命令并强制断言 13 项、154 PSD 场景、28 悬浮状态、15 上传像素比较。",
+  "temporaryAuditRemovedAfterExecution": true,
+  "eslintBrowserGlobal": "将浏览器标准 File 追加为只读全局；没有禁用规则或新增依赖"
+}
