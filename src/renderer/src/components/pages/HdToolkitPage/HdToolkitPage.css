@@ -1,0 +1,29 @@
+.hd-toolkit-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 16px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.hd-toolkit-main-tabs {
+  margin-bottom: 2px;
+}
+
+.hd-toolkit-main-tabs :deep(.n-tabs-content) {
+  display: none;
+}
+
+.hd-toolkit-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 8px;
+  padding-top: 0;
+  box-sizing: border-box;
+}
+
+.hd-toolkit-component {
+  min-height: 100%;
+}

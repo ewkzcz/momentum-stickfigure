@@ -1,0 +1,52 @@
+/* 按钮动画 */
+.motion-button {
+  transition: all 0.15s ease;
+}
+
+.motion-button:hover {
+  transform: scale(1.05);
+}
+
+.motion-button:active {
+  transform: scale(0.95);
+}
+
+/* 卡片动画 - 在HomePage中使用 */
+.motion-card {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.motion-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
+}
+
+/* 渐变背景动画 - 在HomePage中使用 */
+.motion-gradient {
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: motion-gradient 15s ease infinite;
+}
+
+@keyframes motion-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 无障碍支持 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

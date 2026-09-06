@@ -1,0 +1,245 @@
+.layout-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--theme-background);
+}
+
+/* ==================== 顶部导航栏 ==================== */
+.app-header {
+  height: 38px; /* 适度压缩高度 */
+  background-color: var(--theme-sidebar);
+  border-bottom: 1px solid var(--theme-sidebar-border);
+  display: flex;
+  align-items: center;
+  padding: 2px 12px; /* 上下2px */
+  gap: 8px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+}
+
+.primary-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav-item-wrapper {
+  position: relative;
+  /* 压缩上下悬停区域 */
+  padding: 5px 0; /* 从10px压缩到0 */
+}
+
+/* 默认隐藏二级菜单 */
+.nav-item-wrapper .submenu-dropdown {
+  display: none;
+}
+
+/* 悬停时显示二级菜单 - 使用 CSS hover，最可靠 */
+.nav-item-wrapper:hover .submenu-dropdown {
+  display: block;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 12px; /* 上下2px，左右适度 */
+  border-radius: 4px;
+  color: var(--theme-sidebar-foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  font-size: 14px;
+  line-height: 16px; /* 字号+2px */
+  height: 28px; /* 适度高度 */
+}
+
+.nav-item:hover {
+  background-color: var(--theme-sidebar-accent);
+  color: var(--theme-primary);
+}
+
+.nav-item.active {
+  background-color: var(--theme-primary);
+  color: white;
+}
+
+.nav-item.has-children {
+  padding-right: 12px;
+}
+
+.nav-icon {
+  font-size: 16px; /* 保持16px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-label {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 16px; /* 字号+2px */
+}
+
+.nav-arrow {
+  font-size: 10px;
+  margin-left: 2px;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.nav-item:hover .nav-arrow {
+  transform: translateY(2px);
+}
+
+/* 二级下拉菜单 */
+.submenu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 180px;
+  background: var(--theme-background-card);
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+  z-index: 1000;
+  /* 向上略微重叠，确保鼠标从一级到二级无缝过渡 */
+  margin-top: -10px;
+  padding-top: 14px;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px; /* 上下适度空白 */
+  border-radius: 4px;
+  color: var(--theme-foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  line-height: 16px; /* 字号+2px */
+}
+
+.submenu-item:hover {
+  background-color: var(--theme-sidebar-accent);
+  color: var(--theme-primary);
+}
+
+.submenu-item.active {
+  background-color: rgba(24, 160, 88, 0.1);
+  color: var(--theme-primary);
+  font-weight: 500;
+}
+
+.submenu-icon {
+  font-size: 16px; /* 保持16px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submenu-label {
+  white-space: nowrap;
+}
+
+
+/* 右侧操作区 */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px; /* 从8px压缩到4px */
+  flex-shrink: 0;
+}
+
+.action-button {
+  width: 28px; /* 适度尺寸 */
+  height: 28px; /* 适度尺寸 */
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--theme-sidebar-foreground);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: var(--theme-sidebar-accent);
+  color: var(--theme-primary);
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  font-size: 16px; /* 适度尺寸 */
+}
+
+.header-actions .n-button {
+  min-width: auto;
+  font-size: 14px !important;
+  line-height: 16px !important; /* 字号+2px */
+  height: 28px !important; /* 适度高度 */
+  padding: 0 10px !important; /* 适度padding */
+}
+
+/* 置顶按钮视觉优化 */
+.header-actions .n-button-type-primary {
+  box-shadow: 0 0 0 1px rgba(24,160,88,0.25) inset;
+}
+
+.header-actions .n-button.n-button--quaternary-type {
+  border: 1px solid var(--theme-sidebar-border);
+}
+
+/* 主内容区域 */
+.main-content {
+  flex: 1;
+  background: var(--theme-background);
+  overflow: hidden;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .nav-label {
+    display: none;
+  }
+  
+  .nav-item {
+    padding: 8px;
+  }
+  
+  .nav-arrow {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 12px;
+    gap: 12px;
+  }
+  
+  .brand-title {
+    font-size: 16px;
+  }
+  
+  .brand-version {
+    display: none;
+  }
+  
+  .primary-nav {
+    gap: 2px;
+  }
+}
+
+

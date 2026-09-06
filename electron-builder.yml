@@ -1,0 +1,40 @@
+appId: com.momentum.stickfigure.open
+productName: "时刻简笔画免登录版本"
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**/*
+  - package.json
+  - "!**/*.{map,md,MD}"
+  - "!**/{test,tests,__tests__,examples}/**"
+asar: true
+win:
+  icon: build/logo256.ico
+  executableName: momentum-stick-figure-open
+  target: nsis
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+  differentialPackage: false
+mac:
+  target: dmg
+  icon: build/logo.icns
+  entitlementsInherit: build/entitlements.mac.plist
+  identity: null
+  notarize: false
+dmg:
+  artifactName: ${name}-${version}.${ext}
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Graphics
+appImage:
+  artifactName: ${name}-${version}.${ext}
+npmRebuild: false
+publish: null

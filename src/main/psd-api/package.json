@@ -1,0 +1,23 @@
+{
+  "name": "psd-api",
+  "version": "1.0.0",
+  "description": "PSD文件处理API",
+  "main": "index.js",
+  "type": "commonjs",
+  "keywords": [
+    "psd",
+    "photoshop",
+    "parser",
+    "electron",
+    "api"
+  ],
+  "author": "时刻简笔画团队",
+  "license": "MIT",
+  "dependencies": {
+    "ag-psd": "^28.2.2"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

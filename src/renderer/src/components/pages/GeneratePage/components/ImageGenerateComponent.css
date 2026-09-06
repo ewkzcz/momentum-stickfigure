@@ -1,0 +1,239 @@
+/* 图片生成组件样式 */
+.image-generate-component {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 文件拖拽遮罩层 */
+.file-drag-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(24, 160, 88, 0.15);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.drag-content {
+  background: white;
+  border: 3px dashed #18a058;
+  border-radius: 16px;
+  padding: 60px 80px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  transform: scale(1);
+  animation: bounceIn 0.3s ease;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.drag-icon {
+  font-size: 72px;
+  margin-bottom: 16px;
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.drag-text {
+  font-size: 24px;
+  font-weight: 600;
+  color: #18a058;
+  margin-bottom: 8px;
+}
+
+.drag-hint {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.generate-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  min-height: 600px;
+  padding-bottom: 24px;
+}
+
+.generate-left,
+.generate-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.config-card {
+  flex-shrink: 0;
+}
+
+.result-card {
+  flex-shrink: 0;
+}
+
+.result-content {
+  min-height: 0; /* 移除固定高度，自适应内容 */
+}
+
+/* 空状态样式 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  padding: 40px;
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-color-light);
+}
+
+.empty-icon {
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+/* 图像网格样式 - 向左对齐 */
+.image-grid-container {
+  width: 100%;
+}
+
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 0;
+  justify-content: flex-start; /* 向左对齐 */
+}
+
+.image-item {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  max-height: 400px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-wrapper:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.generated-image {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  display: block;
+}
+
+
+/* 工具类 */
+.mt-2 {
+  margin-top: 8px;
+}
+
+.mb-2 {
+  margin-bottom: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .generate-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .image-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  
+  .image-wrapper {
+    max-width: 300px;
+    max-height: 300px;
+  }
+  
+  .generated-image {
+    max-height: 300px;
+  }
+}
+
+/* 更小的屏幕 */
+@media (max-width: 480px) {
+  .image-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .image-wrapper {
+    max-width: 100%;
+    max-height: 250px;
+  }
+  
+  .generated-image {
+    max-height: 250px;
+  }
+}
+
+/* 高级参数折叠面板样式 */
+.n-collapse .n-collapse-item {
+  margin-bottom: 12px;
+}
+
+/* 滑块样式调整 */
+.n-slider {
+  margin: 16px 0;
+}
+

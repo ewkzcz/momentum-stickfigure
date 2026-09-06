@@ -1,0 +1,302 @@
+/* 
+ * 全局样式文件 - 唯一的样式入口
+ * 包含：重置样式、CSS变量、基础组件样式
+ */
+
+
+/* ==================== CSS 变量系统 ==================== */
+:root {
+  /* 间距系统 */
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  
+  /* 圆角系统 */
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  
+  /* 过渡系统 */
+  --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-colors: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  
+  /* Z-index层级 */
+  --z-dropdown: 1000;
+  --z-modal: 1100;
+  --z-tooltip: 1200;
+}
+
+/* 主题阴影变量 */
+.theme-light {
+  --theme-shadow-light: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --theme-shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.theme-dark {
+  --theme-shadow-light: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --theme-shadow-medium: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ==================== 基础样式重置 ==================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  line-height: 1.6;
+  font-family: 
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif,
+    'Microsoft YaHei',
+    '微软雅黑';
+  text-rendering: optimizeLegibility;
+  color: var(--theme-foreground);
+  background-color: var(--theme-background);
+  transition: var(--transition-colors);
+}
+
+ul {
+  list-style: none;
+}
+
+#app {
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ==================== 焦点和选中样式 ==================== */
+:focus {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+::selection {
+  background: var(--theme-selection-background);
+  color: var(--theme-selection-text);
+}
+
+::-moz-selection {
+  background: var(--theme-selection-background);
+  color: var(--theme-selection-text);
+}
+
+/* ==================== 滚动条样式 ==================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-background-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-colors);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-border-hover);
+}
+
+/* ==================== 基础组件样式 ==================== */
+
+/* 代码样式 */
+code {
+  font-weight: 500;
+  padding: 3px 5px;
+  border-radius: 4px;
+  background-color: var(--theme-background-secondary);
+  color: var(--theme-foreground);
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+  font-size: 85%;
+}
+
+/* 按钮样式 */
+.modern-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-6);
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition-all);
+  user-select: none;
+}
+
+.modern-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.modern-btn--secondary {
+  background: var(--theme-background-card);
+  color: var(--theme-foreground);
+  border-color: var(--theme-border);
+}
+
+.modern-btn--secondary:hover:not(:disabled) {
+  background: var(--theme-background-accent);
+  border-color: var(--theme-border-hover);
+  transform: translateY(-1px);
+}
+
+/* 主题切换过渡 */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ==================== 通用组件样式 ==================== */
+
+/* 自定义滚动条样式 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-border-hover);
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* 空状态样式 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--theme-foreground-muted);
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-state-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-foreground);
+  margin: 0 0 8px 0;
+}
+
+.empty-state-description {
+  font-size: 14px;
+  color: var(--theme-foreground-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* 加载状态样式 */
+.loading-overlay {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+.loading-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--theme-background)60;
+  backdrop-filter: blur(2px);
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* 标签样式 */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--theme-background-accent);
+  color: var(--theme-foreground);
+  border: 1px solid var(--theme-border-light);
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  background: var(--theme-primary)20;
+  border-color: var(--theme-primary);
+}
+
+.tag.tag-selected {
+  background: var(--theme-primary);
+  color: white;
+  border-color: var(--theme-primary);
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+  .empty-state {
+    padding: 32px 16px;
+  }
+  
+  .empty-state-icon {
+    font-size: 36px;
+  }
+  
+  .empty-state-title {
+    font-size: 14px;
+  }
+  
+  .empty-state-description {
+    font-size: 13px;
+  }
+}

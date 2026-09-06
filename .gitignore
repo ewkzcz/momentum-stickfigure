@@ -1,0 +1,53 @@
+# Dependency directories
+node_modules/
+.pnp.cjs
+.pnp.loader.mjs
+
+# Build output
+dist/
+dist-ssr/
+out/
+release/
+
+# Logs and diagnostics
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.eslintcache
+
+# App data & cache
+.npm-cache/
+.parcel-cache
+.vite/
+cache/
+temp/
+output/
+
+# IDE and tooling
+.idea/
+.vscode/
+*.iml
+
+# Environment & local overrides
+.env
+.env.*
+!.env.example
+
+# OS specific noise
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.swp
+*.swo
+*.orig
+*.md
+*.MD
+!README.md
+.claude/
+test/
+*.psd
+*.psb

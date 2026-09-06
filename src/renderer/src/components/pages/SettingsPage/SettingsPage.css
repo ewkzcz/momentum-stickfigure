@@ -1,0 +1,133 @@
+/* 设置页面样式 */
+.settings-page {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--theme-background);
+}
+
+/* 顶部工具栏 */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--theme-background-card);
+  border-bottom: 1px solid var(--theme-border);
+  flex-shrink: 0;
+}
+
+.toolbar-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-foreground);
+}
+
+.page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px 16px;
+  min-height: 0;
+}
+
+.settings-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-tabs :deep(.n-tabs-content) {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+.settings-tabs :deep(.n-tab-pane) {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 设置标签内容容器（用于路由控制的显示） */
+.settings-tab-content {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 设置内容容器 */
+.settings-content {
+  height: 100%;
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 给直接内容（非sub-tabs）的settings-content添加padding */
+.settings-content > .n-card,
+.settings-content > .n-form,
+.settings-content > .n-alert {
+  margin-top: 8px;
+}
+
+/* 设置表单 */
+.settings-form {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* 保存按钮容器 */
+.save-button-container {
+  text-align: left;
+  margin-top: 24px;
+  margin-left: 140px; /* 与表单label-width对齐 */
+  padding-bottom: 12px;
+}
+
+/* 表单项样式 */
+.settings-form .n-form-item {
+  margin-bottom: 18px;
+}
+
+.settings-form .n-form-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 分割线样式 */
+.settings-form .n-divider {
+  margin: 20px 0 16px 0;
+}
+
+.settings-form .n-divider:first-child {
+  margin-top: 0;
+}
+
+/* 自定义滚动条样式 */
+.settings-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-content::-webkit-scrollbar-track {
+  background: var(--theme-background-secondary);
+  border-radius: 3px;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.settings-content::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-primary);
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}

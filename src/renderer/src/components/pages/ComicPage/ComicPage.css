@@ -1,0 +1,361 @@
+/* 多视角排版页面现代化样式 - 完全适配主题系统 */
+
+/* 重置所有多视角排版页面内的元素盒模型 */
+.comic-page * {
+  box-sizing: border-box;
+}
+
+/* 局部滚动条样式 */
+.comic-page ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.comic-page ::-webkit-scrollbar-track {
+  background: var(--theme-background-secondary);
+  border-radius: 4px;
+}
+
+.comic-page ::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.comic-page ::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-primary);
+}
+
+/* 现代化按钮样式 */
+.comic-page .btn {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+  background: var(--theme-background);
+  color: var(--theme-foreground);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.comic-page .btn:hover {
+  background: var(--theme-background-accent);
+  border-color: var(--theme-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.comic-page .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.comic-page .btn-primary {
+  background: var(--theme-primary);
+  border-color: var(--theme-primary);
+  color: white;
+  font-weight: 600;
+}
+
+.comic-page .btn-primary:hover {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.comic-page .btn-secondary {
+  background: var(--theme-background-secondary);
+  border-color: var(--theme-border);
+  color: var(--theme-foreground);
+}
+
+.comic-page .btn-secondary:hover {
+  background: var(--theme-background-accent);
+  border-color: var(--theme-primary);
+}
+
+.comic-page .btn-success {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.comic-page .btn-success:hover {
+  background: #059669;
+  border-color: #059669;
+}
+
+.comic-page .btn-warning {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: white;
+}
+
+.comic-page .btn-warning:hover {
+  background: #d97706;
+  border-color: #d97706;
+}
+
+.comic-page .btn-small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* 现代化面板样式 */
+.comic-page .panel {
+  background: var(--theme-background-card);
+  border: 1px solid var(--theme-border);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-4);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.comic-page .panel:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+
+.comic-page .panel-header {
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--theme-background-accent);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+  color: var(--theme-foreground);
+  border-bottom: 1px solid var(--theme-border);
+  transition: var(--transition-colors);
+}
+
+.comic-page .panel-header:hover {
+  background: var(--theme-background-secondary);
+}
+
+.comic-page .panel-content {
+  padding: var(--spacing-4);
+}
+
+/* 表单控件样式 */
+.comic-page .form-control {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--border-radius-md);
+  font-size: 0.9rem;
+  background: var(--theme-background);
+  color: var(--theme-foreground);
+  transition: var(--transition-colors);
+}
+
+.comic-page .form-control:focus {
+  outline: none;
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+/* 现代化文件上传区域 */
+.comic-page .upload-area {
+  border: 2px dashed var(--theme-border);
+  border-radius: var(--border-radius-md);
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--theme-background);
+  position: relative;
+  overflow: hidden;
+}
+
+.comic-page .upload-area::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transform: rotate(-45deg);
+  transition: all 0.6s ease;
+  opacity: 0;
+}
+
+.comic-page .upload-area:hover::before {
+  animation: shimmer 1.5s ease-in-out infinite;
+  opacity: 1;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(-45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(-45deg); }
+}
+
+.comic-page .upload-area:hover {
+  border-color: var(--theme-primary);
+  background: var(--theme-background-accent);
+}
+
+.comic-page .upload-area.dragover {
+  border-color: var(--theme-primary);
+  background: rgba(102, 126, 234, 0.1);
+  transform: scale(1.02);
+}
+
+/* 图层列表样式 */
+.comic-page .layer-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.comic-page .layer-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--theme-border);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.comic-page .layer-item:hover {
+  background: var(--theme-background-accent);
+}
+
+.comic-page .layer-item.active {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: var(--theme-primary);
+}
+
+.comic-page .layer-preview {
+  width: 40px;
+  height: 30px;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--border-radius-sm);
+  background-size: cover;
+  background-position: center;
+  background-color: var(--theme-background-secondary);
+}
+
+.comic-page .layer-info {
+  flex: 1;
+}
+
+.comic-page .layer-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--theme-foreground);
+}
+
+.comic-page .layer-type {
+  font-size: 0.8rem;
+  color: var(--theme-foreground-muted);
+}
+
+/* 文本样式 */
+.comic-page .text-muted {
+  color: var(--theme-foreground-muted);
+  font-size: 0.8rem;
+}
+
+.comic-page .last-export-info {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--theme-foreground-muted);
+}
+
+/* 加载动画 */
+.comic-page .loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--theme-border);
+  border-top: 2px solid var(--theme-primary);
+  border-radius: 50%;
+  animation: comicSpin 1s linear infinite;
+}
+
+@keyframes comicSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 确保侧边栏宽度稳定 */
+.comic-page .left-sidebar,
+.comic-page .right-sidebar {
+  min-width: 280px;
+  max-width: 280px;
+  flex-shrink: 0;
+}
+
+/* 确保主工作区域稳定 */
+.comic-page .main-workspace {
+  min-width: 0;
+  min-height: 500px;
+}
+
+.comic-page .main-layout {
+  min-height: 0;
+}
+
+/* 响应式设计 - 仅在真正的小屏幕设备上生效 */
+@media (max-width: 900px) and (max-height: 600px) {
+  .comic-page .main-layout {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+  
+  .comic-page .left-sidebar,
+  .comic-page .right-sidebar {
+    width: 100%;
+    min-width: auto;
+    max-width: none;
+    max-height: 250px;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  .comic-page .main-workspace {
+    order: -1;
+    height: 50vh;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 600px) {
+  .comic-page .page-header {
+    padding: var(--spacing-3);
+  }
+  
+  .comic-page .page-title {
+    font-size: 1.25rem;
+  }
+  
+  .comic-page .main-layout {
+    padding: var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+  
+  .comic-page .left-sidebar,
+  .comic-page .right-sidebar {
+    flex-direction: column;
+    max-height: none;
+  }
+  
+  .comic-page .btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}
