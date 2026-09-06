@@ -1,32 +1,12 @@
 <template>
   <div class="action-expression-panel" @selectstart="handleSelectStart">
     <!-- PSD文件标签列表 -->
-    <div v-if="psdFiles.length > 0" class="psd-tabs-bar">
-      <div 
-        class="psd-tabs-container"
-        ref="psdTabsRef"
-        @wheel="handlePsdTabsWheel"
-      >
-        <div 
-          v-for="(psdFile, index) in psdFiles" 
-          :key="psdFile.id"
-          :class="['psd-tab-item', { active: currentPsdFile?.id === psdFile.id }]"
-          @click="switchPsdFile(psdFile)"
-        >
-          <button 
-            class="psd-tab-close"
-            @click.stop="removePsdFile(psdFile.id)"
-            title="移除"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-          <span class="psd-tab-name" :title="psdFile.name">{{ getDisplayFileName(psdFile.name) }}</span>
-        </div>
-      </div>
-    </div>
+    <PsdTabsBar
+      :psd-files="psdFiles"
+      :current-psd-file="currentPsdFile"
+      @select="switchPsdFile"
+      @remove="removePsdFile"
+    />
 
     <!-- 顶部工具栏 -->
     <div 
@@ -1119,12 +1099,12 @@
 import { ref, reactive, computed, onMounted, onUnmounted, onActivated, nextTick, h, watch, shallowRef, markRaw } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { NButton, NTooltip, NDropdown, NCheckbox, useMessage, useDialog } from 'naive-ui'
+import PsdTabsBar from './components/PsdTabsBar.vue'
 import LayerTreePanel from './components/LayerTreePanel.vue'
 import PartSearchModal from './components/PartSearchModal.vue'
 import { 
   normalizeString, 
   sanitizeSegment, 
-  getDisplayFileName, 
   generateId, 
   generatePresetName,
   generateExportFileName
@@ -1231,9 +1211,7 @@ const {
   partsTabsRef,
   partsTabsRow1Ref,
   partsTabsRow2Ref,
-  psdTabsRef,
-  handleTabsWheel,
-  handlePsdTabsWheel
+  handleTabsWheel
 } = useTabsScroll()
 
 // ==================== 状态管理 ====================
