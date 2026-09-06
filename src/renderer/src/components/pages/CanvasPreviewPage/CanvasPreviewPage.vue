@@ -165,7 +165,7 @@ const updateCanvas = (imagePayload) => {
         if (imagePayload.buffer instanceof ArrayBuffer) {
           arrayBuffer = imagePayload.buffer
         } else if (ArrayBuffer.isView(imagePayload.buffer)) {
-          arrayBuffer = imagePayload.buffer.buffer
+          arrayBuffer = imagePayload.buffer.buffer.slice(imagePayload.buffer.byteOffset, imagePayload.buffer.byteOffset + imagePayload.buffer.byteLength)
         } else if (typeof imagePayload.buffer === 'object' && Array.isArray(imagePayload.buffer.data)) {
           arrayBuffer = Uint8Array.from(imagePayload.buffer.data).buffer
         } else if (typeof imagePayload.buffer === 'object' && typeof imagePayload.buffer.byteLength === 'number') {

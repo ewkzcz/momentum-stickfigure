@@ -1142,7 +1142,7 @@ function registerWindowControlHandlers() {
             } else if (buffer instanceof ArrayBuffer) {
               nodeBuffer = Buffer.from(new Uint8Array(buffer))
             } else if (ArrayBuffer.isView(buffer)) {
-              nodeBuffer = Buffer.from(buffer.buffer)
+              nodeBuffer = Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength)
             }
 
             if (nodeBuffer) {
