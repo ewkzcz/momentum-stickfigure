@@ -8846,7 +8846,7 @@ watch(currentPsdData, () => {
 
 </script>
 
-<style scoped src="./ActionExpressionPage.css"></style>
+<style scoped src="./ActionExpressionPage.css"></style><style scoped src="./styles/part-panels.css"></style><style scoped src="./styles/overrides.css"></style>
 
 <!-- 全局样式：设置所有message弹窗位置为屏幕居中80% -->
 <style>
