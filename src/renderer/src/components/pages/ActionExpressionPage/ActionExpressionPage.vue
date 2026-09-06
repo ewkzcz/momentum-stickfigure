@@ -1187,6 +1187,7 @@ import { useKeyboard } from './composables/useKeyboard.js'
 import { useMoreMenu } from './composables/useMoreMenu.js'
 import { useCanvasRender } from './composables/useCanvasRender.js'
 import { useVirtualScroll } from './composables/useVirtualScroll.js'
+import { useCanvasPresetHoverPreview } from './composables/useCanvasPresetHoverPreview.js'
 import { useHoverPreviewSetting } from '../../../composables/useHoverPreviewSetting.js'
 import { createPerformanceLogger } from '@renderer/utils/performanceLogger.js'
 
@@ -1229,8 +1230,6 @@ const {
   canvasAreaStyle
 } = useCanvasState()
 
-// 悬浮预览状态（与模板预览保持一致样式行为）
-const hoverPreview = reactive({ visible: false, src: '', x: 0, y: 0, width: 0, height: 0 })
 // 悬浮预览开关控制（使用 composable 实现同步和持久化）
 // 主画布悬浮预览（仅画布）
 const { hoverPreviewEnabled: enableCanvasHover, toggleHoverPreview: toggleCanvasHoverPreview } = useHoverPreviewSetting({ 
@@ -1242,6 +1241,19 @@ const { hoverPreviewEnabled: enablePresetHover, toggleHoverPreview: togglePreset
   type: 'part',
   source: 'ActionExpressionPage'
 })
+
+// 1、两种开关就绪后传入原始引用，模板状态与关闭监听仍保留在页面。
+const {
+  hoverPreview,
+  presetHoverPreview,
+  buildCanvasDataUrl,
+  handleCanvasHoverEnter,
+  handleCanvasHoverMove,
+  handleCanvasHoverLeave,
+  handlePresetHoverEnter,
+  handlePresetHoverMove,
+  handlePresetHoverLeave
+} = useCanvasPresetHoverPreview({ canvasRef, enableCanvasHover, enablePresetHover })
 
 // ==================== 快捷键信息（用于展示） ====================
 const HOTKEYS_STORAGE_KEY = 'hotkeys-config'
@@ -1544,124 +1556,6 @@ const sendCanvasToGenerate = async (event) => {
     // 4、无论成功、失败或中途返回，都释放发送状态
     isSendingToGenerate.value = false
   }
-}
-
-// =============== 画布悬浮预览（使用canvas快照） ===============
-/**
- * 获取当前画布的 PNG 快照。
- * 处理流程：
- * 1、检查画布尺寸并编码，缺失或失败时返回空字符串
- */
-const buildCanvasDataUrl = () => {
-  // 1、仅对有效画布导出快照，编码异常交由调用方按空值处理
-  try {
-    const canvas = canvasRef.value
-    if (!canvas || !canvas.width || !canvas.height) return ''
-    // PNG 保留当前画布的无损像素内容
-    return canvas.toDataURL('image/png')
-  } catch (e) {
-    console.warn('预览快照失败:', e)
-    return ''
-  }
-}
-
-/**
- * 创建主画布的悬浮预览。
- * 处理流程：
- * 1、检查开关并复制画布，裁除透明留白
- * 2、按窗口限制缩放预览尺寸
- * 3、显示预览并更新鼠标附近的位置
- */
-const handleCanvasHoverEnter = (event) => {
-  // 1、开关关闭或画布未就绪时跳过快照
-  if (!enableCanvasHover.value) return
-  if (!canvasRef.value) return
-  
-  try {
-    // 创建临时canvas并剪切空白像素
-    const tempCanvas = document.createElement('canvas')
-    tempCanvas.width = canvasRef.value.width
-    tempCanvas.height = canvasRef.value.height
-    const tempCtx = tempCanvas.getContext('2d')
-    tempCtx.drawImage(canvasRef.value, 0, 0)
-    
-    // 裁剪空白像素
-    const trimmed = trimWhitespace(tempCanvas)
-    const dataUrl = trimmed.toDataURL('image/png')
-    
-    // 2、计算缩放后的尺寸，保持宽高比
-    const maxWidth = Math.min(window.innerWidth * 0.5, 800)
-    const maxHeight = Math.min(window.innerHeight * 0.7, 600)
-    
-    let width = trimmed.width
-    let height = trimmed.height
-    
-    // 按比例缩放
-    if (width > maxWidth) {
-      height = (maxWidth / width) * height
-      width = maxWidth
-    }
-    if (height > maxHeight) {
-      width = (maxHeight / height) * width
-      height = maxHeight
-    }
-    
-    // 3、提交预览数据并定位浮层
-    hoverPreview.src = dataUrl
-    hoverPreview.visible = true
-    hoverPreview.width = width
-    hoverPreview.height = height
-    
-    handleCanvasHoverMove(event)
-  } catch (error) {
-    console.error('生成画布预览失败:', error)
-  }
-}
-
-/**
- * 更新主画布悬浮预览的位置。
- * 处理流程：
- * 1、读取预览尺寸并计算鼠标偏移位置
- * 2、约束窗口边界后写入浮层坐标
- */
-const handleCanvasHoverMove = (event) => {
-  // 1、隐藏时无需更新位置
-  if (!hoverPreview.visible) return
-  
-  const gap = 12
-  const width = hoverPreview.width || 400
-  const height = hoverPreview.height || 300
-  
-  // 计算位置，确保不超出窗口
-  let x = event.clientX + gap
-  let y = event.clientY + gap
-  
-  // 2、如果右侧空间不足，显示在左侧，再约束其他边界
-  if (x + width > window.innerWidth - 8) {
-    x = event.clientX - width - gap
-  }
-  
-  // 如果下方空间不足，向上调整
-  if (y + height > window.innerHeight - 8) {
-    y = window.innerHeight - height - 8
-  }
-  
-  // 确保不超出左侧和顶部
-  x = Math.max(8, x)
-  y = Math.max(8, y)
-  
-  hoverPreview.x = x
-  hoverPreview.y = y
-}
-
-/**
- * 隐藏主画布悬浮预览。
- * 处理流程：
- * 1、关闭浮层显示状态
- */
-const handleCanvasHoverLeave = () => {
-  // 1、保留快照数据，仅隐藏浮层
-  hoverPreview.visible = false
 }
 
 /**
@@ -4301,121 +4195,6 @@ const getPresetFullDescription = (preset) => {
   })
   
   return `${preset.name}\n${descriptions.join('\n')}`
-}
-
-// 预设悬浮预览状态
-const presetHoverPreview = reactive({ 
-  visible: false, 
-  src: '', 
-  x: 0, 
-  y: 0, 
-  width: 0, 
-  height: 0 
-})
-
-/**
- * 加载预设图片并展示悬浮预览。
- * 处理流程：
- * 1、检查预览开关和图片数据，再开始加载
- * 2、裁除留白并按窗口限制缩放图片
- * 3、写入预览状态并定位浮层
- */
-const handlePresetHoverEnter = (event, preset) => {
-  // 1、无图片或开关关闭时不触发预览
-  if (!enablePresetHover.value) return
-  if (!preset.base64Image) return
-  
-  // 加载图片并剪切空白像素
-  const img = new Image()
-  img.onload = () => {
-    try {
-      // 2、通过临时画布裁除图片透明留白并计算展示尺寸
-      const tempCanvas = document.createElement('canvas')
-      tempCanvas.width = img.width
-      tempCanvas.height = img.height
-      const tempCtx = tempCanvas.getContext('2d')
-      tempCtx.drawImage(img, 0, 0)
-      
-      // 裁剪空白像素
-      const trimmed = trimWhitespace(tempCanvas)
-      const dataUrl = trimmed.toDataURL('image/png')
-      
-      // 计算缩放后的尺寸，保持宽高比
-      const maxWidth = Math.min(window.innerWidth * 0.5, 800)
-      const maxHeight = Math.min(window.innerHeight * 0.7, 600)
-      
-      let width = trimmed.width
-      let height = trimmed.height
-      
-      // 按比例缩放
-      if (width > maxWidth) {
-        height = (maxWidth / width) * height
-        width = maxWidth
-      }
-      if (height > maxHeight) {
-        width = (maxHeight / height) * width
-        height = maxHeight
-      }
-      
-      // 3、提交预览图片及尺寸，按鼠标位置显示
-      presetHoverPreview.src = dataUrl
-      presetHoverPreview.visible = true
-      presetHoverPreview.width = width
-      presetHoverPreview.height = height
-      
-      handlePresetHoverMove(event)
-    } catch (error) {
-      console.error('生成预设预览失败:', error)
-    }
-  }
-  img.src = preset.base64Image
-}
-
-/**
- * 让预设悬浮预览跟随鼠标。
- * 处理流程：
- * 1、计算鼠标右下方的候选坐标
- * 2、修正窗口边界后更新浮层位置
- */
-const handlePresetHoverMove = (event) => {
-  // 1、读取浮层尺寸并确定候选位置
-  if (!presetHoverPreview.visible) return
-  
-  const gap = 12
-  const width = presetHoverPreview.width || 400
-  const height = presetHoverPreview.height || 300
-  
-  // 计算位置，确保不超出窗口
-  let x = event.clientX + gap
-  let y = event.clientY + gap
-  
-  // 2、修正右侧、底部、左侧和顶部的越界位置
-  // 如果右侧空间不足，显示在左侧
-  if (x + width > window.innerWidth - 8) {
-    x = event.clientX - width - gap
-  }
-  
-  // 如果下方空间不足，向上调整
-  if (y + height > window.innerHeight - 8) {
-    y = window.innerHeight - height - 8
-  }
-  
-  // 确保不超出左侧和顶部
-  x = Math.max(8, x)
-  y = Math.max(8, y)
-  
-  presetHoverPreview.x = x
-  presetHoverPreview.y = y
-}
-
-/**
- * 关闭预设悬浮预览。
- * 处理流程：
- * 1、将预设浮层设为隐藏
- */
-const handlePresetHoverLeave = () => {
-  // 1、隐藏当前预设浮层
-  presetHoverPreview.visible = false
 }
 
 // 模板悬浮预览状态

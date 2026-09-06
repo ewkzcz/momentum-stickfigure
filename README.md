@@ -122,6 +122,8 @@ npm test
 
 每次运行的实际图片、状态、日志及隔离检查留在命令输出标明的临时目录，仅供本地核查，请勿上传私人素材和原始日志。
 
+主画布与预设悬浮预览可单独运行 `node --test tests/canvas-preset-hover.test.mjs`，覆盖真实鼠标移入、移动、移出及两种预览开关，核验浮层 PNG 和布局。此独立参考来自 `b2aad27` 的未迁移源码，默认子目录为 `canvas-preset-hover-renderer1024-dpr1-v1`；`tests/record-hover-preview.mjs` 只允许在该基准提交、业务源码干净时显式创建新目录，回归不会自动补建或覆盖参考。
+
 ## 联系方式
 
 软件使用问题或获取帮助，可加入 QQ 群咨询：902990261
