@@ -62,7 +62,21 @@ export async function assertSamePixels(actual, expected, label) {
   const [left, right] = await Promise.all([decodePng(actual), decodePng(expected)])
   assert.equal(left.width, right.width, `${label}：宽度改变`)
   assert.equal(left.height, right.height, `${label}：高度改变`)
-  assert.ok(left.rgba.equals(right.rgba), `${label}：RGBA 存在差异，禁止替换参考图消除失败`)
+  if (left.rgba.equals(right.rgba)) return
+  let differentPixels = 0
+  const bounds = { left: left.width, top: left.height, right: -1, bottom: -1 }
+  for (let index = 0; index < left.rgba.length; index += 4) {
+    if (!left.rgba.subarray(index, index + 4).equals(right.rgba.subarray(index, index + 4))) {
+      differentPixels++
+      const x = (index / 4) % left.width
+      const y = Math.floor(index / 4 / left.width)
+      bounds.left = Math.min(bounds.left, x)
+      bounds.top = Math.min(bounds.top, y)
+      bounds.right = Math.max(bounds.right, x)
+      bounds.bottom = Math.max(bounds.bottom, y)
+    }
+  }
+  assert.equal(differentPixels, 0, `${label}：${differentPixels} 个 RGBA 像素存在差异，范围 ${JSON.stringify(bounds)}；禁止替换参考图消除失败`)
 }
 
 /** 核验素材字节未变化，缺失时明确标记未运行并返回失败。 */

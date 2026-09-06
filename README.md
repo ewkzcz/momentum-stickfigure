@@ -104,7 +104,7 @@ npm run build
 npm test
 ```
 
-`lint` 当前覆盖新增测试工具及已修改的存储模块，后续随拆分扩展，不代表旧源码已全量通过检查。`check:size` 报告六个遗留超限文件，拒绝新增超限和遗留增长；阶段验收使用 `npm run check:size -- --strict`，要求全部手写源码不超过 2000 行。
+`lint` 当前覆盖新增测试工具、存储模块、主进程入口及独立预览页，后续随拆分扩展，不代表旧源码已全量通过检查。`check:size` 报告六个遗留超限文件，拒绝新增超限和遗留增长；阶段验收使用 `npm run check:size -- --strict`，要求全部手写源码不超过 2000 行。
 
 测试使用 Node 内置测试器和 Playwright 的 Electron 驱动，无需额外下载 Chromium。当前保留两组测试，可通过 `npm run test:psd`、`npm run test:storage` 分别执行；PSD 任务取消及恢复测试将在任务隔离实现时接入。
 
@@ -115,6 +115,10 @@ npm test
 两份本地 PSD 不随仓库分发，默认清单为 `tests/fixtures/local-psd.json`。缺少素材或参考时测试明确失败，不会静默跳过。可用 `MOMENTUM_FIXTURE_MANIFEST` 指定相同结构的授权素材清单，`MOMENTUM_FIXTURE_ROOT` 指定素材根目录，`MOMENTUM_REFERENCE_DIR` 指定独立参考目录。
 
 参考必须在业务修改前从已核验的原版建立，显式运行 `npm run test:record`；默认目录为本地忽略的 `temp/regression-reference-v2`。参考目录只允许首次创建，图像和清单设为只读；失败的采集保留现场，未写完整清单的目录不可验收。回归命令不会生成或覆盖预期结果。修改后出现像素差异时，应修复实现，不能重新采集参考来消除失败。
+
+补充素材由 `tests/fixtures/generate-psd.mjs` 确定性生成，包含独立灰度蒙版、连续剪切层及正片叠底/滤色/叠加模式。`node tests/fixtures/generate-psd.mjs --verify` 检查结构、字节一致性和拒绝覆盖；`node tests/record-synthetic.mjs` 显式采集真实人物页参考，素材生成器的文档合成图不能作为业务渲染的期望值。小图片预览字节范围问题修复后使用独立的 `synthetic-preview-range-fixed` 参考目录，原私人素材的100幅参考保持不变。
+
+`node tests/record-presets.mjs preset-lifecycle-new-environment-v1` 显式采集跨PSD预设恢复、删除及重启参考，独立环境名称只接受小写英文、数字和连字符。以 `MOMENTUM_PRESET_REFERENCE` 指定该目录，至少两次独立回放通过后才可接受候选。布局回归固定 Chromium 视口为1024×700、像素比例为1，并模拟页面焦点；在macOS上仅固定原生窗口尺寸不足以固定截图。布局截图只隐藏瞬时通知和工具提示，连续实际帧稳定后按RGBA零差异核验，运行环境与图像一起记录。此测试不代表原生窗口尺寸或焦点行为验收。
 
 每次运行的实际图片、状态、日志及隔离检查留在命令输出标明的临时目录，仅供本地核查，请勿上传私人素材和原始日志。
 

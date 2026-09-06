@@ -4,7 +4,8 @@ import assert from 'node:assert/strict'
 import path from 'node:path'
 import { setTimeout as pollDelay } from 'node:timers/promises'
 import { launchDesktop, readJson } from './helpers/desktop.mjs'
-import { fixtures, checkPsdFixture } from './helpers/reference.mjs'
+import { fixtures, checkPsdFixture, syntheticFixtures, syntheticReferenceDirectory } from './helpers/reference.mjs'
+import { checkPresetLifecycle } from './scenarios/presets.mjs'
 
 /** 在有界时间内反复检查可观察条件，不以等待时长代替成功。 */
 async function until(predicate, description, timeout = 15000) {
@@ -21,6 +22,13 @@ test('PSD 合成与导出：指定素材操作和 RGBA 参考一致', { timeout:
   // 1、缺素材或缺参考直接失败，不把缺失场景当成成功跳过。
   for (const fixture of await fixtures()) await context.test(fixture.id, () => checkPsdFixture(fixture))
 })
+
+test('PSD 自制素材：蒙版、剪切组和混合模式保持一致', { timeout: 180000 }, async (context) => {
+  // 1、实际输入每次重新生成，预期仍只读取业务修改前保存的图像参考。
+  for (const fixture of await syntheticFixtures()) await context.test(fixture.id, () => checkPsdFixture(fixture, false, syntheticReferenceDirectory))
+})
+
+test('PSD 预设生命周期：跨素材恢复、删除与重启一致', { timeout: 120000 }, () => checkPresetLifecycle())
 
 test('配置持久化：实际磁盘保存、重启恢复与写入失败保护', { timeout: 90000 }, async () => {
   // 1、通过实际存储 IPC 写入代表性设置及预设字符串，等待磁盘完成保存。

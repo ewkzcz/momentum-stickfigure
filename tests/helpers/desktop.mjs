@@ -9,28 +9,32 @@ import { _electron as electron } from 'playwright'
 export const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
 /** 创建不包含用户凭据的测试进程环境。 */
-function isolatedEnvironment(root) {
+function isolatedEnvironment(root, renderMode) {
   // 1、只继承桌面启动必要的环境，不复制 API 密钥、代理和 Node 注入参数。
   const env = Object.fromEntries(['PATH', 'SystemRoot', 'WINDIR', 'DISPLAY', 'WAYLAND_DISPLAY', 'XAUTHORITY', 'LANG', 'LC_ALL'].filter((key) => process.env[key]).map((key) => [key, process.env[key]]))
   return { ...env, HOME: path.join(root, 'home'), USERPROFILE: path.join(root, 'home'),
     TMPDIR: path.join(root, 'temp'), TMP: path.join(root, 'temp'), TEMP: path.join(root, 'temp'),
     XDG_CONFIG_HOME: path.join(root, 'home/.config'), XDG_CACHE_HOME: path.join(root, 'cache'),
     APPDATA: path.join(root, 'app-data'), LOCALAPPDATA: path.join(root, 'app-data'),
+    MOMENTUM_TEST_RENDER_MODE: renderMode,
     MOMENTUM_TEST_ROOT: root, MOMENTUM_TEST_ENTRY: path.join(repository, 'out/main/index.js') }
 }
 
 /** 启动原业务入口，返回桌面对象与隔离诊断信息。 */
-export async function launchDesktop(existingRoot) {
+export async function launchDesktop(existingRoot, renderMode = 'default') {
   // 1、先建立目录，保证 Electron 和业务静态导入均处于隔离环境。
   const root = existingRoot || await mkdtemp(path.join(os.tmpdir(), 'momentum-regression-'))
   for (const directory of ['home', 'temp', 'cache', 'app-data']) await mkdir(path.join(root, directory), { recursive: true })
   await writeFile(path.join(root, '.momentum-test-root'), 'isolated desktop regression\n')
-  const application = await electron.launch({ args: [path.join(repository, 'tests/helpers/electron-bootstrap.cjs')], cwd: root, env: isolatedEnvironment(root), timeout: 30000 })
+  const application = await electron.launch({ args: [path.join(repository, 'tests/helpers/electron-bootstrap.cjs')], cwd: root, env: isolatedEnvironment(root, renderMode), timeout: 30000 })
   const errors = []
   const logs = []
   application.process().stdout?.on('data', (data) => logs.push(data.toString()))
   application.process().stderr?.on('data', (data) => logs.push(data.toString()))
-  application.on('window', (window) => window.on('pageerror', (error) => errors.push(error.message)))
+  application.on('window', (window) => {
+    window.on('pageerror', (error) => errors.push(error.message))
+    window.on('console', (message) => logs.push(`[renderer:${message.type()}] ${message.text()}\n`))
+  })
   // 2、等待实际主窗口及 Vue 挂载；不依靠固定延迟假定启动完成。
   let page
   try {

@@ -65,7 +65,7 @@ export async function runPsdScenario(desktop, fixture, snapshot) {
   await observeImages(page)
   await application.evaluate((_electron, filePath) => { globalThis.__momentumTest.openPaths = [filePath] }, fixture.absolutePath)
   await page.getByRole('button', { name: '上传', exact: true }).click()
-  await page.locator('.psd-tab-name').filter({ hasText: path.basename(fixture.absolutePath, '.psd') }).waitFor({ timeout: 60000 })
+  await page.locator('.psd-tab-name').and(page.getByTitle(path.basename(fixture.absolutePath), { exact: true })).waitFor({ timeout: 60000 })
   await stableCanvas(page)
   await page.getByRole('button', { name: '图层', exact: true }).click()
   let previousLayerCount = -1

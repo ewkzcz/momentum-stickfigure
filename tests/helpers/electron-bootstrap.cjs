@@ -33,6 +33,13 @@ os.tmpdir = () => process.env.TMPDIR
 process.chdir(root)
 app.commandLine.appendSwitch('user-data-dir', app.getPath('userData'))
 app.commandLine.appendSwitch('disable-background-networking')
+// 布局参考使用独立且固定的软件栅格化环境，不更改原版导出像素测试的运行模式。
+if (process.env.MOMENTUM_TEST_RENDER_MODE === 'software-layout') {
+  app.disableHardwareAcceleration()
+  app.commandLine.appendSwitch('disable-lcd-text')
+  app.commandLine.appendSwitch('force-color-profile', 'srgb')
+  app.commandLine.appendSwitch('force-device-scale-factor', '1')
+}
 // 测试全程离线；拒绝远程域名，避免误触真实外部服务。
 app.commandLine.appendSwitch('host-resolver-rules', 'MAP * ~NOTFOUND, EXCLUDE localhost')
 
@@ -143,7 +150,15 @@ app.on('web-contents-created', (_event, contents) => {
 
 // 4、导入已经构建的真实入口；测试窗口固定尺寸，失败保留非零退出状态。
 app.on('browser-window-created', (_event, window) => {
-  if (BrowserWindow.getAllWindows().length === 1) window.setBounds({ x: 0, y: 0, width: 1440, height: 1000 })
+  if (BrowserWindow.getAllWindows().length === 1) {
+    if (process.env.MOMENTUM_TEST_RENDER_MODE === 'software-layout') {
+      const setContentSize = window.setContentSize.bind(window)
+      // 布局基准从首个页面脚本执行前固定尺寸，避免应用按系统工作区反复改动初始比例。
+      window.setSize = () => setContentSize(1024, 700)
+      window.setBounds = () => setContentSize(1024, 700)
+      setContentSize(1024, 700)
+    } else window.setBounds({ x: 0, y: 0, width: 1440, height: 1000 })
+  }
 })
 import(pathToFileURL(process.env.MOMENTUM_TEST_ENTRY).href).catch((error) => {
   console.error(error)

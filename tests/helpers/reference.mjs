@@ -1,6 +1,8 @@
 /** PSD 参考管理：显式首次采集，回归只读参考且严格校验素材与运行环境。 */
 import assert from 'node:assert/strict'
-import { readFile, writeFile, mkdir, chmod } from 'node:fs/promises'
+import { readFile, writeFile, mkdir, chmod, mkdtemp } from 'node:fs/promises'
+import os from 'node:os'
+import { generatePsdFixtures } from '../fixtures/generate-psd.mjs'
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
 import { launchDesktop, repository, readJson } from './desktop.mjs'
@@ -8,6 +10,7 @@ import { verifyFixture, assertSamePixels } from './images.mjs'
 import { runPsdScenario } from '../scenarios/psd.mjs'
 
 export const referenceDirectory = path.resolve(process.env.MOMENTUM_REFERENCE_DIR || path.join(repository, 'temp/regression-reference-v2'))
+export const syntheticReferenceDirectory = path.join(referenceDirectory, 'synthetic-preview-range-fixed')
 
 /** 加载独立素材清单，支持外部授权素材与自定义存放目录。 */
 export async function fixtures() {
@@ -18,14 +21,23 @@ export async function fixtures() {
   return manifest.fixtures.map((fixture) => ({ ...fixture, absolutePath: path.resolve(process.env.MOMENTUM_FIXTURE_ROOT || repository, fixture.path) }))
 }
 
+/** 每次在新目录生成公开小素材，字节确定性由生成器内部验证。 */
+export async function syntheticFixtures() {
+  // 1、生成结果是输入素材，不是待测图像的预期输出。
+  const root = await mkdtemp(path.join(os.tmpdir(), 'momentum-synthetic-'))
+  const directory = path.join(root, 'fixtures')
+  const list = await generatePsdFixtures(directory)
+  return list.map((fixture) => ({ ...fixture, absolutePath: path.join(directory, fixture.path) }))
+}
+
 /** 运行单素材参考采集或验证，任何差异均保留为失败。 */
-export async function checkPsdFixture(fixture, record = false) {
+export async function checkPsdFixture(fixture, record = false, rootDirectory = referenceDirectory) {
   // 1、采集参考要求业务源码干净，目录只允许创建一次，杜绝覆盖旧参考。
   await verifyFixture(fixture.absolutePath, fixture.sha256)
-  const directory = path.join(referenceDirectory, fixture.id)
+  const directory = path.join(rootDirectory, fixture.id)
   if (record) {
     execFileSync('git', ['diff', '--exit-code', 'HEAD', '--', 'src', 'electron.vite.config.mjs'], { cwd: repository })
-    await mkdir(referenceDirectory, { recursive: true })
+    await mkdir(rootDirectory, { recursive: true })
     await mkdir(directory)
   }
   const expected = record ? null : await readJson(path.join(directory, 'manifest.json')).catch((error) => {
