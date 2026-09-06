@@ -313,11 +313,13 @@ export function usePsdParser(deps) {
         }
       })
 
-      console.log('PSD文件解析成功:', result)
-
-      // 2、解开服务返回的兼容包装层，向页面提供实际 PSD 数据
+      // 2、区分 IPC 调用成功和内层解析成功，拒绝把失败对象当作 PSD 数据。
       if (result && result.success) {
+        if (result.data?.success === false) {
+          throw new Error(result.data.error || result.data.message || 'PSD文件解析失败')
+        }
         const actualData = result.data?.data || result.data
+        console.log('PSD文件解析成功:', result)
         console.log('📦 提取的实际数据:', actualData)
         return actualData
       }

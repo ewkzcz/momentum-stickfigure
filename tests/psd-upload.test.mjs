@@ -98,6 +98,13 @@ test('PSD 上传协调：原生选择边界、批量失败隔离及合成拖放�
     await page.evaluate(() => { location.hash = '/action-expression' })
     await page.getByRole('button', { name: '上传', exact: true }).waitFor()
     await observeImages(page)
+    // 首个损坏文件必须拒绝，后续有效文件仍应成为首个正常会话。
+    await selectPaths(desktop, [invalid])
+    await page.locator('.n-message--error-type').filter({ hasText: '1 个失败' }).waitFor()
+    await page.waitForFunction(() => document.querySelectorAll('.n-message--loading-type').length === 0)
+    assert.equal(await page.locator('.psd-tab-item').count(), 0, '损坏PSD不能创建无效标签')
+    assert.equal(await page.getByRole('button', { name: '预览', exact: true }).isDisabled(), true)
+    evidence.scenes.push({ name: '首个损坏文件拒绝', message: '1 个失败', type: 'error', tabs: 0 })
     await selectPaths(desktop, [first])
     await expectResult(page, '成功上传 1 个', 'success', names, names[0])
     const initial = await expectPixels(page, references[0], '按钮导入对应原版参考')
@@ -125,18 +132,17 @@ test('PSD 上传协调：原生选择边界、批量失败隔离及合成拖放�
     await expectPixels(page, initial, '切回原文件没有被批量读取覆盖')
     evidence.scenes.push({ name: '不存在与有效文件混合', message: '成功上传 1 个，1 个失败', type: 'success', tabs: 2, readFailure: '生产 read-file 返回 null' })
 
-    // 4、保留并明确标记原版缺陷：损坏文件的内层失败未抛出，错误标签也被计入成功。
-    // 先前理想失败断言及独立原版观测保存在 psd-upload-original-failure-20260906.json；本断言只证明未顺便修复。
+    // 4、内层解析失败必须传播到批量计数，同时继续处理后续有效文件。
     await page.waitForFunction(() => document.querySelectorAll('.n-message').length === 0)
     await selectPaths(desktop, [invalid, third])
-    names.push(path.basename(invalid), path.basename(third))
-    await expectResult(page, '成功上传 2 个', 'success', names, names[0])
-    await expectPixels(page, initial, '原版损坏文件缺陷仍不覆盖已有画布')
-    await page.getByTitle(names[3], { exact: true }).click()
+    names.push(path.basename(third))
+    await expectResult(page, '成功上传 1 个，1 个失败', 'success', names, names[0])
+    await expectPixels(page, initial, '拒绝损坏文件不覆盖已有画布')
+    await page.getByTitle(names[2], { exact: true }).click()
     await expectPixels(page, secondCanvas, '损坏文件之后仍处理相同有效输入')
     await page.getByTitle(names[0], { exact: true }).click()
     await expectPixels(page, initial, '损坏文件之后原始会话仍可恢复')
-    evidence.scenes.push({ name: '损坏与有效文件混合（原版缺陷现状）', message: '成功上传 2 个', type: 'success', tabs: 4, knownDefect: '内层解析失败未抛出，无效标签也被 successCount 计入成功；并非正确的损坏文件校验' })
+    evidence.scenes.push({ name: '损坏与有效文件混合', message: '成功上传 1 个，1 个失败', type: 'success', tabs: 3 })
 
     // 5、原拖入和离开事件应切换高亮，两个阶段都不改变已有会话像素。
     const area = page.locator('.canvas-area')
@@ -147,6 +153,12 @@ test('PSD 上传协调：原生选择边界、批量失败隔离及合成拖放�
     await area.dispatchEvent('dragleave', { bubbles: true, cancelable: true })
     await page.waitForFunction(() => !document.querySelector('.canvas-area').classList.contains('drag-over'))
     await expectPixels(page, initial, '拖离高亮清除后保留画布')
+
+    // 同一失败响应也必须让无路径拖放失败，不能新增会话或覆盖当前图像。
+    await dropBytes(page, await readFile(invalid), '拖放损坏人物.psd')
+    await expectResult(page, '1 个失败', 'info', names, names[0])
+    await expectPixels(page, initial, '损坏PSD拖放不创建会话或改变像素')
+    evidence.scenes.push({ name: '损坏PSD拖放拒绝', message: '1 个失败', type: 'info', tabs: 3 })
 
     // 6、无 path 的真实 PSD 字节必须经过 saveDraggedFile，检查隔离目录实际落盘字节。
     const draggedName = '拖放人物 中文.psd'
@@ -163,7 +175,7 @@ test('PSD 上传协调：原生选择边界、批量失败隔离及合成拖放�
     await page.getByTitle(draggedName, { exact: true }).click()
     await expectPixels(page, secondCanvas, '无路径拖放和按钮导入的相同输入一致')
     await expectPixels(page, references[1], '无路径拖放对应只读原版参考')
-    evidence.scenes.push({ name: '合成拖入及拖离', highlight: [true, false] }, { name: '无路径 File 合成 drop', message: '成功加载 1 个', type: 'success', tabs: 5, bytesEqual: true, savedByProductionIpc: true })
+    evidence.scenes.push({ name: '合成拖入及拖离', highlight: [true, false] }, { name: '无路径 File 合成 drop', message: '成功加载 1 个', type: 'success', tabs: 4, bytesEqual: true, savedByProductionIpc: true })
 
     // 7、非 PSD 拖放必须拒绝，不保存文件、不增加标签，也不改变当前画布。
     await page.waitForFunction(() => document.querySelectorAll('.n-message').length === 0)
@@ -173,7 +185,7 @@ test('PSD 上传协调：原生选择边界、批量失败隔离及合成拖放�
     assert.equal(await area.evaluate((node) => node.classList.contains('drag-over')), false)
     await assert.rejects(stat(path.join(desktop.root, 'temp/momentum-stickfigure/dragged-files/不应保存.txt')), { code: 'ENOENT' })
     await expectPixels(page, secondCanvas, '非 PSD 拖放不改变当前会话')
-    evidence.scenes.push({ name: '非 PSD 拖放拒绝', message: '请拖放PSD文件', type: 'warning', tabs: 5, noSavedFile: true })
+    evidence.scenes.push({ name: '非 PSD 拖放拒绝', message: '请拖放PSD文件', type: 'warning', tabs: 4, noSavedFile: true })
     assert.deepEqual(desktop.errors, [], '页面不能产生未捕获异常')
     evidence.loadingMessagesRemaining = await page.locator('.n-message--loading-type').count()
     assert.equal(evidence.loadingMessagesRemaining, 0)
