@@ -858,6 +858,8 @@ import { useKeyboard } from './composables/useKeyboard.js'
 import { useMoreMenu } from './composables/useMoreMenu.js'
 import { useCanvasRender } from './composables/useCanvasRender.js'
 import { usePartTabLayout } from './composables/usePartTabLayout.js'
+import { usePartSearch } from './composables/usePartSearch.js'
+import { usePartBrowsing } from './composables/usePartBrowsing.js'
 import { usePartSelectionCoordinator } from './composables/usePartSelectionCoordinator.js'
 import { useExpressionAnalysis } from './composables/useExpressionAnalysis.js'
 import { useVirtualScroll } from './composables/useVirtualScroll.js'
@@ -1170,227 +1172,29 @@ const partItemSizeInput = ref(85) // 输入框的值
 const partsListRef = ref(null) // 部件列表容器的引用
 
 // ==================== 搜索功能 ====================
-// 搜索对话框显示状态
-const showSearchModal = ref(false)
-// 高亮显示的部件路径
-const highlightedPartPath = ref(null)
-// 标记是否是搜索触发的标签切换（避免触发不必要的UI交互）
-const isSearchTriggeredSwitch = ref(false)
-// 搜索对话框组件引用
-const searchModalRef = ref(null)
-
-/**
- * 打开部件搜索对话框。
- * 处理流程：
- * 1、检查 PSD 是否已经载入
- * 2、已打开时重置窗口位置，否则显示搜索框
- */
-const openSearchModal = () => {
-  // 1、搜索依赖当前 PSD 的部件列表
-  if (!currentPsdData.value) {
-    message.warning('请先上传PSD文件')
-    return
-  }
-
-  // 2、如果对话框已经打开，重置位置到可见区域
-  if (showSearchModal.value && searchModalRef.value) {
-    searchModalRef.value.resetPosition()
-    console.log('🔍 对话框已打开，重置位置到可见区域')
-  } else {
-    // 否则打开对话框（会自动触发位置重置）
-    showSearchModal.value = true
-  }
-}
-
-// 所有部件数据（用于搜索）
-const allPartsForSearch = computed(() => {
-  const parts = {
-    action: actionParts.value,
-    upperBody: upperBodyParts.value,
-    lowerBody: lowerBodyParts.value,
-    presets: presets.value
-  }
-
-  // 添加所有表情图组
-  dynamicExpressionTabs.value.forEach(tab => {
-    parts[tab.key] = dynamicExpressionParts.value[tab.key] || []
-  })
-
-  return parts
+// 1、在原搜索位置建立唯一展示状态；输入及单双击仍由搜索弹窗处理。
+// 2、后方目录、列表、预设与选择/渲染入口按原读点取值，不捕获未就绪引用。
+const {
+  showSearchModal, highlightedPartPath, isSearchTriggeredSwitch, searchModalRef,
+  openSearchModal, allPartsForSearch, handPartsForSearch, originalHandPartsForSearch,
+  handleSearchResultConfirm
+} = usePartSearch({
+  currentPsdData, currentTab, partsListRef, partItemSize, message,
+  actionParts, upperBodyParts, lowerBodyParts, dynamicExpressionTabs, dynamicExpressionParts,
+  frontHandNormalParts, frontHandRightParts, backHandParts, frontLayerBackHandParts,
+  frontHandBothParts, bothHandsParts,
+  getPresets: () => presets,
+  getPartTabs: () => partTabs,
+  getSelectedPresetId: () => selectedPresetId,
+  getRenderAllLayers: () => renderAllLayers,
+  getSelectPart: () => selectPart,
+  getCurrentPartsList: () => currentPartsList
 })
-
-// 手部部件数据（用于搜索动作时的代理支持）
-const handPartsForSearch = computed(() => {
-  return {
-    frontHandNormal: frontHandNormalParts.value,
-    frontHandRight: [
-      ...frontHandRightParts.value,
-      ...backHandParts.value,
-      ...frontLayerBackHandParts.value
-    ],
-    frontHandBoth: [
-      ...frontHandBothParts.value,
-      ...bothHandsParts.value
-    ]
-  }
-})
-
-// 原始手部部件数据（用于搜索时准确判断 part 的来源）
-const originalHandPartsForSearch = computed(() => {
-  return {
-    frontHandNormal: frontHandNormalParts.value,
-    frontHandRight: frontHandRightParts.value,
-    backHand: backHandParts.value,
-    frontLayerBackHand: frontLayerBackHandParts.value,
-    frontHandBoth: frontHandBothParts.value,
-    bothHands: bothHandsParts.value
-  }
-})
-
-/**
- * 定位搜索结果对应的预设或部件。
- * 处理流程：
- * 1、校验目标标签并处理预设分支
- * 2、标记搜索切换，等待标签视图更新
- * 3、高亮并滚动到目标部件，延时清除高亮
- */
-const handleSearchResult = async (result) => {
-  // 1、忽略空结果和不能显示部件的特殊标签
-  if (!result) return
-
-  console.log('🔍 搜索结果:', result)
-
-  // 确保不会切换到通用控制或图层结构
-  const tabKey = result.tabKey
-  const tabConfig = partTabs.value.find(tab => tab.key === tabKey)
-
-  if (tabConfig?.isCommonControls || tabConfig?.isLayerTree) {
-    console.warn('⚠️ 搜索结果指向特殊标签页，已忽略')
-    message.warning('搜索结果无法显示')
-    return
-  }
-
-  // 预设特殊处理
-  if (tabKey === 'presets') {
-    currentTab.value = 'presets'
-    await nextTick()
-    // 选中预设
-    if (result.part.id) {
-      selectedPresetId.value = result.part.id
-      await renderAllLayers()
-    }
-    message.success(`已定位到预设：${result.part.displayName || result.part.name}`)
-    return
-  }
-
-  // 2、设置搜索触发标志，防止触发不必要的界面交互
-  isSearchTriggeredSwitch.value = true
-
-  // 直接设置标签页（不触发handleTabClick，避免触发区域展开）
-  currentTab.value = tabKey
-
-  // 等待DOM更新
-  await nextTick()
-
-  // 重置搜索标志（在nextTick之后，确保watch已执行）
-  setTimeout(() => {
-    isSearchTriggeredSwitch.value = false
-  }, 100)
-
-  // 3、高亮显示目标部件，并滚动到列表中的对应位置
-  if (result.part.path) {
-    highlightedPartPath.value = result.part.path
-  }
-
-  // 滚动到目标部件位置
-  await scrollToPartInList(result.part)
-
-  // 9秒后取消高亮（延长到3倍）
-  setTimeout(() => {
-    highlightedPartPath.value = null
-  }, 9000)
-
-  message.success(`已定位到：${result.tabLabel} - ${result.part.displayName || result.part.name}`)
-}
-
-/**
- * 确认搜索结果并应用部件，对话框的关闭由子组件处理。
- * 处理流程：
- * 1、定位搜索结果并等待视图更新
- * 2、延迟应用部件，让高亮和滚动先完成
- */
-const handleSearchResultConfirm = async (result) => {
-  // 1、先完成标签切换与结果定位
-  if (!result) return
-
-  console.log('🔍 搜索结果确认应用:', result)
-
-  // 先执行定位逻辑（切换标签页、高亮、滚动到目标位置）
-  await handleSearchResult(result)
-
-  // 等待DOM更新后应用部件
-  await nextTick()
-
-  // 2、延迟一小段时间确保高亮和滚动完成
-  setTimeout(async () => {
-    // 应用部件（实际修改图层显示状态）
-    await selectPart(result.part)
-    message.success(`已应用：${result.part.displayName || result.part.name}`)
-  }, 200)
-}
-
-/**
- * 滚动到目标部件在列表中的位置。
- * 处理流程：
- * 1、等待列表更新并查找目标索引
- * 2、根据部件高度估算滚动距离并保留顶部余量
- */
-const scrollToPartInList = async (targetPart) => {
-  // 1、检查列表容器并取得当前目标索引
-  if (!partsListRef.value || !targetPart) return
-
-  await nextTick()
-
-  // 获取当前部件列表
-  const partsList = currentPartsList.value
-  const targetIndex = partsList.findIndex(p => p.path === targetPart.path)
-
-  if (targetIndex === -1) {
-    console.warn('未在当前列表中找到目标部件')
-    return
-  }
-
-  // 2、计算目标部件的位置并应用滚动偏移
-  const itemHeight = partItemSize.value + 16 // 部件高度 + gap
-  const targetScrollTop = targetIndex * itemHeight
-
-  // 滚动到目标位置（留一些余量）
-  partsListRef.value.scrollTop = Math.max(0, targetScrollTop - 100)
-}
 
 // 同步滑动条和输入框的值
 watch(partItemSize, (newVal) => {
   partItemSizeInput.value = newVal
 })
-
-/**
- * 提交部件尺寸输入值。
- * 处理流程：
- * 1、将输入限制在允许范围，无效数字回退默认值
- * 2、同步实际尺寸与输入框值
- */
-const handleSizeInputConfirm = () => {
-  // 1、按现有范围校正输入值
-  let value = partItemSizeInput.value
-  // 确保值在有效范围内
-  if (value < 50) value = 50
-  if (value > 400) value = 400
-  if (isNaN(value)) value = 85
-
-  // 2、保持输入框与部件尺寸一致
-  partItemSize.value = value
-  partItemSizeInput.value = value
-}
 
 // ==================== 虚拟滚动优化 ====================
 // 创建虚拟滚动实例
@@ -1440,75 +1244,29 @@ watch(currentTab, () => {
   })
 })
 
-// 虚拟滚动的可见部件列表
-const visiblePartsList = computed(() => {
-  const allParts = currentPartsList.value
-  const { start, end } = virtualScroll.getVisibleRange()
-  return allParts.slice(start, end).map((part, index) => ({
-    ...part,
-    _virtualIndex: start + index,
-    _absoluteIndex: start + index
-  }))
-})
-
-// 每个分组当前显示的部件（计算属性，从图层树userVisible状态推导）
-const selectedParts = computed(() => {
-  const measurement = perfLogger.start('selectedParts:compute', { threshold: 12 })
-  let layerNodesVisited = 0
-  let matchedPartsCount = 0
-
-  // 收集当前图层树中所有用户设置为可见的图层路径（不包括正面控制的影响）
-  const visibleLayerPaths = new Set()
-  /**
-   * 收集用户主动设为可见的图层路径。
-   * 处理流程：
-   * 1、递归遍历节点，将用户可见路径加入集合并累计访问量
-   */
-  const collectVisiblePaths = (layers, currentPath = []) => {
-    // 1、沿唯一名称拼接路径，避免通用控制覆盖用户选择状态
-    if (!Array.isArray(layers)) return
-    for (let layer of layers) {
-      layerNodesVisited++
-      const fullPath = [...currentPath, layer.uniqueName].join('/')
-      // 使用userVisible而不是visible，避免正面控制影响绿色小圆点
-      if (layer.userVisible) {
-        visibleLayerPaths.add(fullPath)
-      }
-      if (layer.children && layer.children.length > 0) {
-        collectVisiblePaths(layer.children, [...currentPath, layer.uniqueName])
-      }
-    }
-  }
-  collectVisiblePaths(layerTreeData.value)
-
-  // 从可见路径中匹配部件（支持多选）
-  const result = {}
-  const allGroups = Object.entries(allPartsListsMap.value)
-  allGroups.forEach(([groupKey, partsList]) => {
-    const matchedParts = []
-    for (let part of partsList || []) {
-      if (part && part.path && visibleLayerPaths.has(part.path)) {
-        matchedParts.push(part)
-      }
-    }
-    matchedPartsCount += matchedParts.length
-    // 如果只有一个匹配，保存为单个对象（兼容旧逻辑）
-    // 如果有多个匹配，保存为数组
-    if (matchedParts.length === 1) {
-      result[groupKey] = matchedParts[0]
-    } else if (matchedParts.length > 1) {
-      result[groupKey] = matchedParts
-    } else {
-      result[groupKey] = null
-    }
-  })
-
-  measurement.end({
-    nodesVisited: layerNodesVisited,
-    groups: allGroups.length,
-    matchedParts: matchedPartsCount
-  })
-  return result
+// ==================== 当前部件列表与选中派生 ====================
+// 1、在原可见列表与选中推导位置创建；所有 computed 保持惰性，不求值后方目录或旧图层树占位。
+// 2、userInteracted 仍由页面原位创建，后续会话与选择协调共用；所有 watch 与生命周期保持原位。
+const {
+  handleSizeInputConfirm, visiblePartsList, selectedParts, selectedPart, isPartActive, hasRenderedContent, currentPartsList, emptyStateText
+} = usePartBrowsing({
+  currentTab, currentPsdData, perfLogger, partItemSize, partItemSizeInput,
+  frontHandNormalParts, frontHandRightParts, frontHandBothParts, backHandParts,
+  frontLayerBackHandParts, bothHandsParts, upperBodyParts, lowerBodyParts, actionParts,
+  dynamicExpressionTabs, dynamicExpressionParts, dynamicFrontHandTabs, dynamicFrontHandParts,
+  dynamicBackHandTabs, dynamicBackHandParts, dynamicBothHandsTabs, dynamicBothHandsParts,
+  combinedExpressionParts, combinedThumbnailsMap, getComboSignature,
+  getLayerTreeData: () => layerTreeData,
+  getAllPartsListsMap: () => allPartsListsMap,
+  getPartTabs: () => partTabs,
+  getUserInteracted: () => userInteracted,
+  getVirtualScroll: () => virtualScroll,
+  getPresets: () => presets,
+  getSelectedPresetId: () => selectedPresetId,
+  getTemplates1: () => templates1,
+  getTemplates2: () => templates2,
+  getSelectedTemplate1Id: () => selectedTemplate1Id,
+  getSelectedTemplate2Id: () => selectedTemplate2Id
 })
 
 // 追踪每个分组是否被用户手动操作过（用于区分初始状态和用户手动取消状态）
@@ -1534,43 +1292,6 @@ const userInteracted = ref({
   beadeye: false,
   beadeyeExpression: false
 })
-
-// 计算当前分组选中的部件
-const selectedPart = computed(() => selectedParts.value[currentTab.value])
-
-/**
- * 判断部件是否应呈现选中状态。
- * 处理流程：
- * 1、组合表情检查其全部子项是否匹配
- * 2、根据代理来源读取用户选择，未操作时沿用初始可见状态
- */
-const isPartActive = (part) => {
-  // 1、组合表情包含的所有子项均匹配时视为激活
-  if (part && part.isCombined && Array.isArray(part.items)) {
-    return part.items.every(({ groupKey, part: p }) => {
-      const sel = selectedParts.value[groupKey]
-      return sel && sel.path === p.path
-    })
-  }
-
-  // 2、根据代理来源确定实际分组，并区分用户操作与默认状态
-  const actualGroup = part._sourceGroup || currentTab.value
-  const currentSelected = selectedParts.value[actualGroup]
-  const hasInteracted = userInteracted.value[actualGroup]
-
-  // 如果用户进行过手动操作
-  if (hasInteracted) {
-    // 只显示用户手动选中的图层
-    if (!currentSelected) return false
-    if (Array.isArray(currentSelected)) {
-      return currentSelected.some(p => p.path === part.path)
-    }
-    return currentSelected.path === part.path
-  }
-
-  // 如果用户没有进行过手动操作，显示默认可见的图层
-  return !part.hidden
-}
 
 // ==================== 通用控制逻辑（提前初始化，避免变量未定义） ====================
 // 先创建依赖对象（稍后设置函数引用）
@@ -1868,8 +1589,8 @@ const handlePresetImageClick = (presetId) => {
 
 // ==================== 部件标签目录与编排 ====================
 // 1、在原位置创建，复用已就绪的部件与 PSD 引用，不提前求值标签 computed。
-// 2、hasRenderedContent 在下方声明；getter 只在默认标签查询或首次分行求值时读取。
-// 3、选中推导仍在页面，单双击由选择协调模块负责；跨 PSD 会话复用唯一的 initialSorted 重置标记。
+// 2、hasRenderedContent 已由部件浏览模块建立；getter 只在默认标签查询或首次分行求值时读取。
+// 3、选中推导由部件浏览模块负责，单双击由选择协调模块负责；跨 PSD 会话复用唯一的 initialSorted 重置标记。
 const {
   partTabs,
   allPartsListsMap,
@@ -1913,232 +1634,6 @@ const {
   getHasRenderedContent: () => hasRenderedContent.value,
   message
 })
-// 判断某个图组是否有渲染内容（从图层树visible状态判断）
-const hasRenderedContent = computed(() => {
-  const result = {}
-  partTabs.value.forEach(tab => {
-    // 图层结构标签页：不显示绿色小圆点
-    if (tab.isLayerTree) {
-      result[tab.key] = false
-      return
-    }
-
-    // 控制面板标签页：始终不显示绿色小圆点
-    if (tab.isCommonControls) {
-      result[tab.key] = false
-      return
-    }
-
-    // 预设标签页：有预设且有选中的预设时显示绿色小圆点
-    if (tab.isPreset) {
-      result[tab.key] = presets.value.length > 0 && selectedPresetId.value !== null
-      return
-    }
-
-    // 模板标签页：有对应模板且有选中时显示绿色小圆点
-    if (tab.isTemplate) {
-      if (tab.key === 'template1') {
-        result[tab.key] = templates1.value.length > 0 && selectedTemplate1Id.value !== null
-      } else if (tab.key === 'template2') {
-        result[tab.key] = templates2.value.length > 0 && selectedTemplate2Id.value !== null
-      }
-      return
-    }
-
-    // 检查该分组是否有显示的部件（从selectedParts计算属性读取）
-    const selected = selectedParts.value[tab.key]
-    let mainHasContent = selected !== null && selected !== undefined
-
-    // 检查代理目标是否有内容
-    let proxyHasContent = false
-    if (tab.proxyTargets && tab.proxyTargets.length > 0) {
-      proxyHasContent = tab.proxyTargets.some(proxyTarget => {
-        const proxySelected = selectedParts.value[proxyTarget]
-        return proxySelected !== null && proxySelected !== undefined
-      })
-    }
-
-    // 只要主分组或代理目标有内容，就显示绿点
-    result[tab.key] = mainHasContent || proxyHasContent
-  })
-  return result
-})
-
-// 当前标签页的部件列表（支持代理机制合并）
-const currentPartsList = computed(() => {
-  const currentTabKey = currentTab.value
-
-  // 查找当前标签页配置
-  const currentTabConfig = partTabs.value.find(tab => tab.key === currentTabKey)
-
-  // 获取基础图层列表
-  let baseParts = []
-  let proxyParts = []
-
-  // 先检查是否是动态表情图组
-  if (currentTabConfig?.isExpression && dynamicExpressionParts.value[currentTabKey]) {
-    baseParts = dynamicExpressionParts.value[currentTabKey]
-  }
-  // 组合表情
-  else if (currentTabKey === 'combinedExpressions') {
-    // 为组合表情注入合成缩略图
-    baseParts = (combinedExpressionParts.value || []).map(item => {
-      const sig = getComboSignature(item.items || [])
-      const thumb = combinedThumbnailsMap.value.get(sig) || item.thumbnail || null
-      return { ...item, thumbnail: thumb }
-    })
-  }
-  // 检查是否是动态分组（只检查动态标签，基础标签走 switch）
-  // 注意：仅前手、后手、双手支持动态分组（已禁用），动作、上身、下身不支持
-  else if (currentTabConfig?.isDynamic) {
-    // 动态分组根据 groupType 获取对应数据
-    if (currentTabConfig.groupType === 'frontHand' && dynamicFrontHandParts.value[currentTabKey]) {
-      baseParts = dynamicFrontHandParts.value[currentTabKey]
-    }
-    else if (currentTabConfig.groupType === 'backHand' && dynamicBackHandParts.value[currentTabKey]) {
-      baseParts = dynamicBackHandParts.value[currentTabKey]
-    }
-    else if (currentTabConfig.groupType === 'bothHands' && dynamicBothHandsParts.value[currentTabKey]) {
-      baseParts = dynamicBothHandsParts.value[currentTabKey]
-    }
-  }
-  else {
-    // 否则使用固定的switch分支
-    switch (currentTabKey) {
-      case 'frontHandNormal':
-        baseParts = frontHandNormalParts.value
-        break
-      case 'frontHandRight':
-        // 前手右手 + 后手 + 前层后手 = 右手（代理机制，支持多个数据源）
-        baseParts = frontHandRightParts.value.map(part => ({
-          ...part,
-          displayName: `前手-${part.name}`,
-          _sourceGroup: 'frontHandRight'
-        }))
-        // 合并所有代理目标的部件
-        if (currentTabConfig?.proxyTargets && currentTabConfig.proxyTargets.length > 0) {
-          currentTabConfig.proxyTargets.forEach(proxyTarget => {
-            let targetParts = []
-            let targetLabel = ''
-
-            switch (proxyTarget) {
-              case 'backHand':
-                targetParts = backHandParts.value
-                targetLabel = '后手'
-                break
-              case 'frontLayerBackHand':
-                targetParts = frontLayerBackHandParts.value
-                targetLabel = '前层后手'
-                break
-            }
-
-            const mappedParts = targetParts.map(part => ({
-              ...part,
-              displayName: `${targetLabel}-${part.name}`,
-              _sourceGroup: proxyTarget
-            }))
-
-            proxyParts = proxyParts.concat(mappedParts)
-          })
-        }
-        break
-      case 'frontHandBoth':
-        // 前手双手 + 双手 = 双手（代理机制）
-        baseParts = frontHandBothParts.value.map(part => ({
-          ...part,
-          displayName: `前手-${part.name}`,
-          _sourceGroup: 'frontHandBoth'
-        }))
-        // 合并所有代理目标的部件
-        if (currentTabConfig?.proxyTargets && currentTabConfig.proxyTargets.length > 0) {
-          currentTabConfig.proxyTargets.forEach(proxyTarget => {
-            if (proxyTarget === 'bothHands') {
-              const mappedParts = bothHandsParts.value.map(part => ({
-                ...part,
-                displayName: `双手-${part.name}`,
-                _sourceGroup: 'bothHands'
-              }))
-              proxyParts = proxyParts.concat(mappedParts)
-            }
-          })
-        }
-        break
-      case 'backHand':
-        baseParts = backHandParts.value
-        break
-      case 'frontLayerBackHand':
-        baseParts = frontLayerBackHandParts.value
-        break
-      case 'bothHands':
-        baseParts = bothHandsParts.value
-        break
-      case 'upperBody':
-        baseParts = upperBodyParts.value
-        break
-      case 'lowerBody':
-        baseParts = lowerBodyParts.value
-        break
-      case 'action':
-        baseParts = actionParts.value
-        break
-      default:
-        baseParts = []
-    }
-  }
-
-  // 合并基础图层和代理图层
-  const result = [...baseParts, ...proxyParts]
-
-  // 同步虚拟滚动的总项目数
-  nextTick(() => {
-    virtualScroll.totalItems.value = result.length
-  })
-
-  return result
-})
-
-// 空状态文本
-const emptyStateText = computed(() => {
-  if (!currentPsdData.value) {
-    return '请先上传PSD文件'
-  }
-
-  // 先查找是否是动态表情图组
-  const expressionTab = dynamicExpressionTabs.value.find(tab => tab.key === currentTab.value)
-  if (expressionTab) {
-    return `暂无${expressionTab.label}部件`
-  }
-  if (currentTab.value === 'combinedExpressions') {
-    return '暂无可组合的表情（眉/眼/嘴）'
-  }
-
-  // 查找其他动态分组（仅前手、后手、双手，已禁用，保留代码兼容性）
-  const allDynamicTabs = [
-    ...dynamicFrontHandTabs.value,
-    ...dynamicBackHandTabs.value,
-    ...dynamicBothHandsTabs.value
-    // 注意：动作、上身、下身不支持动态标签，已移除
-  ]
-  const dynamicTab = allDynamicTabs.find(tab => tab.key === currentTab.value)
-  if (dynamicTab) {
-    return `暂无${dynamicTab.label}部件`
-  }
-
-  // 否则使用固定的映射表
-  const tabNames = {
-    frontHandNormal: '左手',
-    frontHandRight: '右手',
-    frontHandBoth: '双手',
-    backHand: '右手',
-    frontLayerBackHand: '右手',
-    bothHands: '双手',
-    upperBody: '上身',
-    lowerBody: '下身',
-    action: '动作'
-  }
-  return `暂无${tabNames[currentTab.value] || ''}部件`
-})
-
 // ==================== PSD解析核心功能 ====================
 // 注意：usePsdParser 的初始化需要在所有依赖函数定义之后
 // 因此移到文件末尾，在 classifyParts, renderAllLayers, buildLayerTree 等定义之后
@@ -2673,7 +2168,7 @@ watch([templates2, currentTab], async ([newTemplates, newTab], [oldTemplates, ol
 // PSD 会话四个入口在图层树与画布渲染依赖完成后统一初始化。
 
 // ==================== 部件选择与图层显隐协调 ====================
-// 1、在原函数位置接线；已就绪的 const 依赖复用原引用，选择推导与监听仍留在页面。
+// 1、在原函数位置接线；已就绪的 const 依赖复用原引用，选中推导由部件浏览模块负责，监听仍留在页面。
 // 2、图层树、控制优先级和全量渲染在下方替换占位；getter 每次使用时读取最新引用。
 // 3、队列与预览同步使用已声明的原函数，不增加 await、this 绑定或监听注册。
 const {

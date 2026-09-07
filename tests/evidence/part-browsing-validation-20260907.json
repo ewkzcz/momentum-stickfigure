@@ -1,0 +1,262 @@
+{
+  "head": "9b23f0629744e37e55d76dd0ccb148619cf2b71e",
+  "scope": "仅人物页部件搜索与浏览派生；核验并补足真实双素材切换及标签等价断言。",
+  "parentReview": { "dependencyRead": "核对两个模块的显式getter及原引用、computed惰性与初始化位置，无第二份业务状态", "targeted": { "tests": 1, "passed": 1, "failed": 0, "durationMs": 30266.404875 }, "fullResultReadback": "csZynx原始结果25/25通过，348260.471333ms", "references": "264文件再次核验未变" },
+  "files": [
+    "package.json",
+    "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.vue",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/usePartSearch.js",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/usePartBrowsing.js",
+    "tests/part-search.test.mjs",
+    "tests/evidence/part-browsing-equivalence-20260907.json",
+    "tests/evidence/part-browsing-validation-20260907.json"
+  ],
+  "lines": {
+    "originalPage": 3577,
+    "page": 3072,
+    "reduction": 505,
+    "search": 220,
+    "browsing": 374,
+    "test": 151
+  },
+  "baseline": {
+    "desktopId": "momentum-regression-QwlhzE",
+    "tests": 1,
+    "passed": true,
+    "durationMs": 30542.491625,
+    "sceneCount": 2,
+    "scenesSha256": "8b1f2b96fd3b8fefdac1b5b2ac72071b99823180275ebff9829bf727a69c3eba",
+    "beforeDesktopId": null,
+    "beforeAfterDifferentPixels": null,
+    "sourceSha256": "1f093ded8f0949a3b0f84bcfbbf24dace78c867ada67fd904ab4a6cb0982704b",
+    "method": "临时 Vite pre-load 插件只向正常 Vue 编译器提供 git show 9b23f062:人物页 完整原文，断言源码 SHA256 和恰好一次加载；未修改工作区人物页、不注入 Vue 私有或测试状态。",
+    "command": "npm run build -- --config tests/part-browsing-baseline.tmp.mjs && node --test tests/part-search.test.mjs",
+    "fullSuiteRunBefore": false,
+    "temporaryBuildConfigRemoved": true
+  },
+  "targeted": {
+    "desktopId": "momentum-regression-xctng2",
+    "tests": 1,
+    "passed": true,
+    "durationMs": 30009.7085,
+    "sceneCount": 2,
+    "scenesSha256": "8b1f2b96fd3b8fefdac1b5b2ac72071b99823180275ebff9829bf727a69c3eba",
+    "beforeDesktopId": "momentum-regression-QwlhzE",
+    "beforeAfterDifferentPixels": 0,
+    "command": "MOMENTUM_PART_SEARCH_BEFORE=<isolated-baseline> node --test tests/part-search.test.mjs"
+  },
+  "full": {
+    "command": "MOMENTUM_PART_SEARCH_BEFORE=<isolated-baseline> node tests/verify-layer-render-completion.mjs all",
+    "evidence": "temp/layer-render-acceptance-csZynx",
+    "mode": "all",
+    "status": 0,
+    "durationMs": 348495,
+    "originalReferences": {
+      "files": 260,
+      "sha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde"
+    },
+    "totalReferenceFiles": 264,
+    "allReferenceDigestSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "sourceSha256": "9dd0cb3899b253140ff8a384687ab022c86e55b0e421a9f31bf8aa1ca1ac6faa",
+    "head": "9b23f0629744e37e55d76dd0ccb148619cf2b71e",
+    "testSummary": [
+      "ℹ tests 25",
+      "ℹ suites 0",
+      "ℹ pass 25",
+      "ℹ fail 0",
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 348260.471333"
+    ],
+    "rawLogSha256": "256b52ec026397cfa30e11919da7efc65c924c2cf835f587d8bb794d89d4735d",
+    "search": {
+      "desktopId": "momentum-regression-u5WDgR",
+      "tests": 1,
+      "passed": true,
+      "durationMs": 29405.32125,
+      "sceneCount": 2,
+      "scenesSha256": "8b1f2b96fd3b8fefdac1b5b2ac72071b99823180275ebff9829bf727a69c3eba",
+      "beforeDesktopId": "momentum-regression-QwlhzE",
+      "beforeAfterDifferentPixels": 0
+    },
+    "counts": {
+      "psdRgba": 154,
+      "hover": 28,
+      "session": 28
+    },
+    "selection": {
+      "desktopId": "momentum-regression-i43pq9",
+      "scenes": 30,
+      "scenesSha256": "9d8573a446ce8323e3cf52988a22b927d16b4e097092e634e10071d95d71b14b"
+    },
+    "tabs": {
+      "desktopId": "momentum-regression-2HG8NN",
+      "scenes": 32,
+      "scenesSha256": "ca2f10aacce095656ef74e1ee88b78479113f5353d1b168a5eee97f4f950135e"
+    },
+    "template": {
+      "desktopId": "momentum-regression-jeKB9Z",
+      "scenes": 33,
+      "scenesSha256": "55aedc5d0e417f2ee99e762c45e7bc2b454cf5ae9ecc9f2eeda10da486c029b2"
+    },
+    "panel": {
+      "desktopId": "momentum-regression-A0gAED",
+      "scenes": 8,
+      "scenesSha256": "3951aac1fc7961f38beda6c6cd148a1d0f406b3b253415b71ffc19357384dcb4"
+    },
+    "canvasOutput": {
+      "desktopId": "momentum-output-9CqGv9",
+      "independentPreviewOpenClose": 10,
+      "receivingPages": 2
+    },
+    "foregroundWaitMs": 480000
+  },
+  "scenes": [
+    {
+      "fixtureId": "yun-jian-qi-lin",
+      "name": "后手-捂耳朵",
+      "keyword": "捂耳朵",
+      "confirmation": "single",
+      "results": [
+        {
+          "category": "右手",
+          "name": "捂耳朵"
+        },
+        {
+          "category": "左手",
+          "name": "捂耳朵"
+        }
+      ],
+      "tabsEqualToManual": true,
+      "scrollTop": 781,
+      "virtualOffset": "translateY(202px)",
+      "manualPngSha256": "ddd18923bf0bc26d30d5d3af0656e62bbb56d4b614417896b71b21e21eb32906",
+      "searchPngSha256": "ddd18923bf0bc26d30d5d3af0656e62bbb56d4b614417896b71b21e21eb32906",
+      "differentPixels": 0,
+      "highlightedAtThreeSeconds": true,
+      "highlightCleared": true
+    },
+    {
+      "fixtureId": "xing-kong",
+      "name": "后手-捂耳朵",
+      "keyword": "捂耳朵",
+      "confirmation": "double",
+      "results": [
+        {
+          "category": "右手",
+          "name": "捂耳朵"
+        },
+        {
+          "category": "左手",
+          "name": "捂耳朵"
+        }
+      ],
+      "tabsEqualToManual": true,
+      "scrollTop": 769,
+      "virtualOffset": "translateY(202px)",
+      "manualPngSha256": "a20b7db1e101267d27d2ca16ded9f0d96358a3299b15df25571061e238580b4f",
+      "searchPngSha256": "a20b7db1e101267d27d2ca16ded9f0d96358a3299b15df25571061e238580b4f",
+      "differentPixels": 0,
+      "highlightedAtThreeSeconds": true,
+      "highlightCleared": true
+    }
+  ],
+  "ownership": {
+    "search": [
+      "showSearchModal",
+      "highlightedPartPath",
+      "isSearchTriggeredSwitch",
+      "searchModalRef"
+    ],
+    "browsing": "仅复用原 ref 的 computed 和函数，无新增业务状态。",
+    "page": [
+      "currentTab",
+      "currentPsdData",
+      "partItemSize",
+      "partItemSizeInput",
+      "partsListRef",
+      "userInteracted",
+      "全部原 watch 与生命周期"
+    ],
+    "existingModules": "部件、图层树、预设、模板与虚拟滚动继续持有原状态；输入和单双击识别仍在 PartSearchModal。",
+    "delayedGetters": [
+      "layerTreeData",
+      "virtualScroll",
+      "selectPart",
+      "partTabs",
+      "allPartsListsMap",
+      "currentPartsList",
+      "presets",
+      "selectedPresetId",
+      "renderAllLayers",
+      "userInteracted",
+      "templates1",
+      "templates2",
+      "selectedTemplate1Id",
+      "selectedTemplate2Id"
+    ]
+  },
+  "equivalence": {
+    "evidence": "tests/evidence/part-browsing-equivalence-20260907.json",
+    "movedDeclarations": 19,
+    "remainingStatements": 225,
+    "watch": 20,
+    "lifecycle": 6,
+    "templateStyleBytesEqual": true,
+    "getterReadsAtOriginalPoints": true,
+    "computedLazy": true,
+    "temporaryAuditRemoved": true
+  },
+  "references": {
+    "files": 264,
+    "sha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "oldFiles": 260,
+    "oldSha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde",
+    "overrideCount": 2,
+    "overridesUnchanged": true,
+    "newPermanentImages": 0
+  },
+  "originalDiagnostics": {
+    "command": "node --test --test-concurrency=1 tests/diagnose-part-selection-original.mjs",
+    "tests": 2,
+    "pass": 0,
+    "fail": 2,
+    "status": 1,
+    "unchangedSourceSha256": "8d54b8d2b7cccb878e9064e2afabbb5aa2cebe2808573445dcd3a5d3c48e0c39",
+    "front": {
+      "desktopId": "momentum-regression-6i2Dfg",
+      "differentPixels": 11407,
+      "bounds": {
+        "left": 793,
+        "top": 39,
+        "right": 1121,
+        "bottom": 1041
+      }
+    },
+    "combined": {
+      "desktopId": "momentum-regression-I5RPzw",
+      "stillContent": "眉毛 (新表情)"
+    },
+    "previousRecord": "tests/evidence/part-selection-original-issues-20260907.json",
+    "strictAssertionsPreserved": true
+  },
+  "validation": {
+    "lint": true,
+    "checkSize": true,
+    "sizeViolations": 0,
+    "legacyOversizeFiles": 5,
+    "build": true,
+    "diffCheck": true,
+    "isolatedLaunchDesktop": true,
+    "networkOrPythonInvoked": false,
+    "userConfigurationRead": false
+  },
+  "limitations": [
+    "页面仍为 3072 行，仅新模块和测试满足单文件 2000 行以内；后续职责不在本次范围。",
+    "本次原 HEAD 只重建并运行新增搜索基线，没有另跑原 HEAD 全量；迁移后最终全量 25/25。",
+    "本次定向最少用例覆盖两个真实 PSD 的右手后手代理，不穷举所有表情和预设搜索分支；其原文/AST 保持等价。",
+    "此前草稿未显式切换第二个 PSD；已补真实标签点击及活动文件断言，QwlhzE/xctng2/csZynx 为最终有效基线、定向与全量。",
+    "旧 preview 偶发原因未确认；本轮全量 preview 通过，未改断言、旧参考或两个 override。"
+  ]
+}
