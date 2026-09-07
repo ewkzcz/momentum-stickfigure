@@ -1,0 +1,30 @@
+{
+  "head": "5fb99cd341db0694310cac4b660a195ee6fdc957",
+  "scope": "原有问题只记录；选择协调迁移不修改分支、时序、断言和渲染算法。",
+  "diagnosticCommand": "node --test --test-concurrency=1 tests/diagnose-part-selection-original.mjs",
+  "diagnosticStatus": "原 HEAD 和迁移后均为 2 项失败、退出码 1；独立诊断不属于 tests/*.test.mjs 默认回归。",
+  "fixtureSha256": "b60f61ca07ba99d22bc5cec2de3f9b29b5b2d397925438e290f1ef649e00197b",
+  "issues": [
+    {
+      "name": "正面关闭后恢复未还原原画布",
+      "minimalSteps": ["上传云间麒麟 PSD", "关闭正面", "重新开启正面", "比较操作前后的实际画布 RGBA"],
+      "assertion": "assertSamePixels(after, before, 'front-restored-0')",
+      "actual": { "differentPixels": 11407, "bounds": { "left": 793, "top": 39, "right": 1121, "bottom": 1041 } },
+      "beforeEvidence": "momentum-regression-CUyQlU",
+      "afterEvidence": "momentum-regression-4shbhZ",
+      "initialFailureEvidence": ["momentum-regression-E3VDUk", "momentum-regression-JpGvnP"],
+      "locationAdvice": "先比较原图层树 visible 与 userVisible 的差异，以及页面 watch(showFront) 的 recalculateVisible 恢复分支。该分支只修改界面树可见性，不同步 PSD；此次未做修复，也未把多选/显示过滤归并。"
+    },
+    {
+      "name": "组合表情标签双击未清空子分组",
+      "minimalSteps": ["上传云间麒麟 PSD", "选择未激活组合表情卡片", "双击组合表情标签", "检查眉毛、眼睛、嘴子标签内容指示"],
+      "assertion": "for (const item of state) assert.equal(item.content, false, `${item.name}内容指示`)",
+      "actual": "眉毛 (新表情) 内容指示仍为 true；日志提示 combinedExpressions 组件当前没有显示的图层。",
+      "beforeEvidence": "momentum-regression-XtzYWt",
+      "afterEvidence": "momentum-regression-NFYkmy",
+      "initialFailureEvidence": "momentum-regression-oQMjM2",
+      "locationAdvice": "usePartTabLayout 将组合标签标为 isDynamic=true，而 handleTabDoubleClick 先进入 isDynamic 分支；该分支不处理 combinedExpressions，后续 switch 的组合清空分支被绕过。原 HEAD 页面 4276–4318 附近及迁移模块相同分支保留原样。"
+    }
+  ],
+  "testBoundary": "正式新增专项用组合卡片取消验证 selectCombinedExpression；组合标签双击的正确清空断言完整保留于独立诊断。正面选择指示不变仍在正式专项验证，恢复像素正确断言保留于独立诊断。正式专项的 30 个实际状态/PNG/RGBA 在迁移前后逐项对照，不将旧问题改写为成功预期。"
+}

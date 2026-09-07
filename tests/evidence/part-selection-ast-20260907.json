@@ -1,0 +1,249 @@
+{
+  "head": "5fb99cd341db0694310cac4b660a195ee6fdc957",
+  "originalLines": 6165,
+  "pageLines": 5169,
+  "moduleLines": 1045,
+  "migratedRegion": {
+    "firstLine": 4124,
+    "lastLine": 5131,
+    "declarations": 17
+  },
+  "declarationsAstEqual": true,
+  "declarationsTextEqual": [
+    "switchTab",
+    "tabClickTimer",
+    "tabClickCount",
+    "lastClickedTab",
+    "handleTabClick",
+    "handleTabDoubleClick",
+    "setLayerVisibilityByPath",
+    "selectCombinedExpression",
+    "setLayerVisibilityByName",
+    "getLayerPath",
+    "updatePsdLayerVisibility",
+    "HEAD_NAME_PATTERN",
+    "stripSuffix",
+    "findLayerNodeByPath",
+    "findHeadPathPartsFromExpression",
+    "ensureHeadMutexForExpression",
+    "selectPart"
+  ],
+  "remainingStatementsTextAndAstEqual": 250,
+  "watchCount": 20,
+  "watchOrderEqual": true,
+  "lifecyclesEqual": 6,
+  "templateStyleEqual": true,
+  "dependencies": {
+    "currentTab": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "selectedParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "userInteracted": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "selectedPresetId": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "selectedTemplate1Id": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "selectedTemplate2Id": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "partTabs": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "allPartsListsMap": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "frontHandNormalParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "frontHandRightParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "frontHandBothParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "backHandParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "frontLayerBackHandParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "bothHandsParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "upperBodyParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "lowerBodyParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "actionParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "dynamicExpressionTabs": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "dynamicExpressionParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "dynamicFrontHandTabs": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "dynamicFrontHandParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "dynamicBackHandTabs": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "dynamicBackHandParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "dynamicBothHandsTabs": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "dynamicBothHandsParts": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "enhancedExpressionTabs": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "expressionTabMetaMap": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "exclusiveMode": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "expressionExclusiveMode": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "actionExclusiveMode": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "currentPsdData": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "showFront": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "message": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "queueRenderAllLayers": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "syncCanvasToPreview": {
+      "originalKind": "const",
+      "late": false,
+      "assignments": 0
+    },
+    "getLayerTreeData": {
+      "originalKind": "let",
+      "late": true,
+      "assignments": 1
+    },
+    "getControlPriority": {
+      "originalKind": "let",
+      "late": true,
+      "assignments": 1
+    },
+    "getRenderAllLayers": {
+      "originalKind": "let",
+      "late": true,
+      "assignments": 1
+    }
+  },
+  "standardGlobals": [
+    "Array",
+    "Map",
+    "Object",
+    "clearTimeout",
+    "console",
+    "setTimeout",
+    "undefined"
+  ],
+  "protectedHashes": {
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/useLayerTree.js": "9dd0cb3899b253140ff8a384687ab022c86e55b0e421a9f31bf8aa1ca1ac6faa",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasRender.js": "eac97c72d36019f9178f2902f949a604109fcd6fdca6e2cac6164e37fef65889",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdParser.js": "8ac4ac12c9fcb8e84620191c9b9817a20dbdf5b2dad1b1490cb1bd264e1c8b51",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdSession.js": "8b52b70b4a107fc8f19e8301bb5b9d3ea902f7dd0bb931685ff7c62d8ddf9ecc",
+    "src/renderer/src/components/pages/ActionExpressionPage/utils/layerRenderUtils.js": "15df20b3ad5fa7881cdcee72eb453d6c3e64fcc2bb73f53c4cb0c85a663077bd",
+    "tests/helpers/layer-render-reference.mjs": "289ae24e1320742697581aaf89548456d1e2c68bb456f5855083f26320c47a38"
+  },
+  "originalPageSha256": "a3aa128c7ebad7d7d364258ccf1bf65b42c611c640257c5fda5b914fa8fb8081",
+  "pageSha256": "5685124560fb40e35a1f28c16084a75e8c4724bcf1f5daf63a31456dc1eef491",
+  "moduleSha256": "bd9b6cbf136dc4b5c32869091b4b030f46c526029ebd69a8f111e6d86bb51fd7",
+  "getSelectedPartForRenderingAbsentFromOriginalPage": true
+}
