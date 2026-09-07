@@ -9,7 +9,7 @@
     />
 
     <!-- 顶部工具栏 -->
-    <div 
+    <div
       class="toolbar"
       @click="toggleCanvasPanel"
       title="点击空白区域折叠/展开画布"
@@ -28,7 +28,7 @@
       <div class="toolbar-actions" @click.stop>
         <n-tooltip placement="bottom">
           <template #trigger>
-            <n-checkbox 
+            <n-checkbox
               v-model:checked="enableCanvasHover"
               size="small"
               style="margin-right: 8px;"
@@ -41,7 +41,7 @@
 
         <n-tooltip placement="bottom">
           <template #trigger>
-            <n-checkbox 
+            <n-checkbox
               v-model:checked="enablePresetHover"
               size="small"
               style="margin-right: 8px;"
@@ -51,11 +51,11 @@
           </template>
           开启鼠标悬浮预览效果（预设列表、模板列表）<br/>快捷键: {{ hotkeyLabels.togglePartHover || '未设置' }}
         </n-tooltip>
-        
+
         <n-tooltip placement="bottom">
           <template #trigger>
-            <n-button 
-              size="small" 
+            <n-button
+              size="small"
               @click="handleSelectPsdFiles"
             >
               上传
@@ -63,11 +63,11 @@
           </template>
           选择PSD文件进行编辑
         </n-tooltip>
-        
+
         <n-tooltip placement="bottom">
           <template #trigger>
-            <n-button 
-              size="small" 
+            <n-button
+              size="small"
               type="primary"
               @click="openCanvasPreview"
               :disabled="!currentPsdData"
@@ -78,16 +78,16 @@
           在独立窗口中查看预览
         </n-tooltip>
 
-        <n-dropdown 
-          trigger="click" 
+        <n-dropdown
+          trigger="click"
           :options="jumpOptions"
           @select="handleJumpSelect"
           :disabled="!currentPsdData"
         >
           <n-tooltip placement="bottom">
             <template #trigger>
-              <n-button 
-                size="small" 
+              <n-button
+                size="small"
                 type="primary"
                 :disabled="!currentPsdData"
                 :loading="isSendingToGenerate"
@@ -98,9 +98,9 @@
             跳转到其他页面并传递图片
           </n-tooltip>
         </n-dropdown>
-        
-        <n-dropdown 
-          trigger="click" 
+
+        <n-dropdown
+          trigger="click"
           :options="moreOptions"
           @select="handleMoreSelect"
         >
@@ -121,11 +121,11 @@
       <!-- 画布区域（可折叠） -->
       <div class="canvas-panel">
         <transition name="panel-collapse">
-          <div 
+          <div
             v-show="canvasPanelExpanded"
-            class="canvas-area" 
-            ref="canvasAreaRef" 
-            :style="canvasAreaStyle" 
+            class="canvas-area"
+            ref="canvasAreaRef"
+            :style="canvasAreaStyle"
             :class="{ 'scale-mode': scrollMode === 'scale', 'drag-over': isDragOver }"
             @scroll="handleCanvasAreaScroll"
             @dragover.prevent="handleDragOver"
@@ -134,9 +134,9 @@
           >
             <div class="canvas-main-column">
               <div class="canvas-container" :class="{ 'rendering-template': isRenderingTemplate }">
-                <canvas 
-                  ref="canvasRef" 
-                  :width="canvasWidth" 
+                <canvas
+                  ref="canvasRef"
+                  :width="canvasWidth"
                   :height="canvasHeight"
                   :style="{ ...canvasStyle, opacity: canvasOpacity, transition: 'opacity 0.3s ease-in-out' }"
                   class="render-canvas"
@@ -147,14 +147,14 @@
                   @mousemove="handleCanvasHoverMove"
                   @mouseleave="handleCanvasHoverLeave"
                 ></canvas>
-                
+
                 <!-- 模板渲染Loading提示 -->
                 <transition name="fade">
                   <div v-if="isRenderingTemplate" class="template-rendering-overlay">
                     <div class="spinner-circle"></div>
                   </div>
                 </transition>
-                
+
                 <!-- 画布帮助提示图标 -->
                 <n-tooltip placement="bottom-start" trigger="hover">
                   <template #trigger>
@@ -185,22 +185,22 @@
           </div>
         </transition>
       </div>
-      
+
       <!-- 拖拽预览（传送到body，避免父级transform影响） -->
       <teleport to="body">
-        <div 
+        <div
           v-if="isDragging"
           class="drag-follow-preview"
           ref="dragFollowPreview"
-          :style="{ 
+          :style="{
             left: Math.max(0, dragMouseX - dragCalibration.dx) + 'px',
             top: Math.max(0, dragMouseY - dragCalibration.dy) + 'px'
           }"
         >
-          <canvas 
-            ref="dragFollowCanvas" 
-            width="170" 
-            height="150"  
+          <canvas
+            ref="dragFollowCanvas"
+            width="170"
+            height="150"
             style="pointer-events:none; width: 150px; height: 120px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);"
           ></canvas>
         </div>
@@ -257,7 +257,7 @@
       <!-- 通用控制和图层结构整合面板 -->
       <div class="integrated-controls-panel">
         <div class="panel-header-tabs" @click="handleHeaderClick">
-          <button 
+          <button
             class="panel-tab-button"
             :class="{ active: integratedPanelTab === 'commonControls' }"
             @click="switchIntegratedPanelTab('commonControls')"
@@ -268,7 +268,7 @@
             </svg>
             <span>通用</span>
           </button>
-          <button 
+          <button
             class="panel-tab-button"
             :class="{ active: integratedPanelTab === 'layerTree' }"
             @click="switchIntegratedPanelTab('layerTree')"
@@ -279,43 +279,43 @@
             </svg>
             <span>图层</span>
           </button>
-          
+
           <!-- 工具栏：预设按钮、动作模板按钮、表情模板按钮、搜索按钮和缩放控制 -->
-          <button 
+          <button
             class="save-preset-button"
             @click="handleSavePreset"
             title="添加当前画布为预设"
           >
             预设
           </button>
-          
-          <button 
+
+          <button
             class="save-template-button"
             @click="handleSaveTemplate1"
             title="保存当前动作配置为动作模板"
           >
             动作模板
           </button>
-          
-          <button 
+
+          <button
             class="save-template-button"
             @click="handleSaveTemplate2"
             title="保存当前表情配置为表情模板"
           >
             表情模板
           </button>
-          
-          <button 
+
+          <button
             class="search-preset-button"
             @click="openSearchModal"
             title="搜索动作和表情"
           >
             搜索
           </button>
-          
+
           <div class="size-control-compact">
             <label class="size-control-label">缩放</label>
-            <input 
+            <input
               type="number"
               class="size-control-input"
               v-model.number="partItemSizeInput"
@@ -328,9 +328,9 @@
             />
             <span class="size-control-unit">px</span>
           </div>
-          
-          <span 
-            class="collapse-icon" 
+
+          <span
+            class="collapse-icon"
             :class="{ expanded: !integratedPanelCollapsed }"
             @click="toggleIntegratedPanel"
             title="点击折叠/展开"
@@ -342,8 +342,8 @@
             <div v-show="integratedPanelTab === 'commonControls'" class="common-controls-content">
             <div class="common-controls">
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="exclusiveMode"
                   @change="handleCommonControlChange"
                 />
@@ -355,8 +355,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="actionExclusiveMode"
                   @change="handleCommonControlChange"
                 />
@@ -368,8 +368,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="expressionExclusiveMode"
                   @change="handleCommonControlChange"
                 />
@@ -381,8 +381,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showFront"
                   @change="handleCommonControlChange"
                 />
@@ -394,8 +394,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showSide"
                   @change="handleCommonControlChange"
                 />
@@ -407,8 +407,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showBack"
                   @change="handleCommonControlChange"
                 />
@@ -420,8 +420,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showBackground"
                   @change="handleCommonControlChange"
                 />
@@ -433,8 +433,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showBaseLayer"
                   @change="handleCommonControlChange"
                 />
@@ -446,8 +446,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showSecondBaseLayer"
                   @change="handleCommonControlChange"
                 />
@@ -459,8 +459,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showWeapon"
                   @change="handleCommonControlChange"
                 />
@@ -472,7 +472,7 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
+                <input
                   type="checkbox"
                   v-model="showBackHair"
                   @change="handleCommonControlChange"
@@ -485,8 +485,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showShadow"
                   @change="handleCommonControlChange"
                 />
@@ -498,8 +498,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showShakeHead"
                   @change="handleCommonControlChange"
                 />
@@ -511,8 +511,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showHoldSword"
                   @change="handleCommonControlChange"
                 />
@@ -524,8 +524,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showBackHandSword"
                   @change="handleCommonControlChange"
                 />
@@ -537,8 +537,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="showDownwardSlash"
                   @change="handleCommonControlChange"
                 />
@@ -550,8 +550,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="selectHeadOnly"
                   @change="handleSelectHeadOnlyChange"
                 />
@@ -563,8 +563,8 @@
                 </n-tooltip>
               </label>
               <label class="control-item">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   v-model="selectNonHead"
                   @change="handleSelectNonHeadChange"
                 />
@@ -593,9 +593,9 @@
                   style="width: 135px; margin-left: 8px;"
                 />
               </div>
-              
+
               <!-- 重置按钮 -->
-              <button 
+              <button
                 class="reset-button-inline"
                 @click="resetCommonControls"
                 title="重置控制面板到默认状态"
@@ -604,10 +604,10 @@
               </button>
             </div>
             </div>
-            
+
             <!-- 图层结构内容 -->
             <div v-show="integratedPanelTab === 'layerTree'" class="layer-tree-content">
-              <LayerTreePanel 
+              <LayerTreePanel
                 v-if="currentPsdData"
                 :layer-data="layerTreeData"
                 :selected-layers="selectedLayersMap"
@@ -622,9 +622,9 @@
           </div>
         </transition>
       </div>
-      
+
       <!-- 可拖拽的分隔条（仅在画布展开时显示） -->
-      <div 
+      <div
         v-show="canvasPanelExpanded"
         class="resize-divider"
         @mousedown="handleDividerMouseDown"
@@ -646,19 +646,19 @@
           <!-- 切换按钮 - 拆分为2行 -->
           <div class="parts-tabs-container">
             <!-- 第1行：动作表情相关标签 -->
-            <div 
-              class="parts-tabs parts-tabs-row-1" 
+            <div
+              class="parts-tabs parts-tabs-row-1"
               ref="partsTabsRow1Ref"
               @wheel="handleTabsWheel"
               @dragover="handleContainerDragOver($event, 'row1')"
               @drop="handleContainerDrop($event, 'row1')"
             >
-              <button 
-                v-for="tab in categorizedTabs.row1Tabs" 
+              <button
+                v-for="tab in categorizedTabs.row1Tabs"
                 :key="tab.key"
                 :class="[
-                  'part-tab', 
-                  { 
+                  'part-tab',
+                  {
                     active: currentTab === tab.key,
                     'has-rendered': hasRenderedContent[tab.key],
                     'drag-over-before': dragOverTabKey === tab.key && dropPosition === 'before',
@@ -677,21 +677,21 @@
                 {{ tab.label }}
               </button>
             </div>
-            
+
             <!-- 第2行：模板、预设、上身下身 + 工具栏 -->
-            <div 
-              class="parts-tabs parts-tabs-row-2" 
+            <div
+              class="parts-tabs parts-tabs-row-2"
               ref="partsTabsRow2Ref"
               @wheel="handleTabsWheel"
               @dragover="handleContainerDragOver($event, 'row2')"
               @drop="handleContainerDrop($event, 'row2')"
             >
-              <button 
-                v-for="tab in categorizedTabs.row2Tabs" 
+              <button
+                v-for="tab in categorizedTabs.row2Tabs"
                 :key="tab.key"
                 :class="[
-                  'part-tab', 
-                  { 
+                  'part-tab',
+                  {
                     active: currentTab === tab.key,
                     'has-rendered': hasRenderedContent[tab.key],
                     'drag-over-before': dragOverTabKey === tab.key && dropPosition === 'before',
@@ -709,7 +709,7 @@
               >
                 {{ tab.label }}
               </button>
-              
+
               <!-- 工具栏（重置和提示）放在第2行末尾 -->
               <div class="tab-management-toolbar-inline">
                 <n-tooltip placement="bottom">
@@ -725,14 +725,14 @@
                   </template>
                   重置标签排序
                 </n-tooltip>
-                
+
                 <span class="tab-hint">提示：拖拽标签可排序</span>
               </div>
             </div>
           </div>
 
           <!-- 部件列表（含预设） - 使用虚拟滚动优化 -->
-          <div 
+          <div
             :class="[
               'parts-list',
               { 'template-grid-mode': isTemplateGridMode }
@@ -748,13 +748,13 @@
               <div v-if="presets.length === 0" class="empty-state">
                 <p>暂无预设，点击"预设"按钮创建预设</p>
               </div>
-              <div 
-                v-for="preset in presets" 
+              <div
+                v-for="preset in presets"
                 :key="preset.id"
                 :class="[
                   'part-item',
                   'preset-item',
-                  { 
+                  {
                     active: selectedPresetId === preset.id,
                     'multi-selected': isPresetMultiSelected(preset.id)
                   }
@@ -763,7 +763,7 @@
                 @contextmenu="handlePresetContextMenu($event, preset.id)"
                 @dblclick.stop="deselectAllPresets"
               >
-                <div 
+                <div
                   class="part-preview"
                   @mouseenter="handlePresetHoverEnter($event, preset)"
                   @mousemove="handlePresetHoverMove"
@@ -787,7 +787,7 @@
                 </div>
                 <div class="part-info">
                   <div class="part-name">
-                    <input 
+                    <input
                       v-if="editingPresetId === preset.id"
                       type="text"
                       class="preset-name-input"
@@ -796,7 +796,7 @@
                       @blur="handlePresetNameBlur(preset.id, $event)"
                       @keyup.enter="handlePresetNameBlur(preset.id, $event)"
                     />
-                    <span 
+                    <span
                       v-else
                       @dblclick.stop="startEditPresetName(preset.id)"
                       :title="getPresetFullDescription(preset)"
@@ -807,20 +807,20 @@
                 </div>
               </div>
             </template>
-            
+
             <!-- 动作模板卡片展示（模板不使用虚拟滚动，因为数量较少） -->
             <template v-else-if="currentTab === 'template1'">
               <div v-if="templates1.length === 0" class="empty-state">
                 <p>暂无动作模板，点击"动作模板"按钮创建</p>
               </div>
-              <div 
-                v-for="template in templates1" 
+              <div
+                v-for="template in templates1"
                 :key="template.id"
                 :class="[
                   'part-item',
                   'template-item',
                   'template-text-only',
-                  { 
+                  {
                     active: selectedTemplate1Id === template.id,
                     'multi-selected': isTemplateMultiSelected(template.id, 'template1'),
                     'template-dragging': isTemplateDragging(template.id),
@@ -837,7 +837,7 @@
               >
                 <!-- 只显示文字内容 -->
                 <div class="template-text-content">
-                  <span 
+                  <span
                     class="template-card-drag-handle"
                     draggable="true"
                     title="拖拽调整模板顺序"
@@ -846,13 +846,13 @@
                     @click.stop
                     @contextmenu.stop
                   ></span>
-                  <div 
+                  <div
                     class="template-card-body"
                     @mouseenter="handleTemplateHoverEnter($event, template)"
                     @mousemove="handleTemplateHoverMove"
                     @mouseleave="handleTemplateHoverLeave"
                   >
-                    <div 
+                    <div
                       class="template-card-title"
                       @dblclick="startEditTemplateNameById(template.id, 'template1')"
                       :title="template.description || template.name"
@@ -863,20 +863,20 @@
                 </div>
               </div>
             </template>
-            
+
             <!-- 表情模板卡片展示（模板不使用虚拟滚动，因为数量较少） -->
             <template v-else-if="currentTab === 'template2'">
               <div v-if="templates2.length === 0" class="empty-state">
                 <p>暂无表情模板，点击"表情模板"按钮创建</p>
               </div>
-              <div 
-                v-for="template in templates2" 
+              <div
+                v-for="template in templates2"
                 :key="template.id"
                 :class="[
                   'part-item',
                   'template-item',
                   'template-text-only',
-                  { 
+                  {
                     active: selectedTemplate2Id === template.id,
                     'multi-selected': isTemplateMultiSelected(template.id, 'template2'),
                     'template-dragging': isTemplateDragging(template.id),
@@ -893,7 +893,7 @@
               >
                 <!-- 只显示文字内容 -->
                 <div class="template-text-content">
-                  <span 
+                  <span
                     class="template-card-drag-handle"
                     draggable="true"
                     title="拖拽调整模板顺序"
@@ -902,13 +902,13 @@
                     @click.stop
                     @contextmenu.stop
                   ></span>
-                  <div 
+                  <div
                     class="template-card-body"
                     @mouseenter="handleTemplateHoverEnter($event, template)"
                     @mousemove="handleTemplateHoverMove"
                     @mouseleave="handleTemplateHoverLeave"
                   >
-                    <div 
+                    <div
                       class="template-card-title"
                       @dblclick="startEditTemplateNameById(template.id, 'template2')"
                       :title="template.description || template.name"
@@ -922,30 +922,30 @@
 
             <!-- 普通部件列表（使用虚拟滚动） -->
             <template v-else>
-              <div 
-                v-if="currentPartsList.length === 0" 
+              <div
+                v-if="currentPartsList.length === 0"
                 class="empty-state"
               >
                 <p>{{ emptyStateText }}</p>
               </div>
               <template v-else>
                 <!-- 虚拟滚动占位容器 -->
-                <div 
+                <div
                   class="parts-virtual-spacer"
                   :style="{ height: virtualScroll.totalHeight.value + 'px' }"
                 ></div>
                 <!-- 虚拟滚动可见内容（绝对定位） -->
-                <div 
+                <div
                   class="parts-virtual-items"
                   :style="{ transform: `translateY(${virtualScroll.offsetY.value}px)` }"
                 >
-                  <div 
-                    v-for="part in visiblePartsList" 
+                  <div
+                    v-for="part in visiblePartsList"
                     :key="part._absoluteIndex"
                     :class="[
-                      'part-item', 
-                      { 
-                        active: isPartActive(part), 
+                      'part-item',
+                      {
+                        active: isPartActive(part),
                         hidden: part.hidden,
                         group: part.isGroup,
                         'search-highlighted': highlightedPartPath === part.path
@@ -989,7 +989,7 @@
     </div>
 
     <!-- 搜索对话框 -->
-    <PartSearchModal 
+    <PartSearchModal
       ref="searchModalRef"
       v-model:show="showSearchModal"
       :all-parts="allPartsForSearch"
@@ -1002,8 +1002,8 @@
     />
 
     <!-- 右键菜单 -->
-    <div 
-      v-if="contextMenuVisible" 
+    <div
+      v-if="contextMenuVisible"
       :class="[
         'template-context-menu',
         { 'detail-mode': contextMenuItemType === 'template' }
@@ -1037,13 +1037,13 @@
           </div>
 
           <div class="template-detail-body">
-            <div 
-              v-if="templateDetailEntries.length" 
+            <div
+              v-if="templateDetailEntries.length"
               class="template-detail-groups"
             >
-              <div 
-                v-for="group in templateDetailEntries" 
-                :key="group.tabName" 
+              <div
+                v-for="group in templateDetailEntries"
+                :key="group.tabName"
                 class="template-detail-group"
               >
                 <span class="template-detail-group-name">{{ group.tabName }}</span>
@@ -1056,22 +1056,22 @@
           </div>
 
           <div class="template-detail-actions">
-            <button 
-              class="template-detail-btn primary" 
+            <button
+              class="template-detail-btn primary"
               :disabled="!contextMenuSingleItemId"
               @click="handleTemplateDetailApply"
             >
               应用
             </button>
-            <button 
-              class="template-detail-btn" 
+            <button
+              class="template-detail-btn"
               :disabled="!contextMenuSingleItemId"
               @click="handleContextMenuRename"
             >
               重命名
             </button>
-            <button 
-              class="template-detail-btn danger" 
+            <button
+              class="template-detail-btn danger"
               @click="handleBatchDeleteTemplates"
             >
               删除
@@ -1082,8 +1082,8 @@
     </div>
 
     <!-- 点击遮罩层关闭右键菜单 -->
-    <div 
-      v-if="contextMenuVisible" 
+    <div
+      v-if="contextMenuVisible"
       class="context-menu-overlay"
       @click="handlePageClick"
       @contextmenu.prevent="handlePageClick"
@@ -1096,18 +1096,16 @@
 /**
  * 人物动作与表情编辑页面：协调 PSD 图层、部件选择、预设模板、画布预览及拖拽导出。
  */
-import { ref, reactive, computed, onMounted, onUnmounted, onActivated, nextTick, h, watch, shallowRef } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, onActivated, nextTick, watch, shallowRef } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { NButton, NTooltip, NDropdown, NCheckbox, useMessage, useDialog } from 'naive-ui'
 import PsdTabsBar from './components/PsdTabsBar.vue'
 import LayerTreePanel from './components/LayerTreePanel.vue'
 import PartSearchModal from './components/PartSearchModal.vue'
-import { 
-  normalizeString, 
-  sanitizeSegment, 
-  generateId, 
-  generatePresetName,
-  generateExportFileName
+import {
+  normalizeString,
+  generateId,
+  generatePresetName
 } from './utils/stringUtils.js'
 import {
   FOLLOW_OFFSET_X,
@@ -1193,6 +1191,8 @@ import { usePartTabLayout } from './composables/usePartTabLayout.js'
 import { usePartSelectionCoordinator } from './composables/usePartSelectionCoordinator.js'
 import { useExpressionAnalysis } from './composables/useExpressionAnalysis.js'
 import { useVirtualScroll } from './composables/useVirtualScroll.js'
+import { useCanvasOutputCoordinator, createCanvasJumpOptions } from './composables/useCanvasOutputCoordinator.js'
+import { buildCanvasOutputFileName } from './utils/canvasOutputName.js'
 import { useCanvasPresetHoverPreview } from './composables/useCanvasPresetHoverPreview.js'
 import { useHoverPreviewSetting } from '../../../composables/useHoverPreviewSetting.js'
 import { createPerformanceLogger } from '@renderer/utils/performanceLogger.js'
@@ -1238,9 +1238,9 @@ const {
 
 // 悬浮预览开关控制（使用 composable 实现同步和持久化）
 // 主画布悬浮预览（仅画布）
-const { hoverPreviewEnabled: enableCanvasHover, toggleHoverPreview: toggleCanvasHoverPreview } = useHoverPreviewSetting({ 
-  type: 'canvas', 
-  source: 'ActionExpressionPage' 
+const { hoverPreviewEnabled: enableCanvasHover, toggleHoverPreview: toggleCanvasHoverPreview } = useHoverPreviewSetting({
+  type: 'canvas',
+  source: 'ActionExpressionPage'
 })
 // 预设 & 模板悬浮预览
 const { hoverPreviewEnabled: enablePresetHover, toggleHoverPreview: togglePresetHoverPreview } = useHoverPreviewSetting({
@@ -1292,7 +1292,7 @@ const applyHotkeyLabels = (sourceConfig = null) => {
       console.warn('⚠️ 解析快捷键配置失败，将使用默认展示值', error)
     }
   }
-  
+
   /**
    * 获取单个快捷键的显示值。
    * 处理流程：
@@ -1305,7 +1305,7 @@ const applyHotkeyLabels = (sourceConfig = null) => {
     }
     return config[key]
   }
-  
+
   // 2、同步三项快捷键的界面展示
   hotkeyLabels.toggleCanvasHover = resolveValue('toggleCanvasHover')
   hotkeyLabels.togglePartHover = resolveValue('togglePartHover')
@@ -1425,266 +1425,25 @@ const toggleCanvasPanel = () => {
   }
 }
 
-/**
- * 打开独立画布预览窗口。
- * 处理流程：
- * 1、检查 PSD 数据并请求创建窗口
- * 2、同步主题和文件名，延迟发送画布内容
- * 3、反馈窗口创建结果
- */
-const openCanvasPreview = async () => {
-  // 1、未载入 PSD 时终止创建
-  if (!currentPsdData.value) {
-    message.warning('请先上传PSD文件')
-    return
-  }
-  
-  try {
-    const result = await window.electronAPI?.invoke('canvas-preview-create')
-    if (result?.success) {
-      // 2、立即同步当前主题到预览窗口
-      const savedTheme = localStorage.getItem('theme') || 'dark'
-      await window.electronAPI?.invoke('canvas-preview-sync-theme', savedTheme)
-      
-      // 立即同步当前文件名
-      const fileName = buildSuggestedFileName()
-      await window.electronAPI?.invoke('canvas-preview-update-filename', fileName)
-      
-      // 延迟发送画布内容，确保预览窗口完全加载
-      setTimeout(async () => {
-        await syncCanvasToPreview()
-      }, 300)
-      
-      // 3、报告窗口创建成功
-      message.success('已打开预览图窗口')
-    }
-  } catch (error) {
-    console.error('打开预览窗口失败:', error)
-    message.error('打开预览窗口失败')
-  }
-}
-
-/**
- * 将当前画布转换为图片并交给图像处理页面。
- * 处理流程：
- * 1、校验 PSD 和画布状态，标记发送中
- * 2、导出 PNG 并转换为数据地址
- * 3、替换待处理图片缓存并跳转页面
- * 4、反馈结果并释放发送状态
- */
-const sendCanvasToGenerate = async (event) => {
-  // 1、阻止事件冒泡并检查数据，避免触发画布面板折叠
-  event?.stopPropagation()
-  
-  if (!currentPsdData.value) {
-    message.warning('请先上传PSD文件')
-    return
-  }
-  
-  if (!canvasRef.value) {
-    message.error('画布未就绪，请稍后再试')
-    return
-  }
-  
-  isSendingToGenerate.value = true
-  console.log('[人物调整] 开始发送画布到图像处理插件')
-  
-  try {
-    const canvas = canvasRef.value
-    
-    // 验证canvas有效性
-    if (!canvas.width || !canvas.height) {
-      message.error('画布尺寸无效')
-      console.error('[人物调整] 画布尺寸无效:', { width: canvas.width, height: canvas.height })
-      return
-    }
-    
-    console.log('[人物调整] 画布尺寸:', { width: canvas.width, height: canvas.height })
-    
-    // 2、将画布转换为 PNG 二进制数据，再读取数据地址
-    const blob = await new Promise((resolve, reject) => {
-      canvas.toBlob((createdBlob) => {
-        if (!createdBlob) {
-          reject(new Error('Blob结果为空'))
-          return
-        }
-        resolve(createdBlob)
-      }, 'image/png', 1.0)
-    })
-    
-    if (!blob) {
-      message.error('图片转换失败')
-      return
-    }
-    
-    console.log('[人物调整] Blob 创建成功，大小:', blob.size, 'bytes')
-    
-    // 将Blob转换为Base64 DataURL
-    const reader = new FileReader()
-    const dataURL = await new Promise((resolve, reject) => {
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = reject
-      reader.readAsDataURL(blob)
-    })
-    
-    console.log('[人物调整] DataURL 转换成功，长度:', dataURL.length)
-    
-    // 生成文件名
-    const fileName = buildSuggestedFileName() || '画布导出.png'
-    console.log('[人物调整] 生成文件名:', fileName)
-    
-    // 3、先清除旧数据，再写入本次待处理图片并跳转
-    const oldData = sessionStorage.getItem('pendingImageForGenerate')
-    if (oldData) {
-      console.log('[人物调整] 清除旧的待处理数据')
-      sessionStorage.removeItem('pendingImageForGenerate')
-    }
-    
-    // 将图片数据存储到 sessionStorage，供 GeneratePage 读取
-    const imageData = {
-      dataURL,
-      fileName,
-      timestamp: Date.now(),
-      source: 'action-expression-canvas'
-    }
-    sessionStorage.setItem('pendingImageForGenerate', JSON.stringify(imageData))
-    console.log('[人物调整] 新图片数据已存储到 sessionStorage，时间戳:', imageData.timestamp)
-    
-    // 跳转到图像处理页面
-    console.log('[人物调整] 准备跳转到图像处理页面')
-    await router.push('/image-processing')
-    
-    message.success('已发送到图像处理插件')
-  } catch (error) {
-    console.error('[人物调整] 发送到生成页面失败:', error)
-    message.error('发送失败：' + error.message)
-  } finally {
-    // 4、无论成功、失败或中途返回，都释放发送状态
-    isSendingToGenerate.value = false
-  }
-}
-
-/**
- * 同步画布内容和文件名到独立预览窗口。
- * 处理流程：
- * 1、验证画布并开始耗时记录
- * 2、优先生成 PNG 二进制载荷，失败时回退数据地址
- * 3、异步发送图片与文件名并记录编码结果
- */
-const syncCanvasToPreview = async () => {
-  // 1、没有画布或有效尺寸时记录跳过原因
-  if (!canvasRef.value) {
-    console.warn('[预览同步] Canvas引用不存在')
-    logPreviewSyncTrigger('skip', { reason: 'no-canvas' })
-    return
-  }
-  
-  try {
-    const canvas = canvasRef.value
-    
-    // 验证canvas有效性
-    if (!canvas.width || !canvas.height) {
-      console.warn('[预览同步] Canvas尺寸无效:', { width: canvas.width, height: canvas.height })
-      logPreviewSyncTrigger('skip', { reason: 'empty-canvas' })
-      return
-    }
-    
-    const startTime = performance.now()
-    let previewMeasurement = perfLogger.start('preview-sync:full', { threshold: 35 })
-    
-    let payload = null
-    let encodingStrategy = 'blob-png'
-    try {
-      // 2、使用 PNG 格式保持最高画质，失败时回退数据地址
-      const blob = await new Promise((resolve, reject) => {
-        canvas.toBlob((createdBlob) => {
-          if (!createdBlob) {
-            reject(new Error('Blob结果为空'))
-            return
-          }
-          resolve(createdBlob)
-        }, 'image/png', 1.0) // PNG 格式，质量1.0保持原始画质
-      })
-      const arrayBuffer = await blob.arrayBuffer()
-      payload = {
-        buffer: arrayBuffer,
-        width: canvas.width,
-        height: canvas.height,
-        mimeType: blob.type || 'image/png'
-      }
-    } catch (blobError) {
-      // 兜底方案：使用 PNG dataURL
-      encodingStrategy = 'dataURL-png-fallback'
-      console.warn('[预览同步] toBlob 失败，使用 dataURL 兜底:', blobError)
-      const dataUrl = canvas.toDataURL('image/png', 1.0)
-      if (!dataUrl || dataUrl.length < 100) {
-        console.error('[预览同步] Canvas数据无效或为空')
-        return
-      }
-      payload = {
-        dataUrl,
-        width: canvas.width,
-        height: canvas.height,
-        mimeType: 'image/png'
-      }
-    }
-    
-    const encodeTime = performance.now() - startTime
-    console.log('[预览同步] 图像编码完成:', {
-      width: canvas.width,
-      height: canvas.height,
-      strategy: encodingStrategy,
-      byteLength: payload.buffer ? payload.buffer.byteLength : payload.dataUrl.length,
-      encodeTime: `${encodeTime.toFixed(1)}ms`
-    })
-    
-    // 3、异步发送到预览窗口并同步文件名，不等待窗口更新结果
-    window.electronAPI?.invoke('canvas-preview-update', payload).then(result => {
-      if (result && !result.success) {
-        console.error('[预览同步] 预览窗口更新失败:', result.error)
-      } else {
-        const totalTime = performance.now() - startTime
-        console.log(`[预览同步] ✅ 完成 (总耗时: ${totalTime.toFixed(1)}ms)`)
-      }
-    }).catch(err => {
-      console.error('[预览同步] 发送失败:', err)
-    })
-    
-    // 异步同步文件名（不阻塞）
-    const fileName = buildSuggestedFileName()
-    window.electronAPI?.invoke('canvas-preview-update-filename', fileName).catch(err => {
-      console.error('[预览同步] 文件名同步失败:', err)
-    })
-
-    previewMeasurement?.end({
-      strategy: encodingStrategy,
-      width: canvas.width,
-      height: canvas.height,
-      payloadBytes: payload.buffer ? payload.buffer.byteLength : payload.dataUrl?.length || 0,
-      encodeTime: Number(encodeTime.toFixed(1))
-    })
-    
-  } catch (error) {
-    console.error('[预览同步] 同步画布到预览窗口失败:', error)
-    perfLogger.logEvent('preview-sync:error', { message: error?.message })
-  }
-}
-
-/**
- * 切换 PSD 时重置独立预览窗口的视口。
- * 处理流程：
- * 1、发送重置命令，窗口不存在时仅记录调试信息
- */
-const resetPreviewWindowViewport = async () => {
-  // 1、将缩放和位置复位委托给预览窗口
-  try {
-    await window.electronAPI?.invoke('canvas-preview-reset-viewport')
-    console.log('[预览窗口] ✅ 已发送视图重置命令')
-  } catch (error) {
-    // 静默失败，预览窗口可能未打开
-    console.debug('[预览窗口] 视图重置调用失败（预览窗口可能未打开）:', error)
-  }
-}
+// ==================== 独立预览与跨页图片传递 ====================
+// 1、在原预览声明位置接入，供后续 usePresetData 等模块注入；ref 均为原对象。
+const {
+  openCanvasPreview,
+  sendCanvasToGenerate,
+  syncCanvasToPreview,
+  resetPreviewWindowViewport,
+  handleJumpSelect
+} = useCanvasOutputCoordinator({
+  currentPsdData,
+  canvasRef,
+  isSendingToGenerate,
+  message,
+  router,
+  perfLogger,
+  buildSuggestedFileName,
+  // 2、该日志函数在页面末尾声明，只在原同步分支执行时读取。
+  logPreviewSyncTrigger: (...args) => logPreviewSyncTrigger(...args)
+})
 
 // 部件分类缓存（每个PSD文件都有自己的部件分类）
 const psdPartsCache = ref({}) // { psdId: { frontHand: [], backHand: [], expression: [] } }
@@ -1705,11 +1464,11 @@ const {
   upperBodyParts,
   lowerBodyParts,
   actionParts,
-  
+
   // 动态表情图组
   dynamicExpressionParts,
   dynamicExpressionTabs,
-  
+
   // 动态分组（已禁用，保留兼容性）
   dynamicFrontHandParts,
   dynamicFrontHandTabs,
@@ -1723,7 +1482,7 @@ const {
   dynamicLowerBodyTabs,
   dynamicActionParts,
   dynamicActionTabs,
-  
+
   // 辅助方法
   clearAllPartsState,
   updatePartsFromClassifyResult,
@@ -1762,7 +1521,7 @@ const openSearchModal = () => {
     message.warning('请先上传PSD文件')
     return
   }
-  
+
   // 2、如果对话框已经打开，重置位置到可见区域
   if (showSearchModal.value && searchModalRef.value) {
     searchModalRef.value.resetPosition()
@@ -1781,12 +1540,12 @@ const allPartsForSearch = computed(() => {
     lowerBody: lowerBodyParts.value,
     presets: presets.value
   }
-  
+
   // 添加所有表情图组
   dynamicExpressionTabs.value.forEach(tab => {
     parts[tab.key] = dynamicExpressionParts.value[tab.key] || []
   })
-  
+
   return parts
 })
 
@@ -1828,19 +1587,19 @@ const originalHandPartsForSearch = computed(() => {
 const handleSearchResult = async (result) => {
   // 1、忽略空结果和不能显示部件的特殊标签
   if (!result) return
-  
+
   console.log('🔍 搜索结果:', result)
-  
+
   // 确保不会切换到通用控制或图层结构
   const tabKey = result.tabKey
   const tabConfig = partTabs.value.find(tab => tab.key === tabKey)
-  
+
   if (tabConfig?.isCommonControls || tabConfig?.isLayerTree) {
     console.warn('⚠️ 搜索结果指向特殊标签页，已忽略')
     message.warning('搜索结果无法显示')
     return
   }
-  
+
   // 预设特殊处理
   if (tabKey === 'presets') {
     currentTab.value = 'presets'
@@ -1853,34 +1612,34 @@ const handleSearchResult = async (result) => {
     message.success(`已定位到预设：${result.part.displayName || result.part.name}`)
     return
   }
-  
+
   // 2、设置搜索触发标志，防止触发不必要的界面交互
   isSearchTriggeredSwitch.value = true
-  
+
   // 直接设置标签页（不触发handleTabClick，避免触发区域展开）
   currentTab.value = tabKey
-  
+
   // 等待DOM更新
   await nextTick()
-  
+
   // 重置搜索标志（在nextTick之后，确保watch已执行）
   setTimeout(() => {
     isSearchTriggeredSwitch.value = false
   }, 100)
-  
+
   // 3、高亮显示目标部件，并滚动到列表中的对应位置
   if (result.part.path) {
     highlightedPartPath.value = result.part.path
   }
-  
+
   // 滚动到目标部件位置
   await scrollToPartInList(result.part)
-  
+
   // 9秒后取消高亮（延长到3倍）
   setTimeout(() => {
     highlightedPartPath.value = null
   }, 9000)
-  
+
   message.success(`已定位到：${result.tabLabel} - ${result.part.displayName || result.part.name}`)
 }
 
@@ -1893,15 +1652,15 @@ const handleSearchResult = async (result) => {
 const handleSearchResultConfirm = async (result) => {
   // 1、先完成标签切换与结果定位
   if (!result) return
-  
+
   console.log('🔍 搜索结果确认应用:', result)
-  
+
   // 先执行定位逻辑（切换标签页、高亮、滚动到目标位置）
   await handleSearchResult(result)
-  
+
   // 等待DOM更新后应用部件
   await nextTick()
-  
+
   // 2、延迟一小段时间确保高亮和滚动完成
   setTimeout(async () => {
     // 应用部件（实际修改图层显示状态）
@@ -1919,22 +1678,22 @@ const handleSearchResultConfirm = async (result) => {
 const scrollToPartInList = async (targetPart) => {
   // 1、检查列表容器并取得当前目标索引
   if (!partsListRef.value || !targetPart) return
-  
+
   await nextTick()
-  
+
   // 获取当前部件列表
   const partsList = currentPartsList.value
   const targetIndex = partsList.findIndex(p => p.path === targetPart.path)
-  
+
   if (targetIndex === -1) {
     console.warn('未在当前列表中找到目标部件')
     return
   }
-  
+
   // 2、计算目标部件的位置并应用滚动偏移
   const itemHeight = partItemSize.value + 16 // 部件高度 + gap
   const targetScrollTop = targetIndex * itemHeight
-  
+
   // 滚动到目标位置（留一些余量）
   partsListRef.value.scrollTop = Math.max(0, targetScrollTop - 100)
 }
@@ -1957,7 +1716,7 @@ const handleSizeInputConfirm = () => {
   if (value < 50) value = 50
   if (value > 400) value = 400
   if (isNaN(value)) value = 85
-  
+
   // 2、保持输入框与部件尺寸一致
   partItemSize.value = value
   partItemSizeInput.value = value
@@ -2000,12 +1759,12 @@ watch(currentTab, () => {
   if (isRenderingTemplatePreview.value) {
     return
   }
-  
+
   // 如果是搜索触发的切换，不自动滚动到顶部（搜索功能会自己处理滚动）
   if (isSearchTriggeredSwitch.value) {
     return
   }
-  
+
   nextTick(() => {
     virtualScroll.scrollToTop('auto')
   })
@@ -2073,7 +1832,7 @@ const selectedParts = computed(() => {
       result[groupKey] = null
     }
   })
-  
+
   measurement.end({
     nodesVisited: layerNodesVisited,
     groups: allGroups.length,
@@ -2128,7 +1887,7 @@ const isPartActive = (part) => {
   const actualGroup = part._sourceGroup || currentTab.value
   const currentSelected = selectedParts.value[actualGroup]
   const hasInteracted = userInteracted.value[actualGroup]
-  
+
   // 如果用户进行过手动操作
   if (hasInteracted) {
     // 只显示用户手动选中的图层
@@ -2138,7 +1897,7 @@ const isPartActive = (part) => {
     }
     return currentSelected.path === part.path
   }
-  
+
   // 如果用户没有进行过手动操作，显示默认可见的图层
   return !part.hidden
 }
@@ -2208,8 +1967,8 @@ const toggleIntegratedPanel = () => {
 const handleHeaderClick = (event) => {
   // 1、如果点击的是按钮、输入框或其内部元素，不触发折叠或展开
   const target = event.target
-  if (target.closest('.panel-tab-button') || 
-      target.closest('.collapse-icon') || 
+  if (target.closest('.panel-tab-button') ||
+      target.closest('.collapse-icon') ||
       target.closest('.save-preset-button') ||
       target.closest('.save-template-button') ||
       target.closest('.search-preset-button') ||
@@ -2347,137 +2106,17 @@ const {
 })
 
 // ==================== 文件名生成函数 ====================
-/**
- * 根据当前控制模式与选择内容生成 PNG 文件名。
- * 处理流程：
- * 1、读取命名规则，图层树模式使用不含语义的规则
- * 2、处理侧面、背面和后面的专用名称
- * 3、收集去重后的动作名及表情名
- * 4、调用统一命名工具并追加文件扩展名
- */
+/** 保留函数声明提升；七项明确 getter 在命名算法原读取点取值，不提前捕获晚赋值 ref。 */
 function buildSuggestedFileName() {
-  // 1、读取文件名规则配置，图层树模式提前生成无语义名称
-  let fileNamingRule = 'timestamp-semantic' // 默认值
-  try {
-    const savedConfig = localStorage.getItem('stickfigure-config')
-    if (savedConfig) {
-      const config = JSON.parse(savedConfig)
-      fileNamingRule = config.fileNamingRule || 'timestamp-semantic'
-    }
-  } catch (error) {
-    console.warn('读取文件名规则配置失败:', error)
-  }
-
-  // ========== 图层树模式：直接返回纯时间戳或Hash，不处理任何语义 ==========
-  if (controlPriority.value === 'layerTree') {
-    // 将带语义的规则转换为纯规则
-    if (fileNamingRule === 'timestamp-semantic') {
-      fileNamingRule = 'timestamp-only'
-    } else if (fileNamingRule === 'hash-semantic') {
-      fileNamingRule = 'hash-only'
-    }
-    
-    const baseFileName = generateExportFileName({
-      namingRule: fileNamingRule,
-      semanticInfo: { actions: [], expressions: [] },
-      psdName: ''
-    })
-    
-    return `${baseFileName}.png`
-  }
-
-  // ========== 部件控制模式：正常处理语义信息 ==========
-  const psdNameRaw = currentPsdFile.value?.name || 'image'
-  const psdBase = sanitizeSegment(psdNameRaw.replace(/\.(psd|PSD)$/,'') || 'image')
-
-  // 2、侧面、背面与后面使用固定方向后缀
-  if (showSide.value) {
-    return `${psdBase}_侧面.png`
-  }
-  if (showBack.value) {
-    return `${psdBase}_背面.png`
-  }
-  if (showRear.value) {
-    return `${psdBase}_后面.png`
-  }
-
-  // 3、收集动作与表情语义，动作名称按首次出现去重
-  // 使用与绿色小圆点完全相同的逻辑：遍历所有标签，检查是否有内容
-  const actionNames = []
-  
-  // 所有可能包含动作信息的key（包括手部动作和动作图组）
-  const actionKeys = [
-    'frontHandNormal',    // 左手
-    'frontHandRight',     // 右手
-    'backHand',           // 后手（右手的代理目标）
-    'frontLayerBackHand', // 前层后手（右手的代理目标）
-    'frontHandBoth',      // 前手双手
-    'bothHands',          // 双手（双手的代理目标）
-    'action'              // 动作
-  ]
-  
-  // 用于去重的部件名称集合
-  const addedActionParts = new Set()
-  
-  // 检查每个动作相关的key（使用与绿色小圆点相同的逻辑）
-  actionKeys.forEach(key => {
-    const selected = selectedParts.value[key]
-    // 只有当 selectedParts 不为 null/undefined 时才计入（与绿色小圆点逻辑一致）
-    if (selected !== null && selected !== undefined) {
-      // 提取部件名称（不添加前缀，由压缩函数统一处理）
-      const names = Array.isArray(selected) 
-        ? selected.map(p => p?.name).filter(Boolean) 
-        : [selected?.name].filter(Boolean)
-      
-      // 添加到结果中（去重）
-      names.forEach(name => {
-        if (!addedActionParts.has(name)) {
-          actionNames.push(name)
-          addedActionParts.add(name)
-        }
-      })
-    }
+  return buildCanvasOutputFileName({
+    get controlPriority() { return controlPriority },
+    get currentPsdFile() { return currentPsdFile },
+    get showSide() { return showSide },
+    get showBack() { return showBack },
+    get showRear() { return showRear },
+    get selectedParts() { return selectedParts },
+    get dynamicExpressionTabs() { return dynamicExpressionTabs }
   })
-
-  // ==================== 收集表情信息 ====================
-  const expressionNames = []
-  
-  // 遍历所有动态表情标签页（使用与绿色小圆点相同的逻辑）
-  if (dynamicExpressionTabs.value && dynamicExpressionTabs.value.length > 0) {
-    dynamicExpressionTabs.value.forEach(tab => {
-      const expressionKey = tab.key
-      const selectedExpression = selectedParts.value[expressionKey]
-      
-      // 使用与绿色小圆点相同的逻辑：只检查 selectedParts 是否为 null/undefined
-      // 只有当该表情图组有内容（绿色小圆点亮起）时才计入文件名
-      if (selectedExpression !== null && selectedExpression !== undefined) {
-        // 收集选中的表情名称
-        if (Array.isArray(selectedExpression)) {
-          selectedExpression.forEach(exp => {
-            if (exp?.name) {
-              expressionNames.push(exp.name)
-            }
-          })
-        } else if (selectedExpression?.name) {
-          expressionNames.push(selectedExpression.name)
-        }
-      }
-    })
-  }
-
-  // 4、按选择的规则生成基础文件名并追加 PNG 扩展名
-  const semanticInfo = {
-    actions: actionNames,
-    expressions: expressionNames
-  }
-
-  const baseFileName = generateExportFileName({
-    namingRule: fileNamingRule,
-    semanticInfo,
-    psdName: psdBase
-  })
-
-  return `${baseFileName}.png`
 }
 
 // ==================== 拖拽处理器初始化 ====================
@@ -2596,19 +2235,19 @@ const hasRenderedContent = computed(() => {
       result[tab.key] = false
       return
     }
-    
+
     // 控制面板标签页：始终不显示绿色小圆点
     if (tab.isCommonControls) {
       result[tab.key] = false
       return
     }
-    
+
     // 预设标签页：有预设且有选中的预设时显示绿色小圆点
     if (tab.isPreset) {
       result[tab.key] = presets.value.length > 0 && selectedPresetId.value !== null
       return
     }
-    
+
     // 模板标签页：有对应模板且有选中时显示绿色小圆点
     if (tab.isTemplate) {
       if (tab.key === 'template1') {
@@ -2618,11 +2257,11 @@ const hasRenderedContent = computed(() => {
       }
       return
     }
-    
+
     // 检查该分组是否有显示的部件（从selectedParts计算属性读取）
     const selected = selectedParts.value[tab.key]
     let mainHasContent = selected !== null && selected !== undefined
-    
+
     // 检查代理目标是否有内容
     let proxyHasContent = false
     if (tab.proxyTargets && tab.proxyTargets.length > 0) {
@@ -2631,7 +2270,7 @@ const hasRenderedContent = computed(() => {
         return proxySelected !== null && proxySelected !== undefined
       })
     }
-    
+
     // 只要主分组或代理目标有内容，就显示绿点
     result[tab.key] = mainHasContent || proxyHasContent
   })
@@ -2641,18 +2280,18 @@ const hasRenderedContent = computed(() => {
 // 当前标签页的部件列表（支持代理机制合并）
 const currentPartsList = computed(() => {
   const currentTabKey = currentTab.value
-  
+
   // 查找当前标签页配置
   const currentTabConfig = partTabs.value.find(tab => tab.key === currentTabKey)
-  
+
   // 获取基础图层列表
   let baseParts = []
   let proxyParts = []
-  
+
   // 先检查是否是动态表情图组
   if (currentTabConfig?.isExpression && dynamicExpressionParts.value[currentTabKey]) {
     baseParts = dynamicExpressionParts.value[currentTabKey]
-  } 
+  }
   // 组合表情
   else if (currentTabKey === 'combinedExpressions') {
     // 为组合表情注入合成缩略图
@@ -2675,7 +2314,7 @@ const currentPartsList = computed(() => {
     else if (currentTabConfig.groupType === 'bothHands' && dynamicBothHandsParts.value[currentTabKey]) {
       baseParts = dynamicBothHandsParts.value[currentTabKey]
     }
-  } 
+  }
   else {
     // 否则使用固定的switch分支
     switch (currentTabKey) {
@@ -2694,7 +2333,7 @@ const currentPartsList = computed(() => {
           currentTabConfig.proxyTargets.forEach(proxyTarget => {
             let targetParts = []
             let targetLabel = ''
-            
+
             switch (proxyTarget) {
               case 'backHand':
                 targetParts = backHandParts.value
@@ -2705,13 +2344,13 @@ const currentPartsList = computed(() => {
                 targetLabel = '前层后手'
                 break
             }
-            
+
             const mappedParts = targetParts.map(part => ({
               ...part,
               displayName: `${targetLabel}-${part.name}`,
               _sourceGroup: proxyTarget
             }))
-            
+
             proxyParts = proxyParts.concat(mappedParts)
           })
         }
@@ -2759,15 +2398,15 @@ const currentPartsList = computed(() => {
         baseParts = []
     }
   }
-  
+
   // 合并基础图层和代理图层
   const result = [...baseParts, ...proxyParts]
-  
+
   // 同步虚拟滚动的总项目数
   nextTick(() => {
     virtualScroll.totalItems.value = result.length
   })
-  
+
   return result
 })
 
@@ -2776,7 +2415,7 @@ const emptyStateText = computed(() => {
   if (!currentPsdData.value) {
     return '请先上传PSD文件'
   }
-  
+
   // 先查找是否是动态表情图组
   const expressionTab = dynamicExpressionTabs.value.find(tab => tab.key === currentTab.value)
   if (expressionTab) {
@@ -2785,7 +2424,7 @@ const emptyStateText = computed(() => {
   if (currentTab.value === 'combinedExpressions') {
     return '暂无可组合的表情（眉/眼/嘴）'
   }
-  
+
   // 查找其他动态分组（仅前手、后手、双手，已禁用，保留代码兼容性）
   const allDynamicTabs = [
     ...dynamicFrontHandTabs.value,
@@ -2797,7 +2436,7 @@ const emptyStateText = computed(() => {
   if (dynamicTab) {
     return `暂无${dynamicTab.label}部件`
   }
-  
+
   // 否则使用固定的映射表
   const tabNames = {
     frontHandNormal: '左手',
@@ -2988,13 +2627,13 @@ const {
 })
 
 // 模板悬浮预览状态
-const templateHoverPreview = reactive({ 
-  visible: false, 
-  src: '', 
-  x: 0, 
-  y: 0, 
-  width: 0, 
-  height: 0 
+const templateHoverPreview = reactive({
+  visible: false,
+  src: '',
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0
 })
 
 // 模板悬浮预览事件处理
@@ -3012,49 +2651,49 @@ let currentHoverTemplateId = null
 const handleTemplateHoverEnter = async (event, template) => {
   // 1、检查开关，取消尚未执行的隐藏操作
   if (!enablePresetHover.value) return
-  
+
   // 清除之前的隐藏定时器
   if (templateHoverTimer) {
     clearTimeout(templateHoverTimer)
     templateHoverTimer = null
   }
-  
+
   // 如果是同一个模板，只更新位置
   if (currentHoverTemplateId === template.id && templateHoverPreview.visible) {
     handleTemplateHoverMove(event)
     return
   }
-  
+
   currentHoverTemplateId = template.id
-  
+
   // 2、使用模板自身的类型属性获取预览
   // 这样可以确保在动作模板标签页也能预览表情模板，反之亦然
   const templateType = template.templateType || activeTemplateType.value
   const base64Data = await getTemplatePreview(template.id, templateType)
-  
+
   if (!base64Data) {
     console.log('⚠️ 模板无预览图:', template.name)
     return
   }
-  
+
   try {
     // 创建临时图片对象以获取真实尺寸
     const img = new Image()
     img.src = base64Data
-    
+
     img.onload = () => {
       // 3、检查是否仍然悬浮在同一个模板上，避免异步结果覆盖新目标
       if (currentHoverTemplateId !== template.id) {
         return
       }
-      
+
       let width = img.width
       let height = img.height
-      
+
       // 计算缩放后的尺寸，保持宽高比（自适应屏幕大小）
       const maxWidth = Math.min(window.innerWidth * 0.5, 800)
       const maxHeight = Math.min(window.innerHeight * 0.7, 600)
-      
+
       // 按比例缩放
       if (width > maxWidth) {
         height = (maxWidth / width) * height
@@ -3064,12 +2703,12 @@ const handleTemplateHoverEnter = async (event, template) => {
         width = (maxHeight / height) * width
         height = maxHeight
       }
-      
+
       templateHoverPreview.src = base64Data
       templateHoverPreview.visible = true
       templateHoverPreview.width = width
       templateHoverPreview.height = height
-      
+
       handleTemplateHoverMove(event)
     }
   } catch (error) {
@@ -3086,29 +2725,29 @@ const handleTemplateHoverEnter = async (event, template) => {
 const handleTemplateHoverMove = (event) => {
   // 1、隐藏时跳过定位，显示时基于当前图片尺寸计算
   if (!templateHoverPreview.visible) return
-  
+
   const gap = 12
   const width = templateHoverPreview.width || 400
   const height = templateHoverPreview.height || 300
-  
+
   // 计算位置，确保不超出窗口
   let x = event.clientX + gap
   let y = event.clientY + gap
-  
+
   // 如果右侧空间不足，显示在左侧
   if (x + width > window.innerWidth - 8) {
     x = event.clientX - width - gap
   }
-  
+
   // 如果下方空间不足，向上调整
   if (y + height > window.innerHeight - 8) {
     y = window.innerHeight - height - 8
   }
-  
+
   // 确保不超出左侧和顶部
   x = Math.max(8, x)
   y = Math.max(8, y)
-  
+
   // 2、提交已修正窗口边界的浮层坐标
   templateHoverPreview.x = x
   templateHoverPreview.y = y
@@ -3125,7 +2764,7 @@ const handleTemplateHoverLeave = () => {
   if (templateHoverTimer) {
     clearTimeout(templateHoverTimer)
   }
-  
+
   // 2、延迟隐藏并重置悬停状态
   templateHoverTimer = setTimeout(() => {
     templateHoverPreview.visible = false
@@ -3300,12 +2939,12 @@ watch([templates1, currentTab], async ([newTemplates, newTab], [oldTemplates, ol
     console.log('⏭️ 正在添加动作模板，跳过全量预览渲染')
     return
   }
-  
+
   if (newTab === 'template1' && newTemplates && newTemplates.length > 0) {
     // 只有在切换到template1标签页或模板数量减少时才重新渲染所有预览
     const isTabSwitch = oldTab !== 'template1' && newTab === 'template1'
     const isTemplateDeleted = oldTemplates && newTemplates.length < oldTemplates.length
-    
+
     if (isTabSwitch || isTemplateDeleted) {
       // 延迟一下，确保DOM已更新
       await nextTick()
@@ -3323,12 +2962,12 @@ watch([templates2, currentTab], async ([newTemplates, newTab], [oldTemplates, ol
     console.log('⏭️ 正在添加表情模板，跳过全量预览渲染')
     return
   }
-  
+
   if (newTab === 'template2' && newTemplates && newTemplates.length > 0) {
     // 只有在切换到template2标签页或模板数量减少时才重新渲染所有预览
     const isTabSwitch = oldTab !== 'template2' && newTab === 'template2'
     const isTemplateDeleted = oldTemplates && newTemplates.length < oldTemplates.length
-    
+
     if (isTabSwitch || isTemplateDeleted) {
       // 延迟一下，确保DOM已更新
       await nextTick()
@@ -3386,20 +3025,20 @@ const initCanvasRender = () => {
     canvasStyle,
     scrollMode,
     canvasScale,
-    
+
     // PSD数据
     currentPsdData,
-    
+
     // 预设相关
     selectedPresetId,
     presets,
     renderPreset,
-    
+
     // 图层树相关
     updateSelectedLayersMap,
     controlPriority,
     renderByLayerTree,
-    
+
     // 通用控制
     commonControls: {
       showBackground,
@@ -3417,7 +3056,7 @@ const initCanvasRender = () => {
       showBackHandSword,
       showDownwardSlash
     },
-    
+
     // 部件状态
     partsState: {
       selectedPart,
@@ -3434,7 +3073,7 @@ const initCanvasRender = () => {
       lowerBodyParts,
       actionParts
     },
-    
+
     // 动态状态
     dynamicState: {
       dynamicExpressionTabs,
@@ -3453,7 +3092,7 @@ const initCanvasRender = () => {
       dynamicActionParts
     }
   })
-  
+
   // 2、替换临时占位变量，并向画布缩放模块传递实际渲染入口
   isRendering = renderComposable.isRendering
   refreshCanvas = renderComposable.refreshCanvas
@@ -3462,10 +3101,10 @@ const initCanvasRender = () => {
   renderLayersWithAllGroupFilters = renderComposable.renderLayersWithAllGroupFilters
   renderGroupWithClippingAdjustments = renderComposable.renderGroupWithClippingAdjustments
   renderLayer = renderComposable.renderLayer
-  
+
   // 将renderAllLayers函数赋值给ref，供useCanvasScale使用
   renderAllLayersRef = renderAllLayers
-  
+
   console.log('✅ Canvas渲染模块初始化完成')
 }
 
@@ -3512,19 +3151,19 @@ onMounted(async () => {
   // 1、先准备页面显示和全局模板所需的数据
   await initPSDService()
   await getAlwaysOnTopState()
-  
+
   // 初始化Canvas显示尺寸
   updateCanvasDisplaySize()
-  
+
   // 加载全局模板（不依赖PSD）
   await loadTemplates()
   console.log('✅ 已加载全局模板')
-  
+
   // 2、注册窗口大小变化与桌面系统拖拽完成事件
   window.addEventListener('resize', handleWindowResize)
-  
+
   // 注意：键盘事件监听已由 useKeyboard composable 内部管理，无需手动添加
-  
+
   // 监听 drag-finished 事件
   if (window.electronAPI?.on) {
     dragFinishedUnsubscribe = window.electronAPI.on('drag-finished', handleDragFinished)
@@ -3532,7 +3171,7 @@ onMounted(async () => {
   } else {
     console.warn('⚠️ electronAPI.on 不可用')
   }
-  
+
   // 3、等待列表容器可用后初始化虚拟滚动，并保存卸载时的清理函数
   await nextTick()
   if (partsListRef.value) {
@@ -3554,7 +3193,7 @@ onActivated(() => {
   // 1、每次从其他页面回来时，等待缓存视图重新激活
   nextTick(() => {
     const currentMode = scrollMode.value
-    
+
     // 2、先切换到另一模式，触发尺寸和滚动位置重置
     if (currentMode === 'scale') {
       // 当前是画布缩放模式：切换到区域调整 -> 再切回画布缩放
@@ -3562,7 +3201,7 @@ onActivated(() => {
       canvasScale.value = 1.0
       userHasManuallyScrolled.value = false
       updateCanvasDisplaySize()
-      
+
       // 3、恢复原画布缩放模式并重新绘制
       nextTick(() => {
         scrollMode.value = 'scale'
@@ -3577,7 +3216,7 @@ onActivated(() => {
       canvasScale.value = 1.0
       userHasManuallyScrolled.value = false
       updateCanvasDisplaySize()
-      
+
       // 恢复原区域调整模式并重新绘制
       nextTick(() => {
         scrollMode.value = 'region'
@@ -3600,19 +3239,19 @@ onActivated(() => {
 onUnmounted(() => {
   // 1、在清空文件引用之前保存路径历史
   autoSavePsdHistory()
-  
+
   // 2、清理页面持有的窗口、拖拽和虚拟滚动监听
   window.removeEventListener('resize', handleWindowResize)
-  
+
   // 注意：键盘事件监听已由 useKeyboard composable 内部管理，无需手动清理
   // 注意：分隔条拖拽监听已由 useCanvasDivider composable 内部管理，无需手动清理
-  
+
   // 清理拖拽监听
   if (dragFinishedUnsubscribe) {
     dragFinishedUnsubscribe()
   }
   window.electronAPI?.removeAllListeners?.('drag-finished')
-  
+
   // 清理虚拟滚动
   if (window.__virtualScrollCleanup) {
     window.__virtualScrollCleanup()
@@ -3634,14 +3273,14 @@ onUnmounted(() => {
 onBeforeRouteLeave(async (to, from) => {
   // 自动保存PSD历史记录
   autoSavePsdHistory()
-  
+
   // 关闭预览窗口
   try {
     await window.electronAPI?.invoke('canvas-preview-close')
   } catch (error) {
     console.error('关闭预览窗口失败:', error)
   }
-  
+
   return true
 })
 
@@ -3704,14 +3343,14 @@ handleLayerVisibilityChange = async (params) => {
     console.log('🔄 操作图层树时清除预设选择')
     selectedPresetId.value = null
   }
-  
+
   // 调用原始函数
   await originalHandleLayerVisibilityChange(params)
-  
+
   // 2、将图层树变化反向同步到对应通用控制开关
   const layerName = params.layerPath.split('/').pop()
   const layerNameBase = layerName.replace(/#\d+$/, '') // 去除#2等后缀
-  
+
   // 映射图层名称到通用控制（注意：正面不在此映射，它是渲染过滤器）
   const layerToControlMap = {
     '背景': showBackground,
@@ -3735,7 +3374,7 @@ handleLayerVisibilityChange = async (params) => {
     '后手持剑': showBackHandSword,
     '下压挥剑': showDownwardSlash
   }
-  
+
   const controlRef = layerToControlMap[layerNameBase]
   if (controlRef && controlRef.value !== params.visible) {
     // 标记正在同步，避免触发watch
@@ -3930,156 +3569,7 @@ const {
 })
 
 // ==================== 跳转菜单选项 ====================
-const jumpOptions = ref([
-  {
-    label: '跳转到抠图',
-    key: 'removebg',
-    icon: () => h('span', '🎨')
-  },
-  {
-    label: '跳转到分格',
-    key: 'comic',
-    icon: () => h('span', '📱')
-  },
-  {
-    label: '跳转到幻想框',
-    key: 'dialog-frame',
-    icon: () => h('span', '💭')
-  }
-])
-
-/**
- * 将当前画布作为图片传递给指定工具页面。
- * 处理流程：
- * 1、验证画布并导出 PNG 数据地址
- * 2、保存临时图片并写入跨页面待处理缓存
- * 3、按菜单项跳转目标页面，最终释放发送状态
- */
-const handleJumpSelect = async (key) => {
-  // 1、缺少 PSD 或画布时不启动导出
-  if (!currentPsdData.value || !canvasRef.value) {
-    message.warning('请先上传PSD文件')
-    return
-  }
-  
-  isSendingToGenerate.value = true
-  
-  try {
-    const canvas = canvasRef.value
-    
-    // 验证canvas有效性
-    if (!canvas.width || !canvas.height) {
-      message.error('画布尺寸无效')
-      console.error('[人物调整] 画布尺寸无效:', { width: canvas.width, height: canvas.height })
-      isSendingToGenerate.value = false
-      return
-    }
-    
-    console.log(`[人物调整] 准备跳转到: ${key}`)
-    
-    // 将canvas转换为Blob
-    const blob = await new Promise((resolve, reject) => {
-      canvas.toBlob((createdBlob) => {
-        if (!createdBlob) {
-          reject(new Error('Blob结果为空'))
-          return
-        }
-        resolve(createdBlob)
-      }, 'image/png', 1.0)
-    })
-    
-    if (!blob) {
-      message.error('图片转换失败')
-      isSendingToGenerate.value = false
-      return
-    }
-    
-    console.log('[人物调整] Blob 创建成功，大小:', blob.size, 'bytes')
-    
-    // 将Blob转换为Base64 DataURL
-    const reader = new FileReader()
-    const dataURL = await new Promise((resolve, reject) => {
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = reject
-      reader.readAsDataURL(blob)
-    })
-    
-    console.log('[人物调整] DataURL 转换成功，长度:', dataURL.length)
-    
-    // 生成文件名
-    const fileName = buildSuggestedFileName() || '画布导出.png'
-    console.log('[人物调整] 生成文件名:', fileName)
-    
-    // 2、保存图片到临时文件，再把图片信息放入会话缓存
-    const base64Data = dataURL.split(',')[1]
-    const tempDir = await window.api?.getTempDir?.()
-    const tempFilePath = tempDir ? `${tempDir}\\${fileName}` : fileName
-    
-    console.log('[人物调整] 保存文件到:', tempFilePath)
-    
-    try {
-      await window.api?.writeFile(tempFilePath, base64Data)
-      console.log('[人物调整] 文件保存成功')
-    } catch (error) {
-      console.error('[人物调整] 文件保存失败:', error)
-      message.error('文件保存失败: ' + error.message)
-      isSendingToGenerate.value = false
-      return
-    }
-    
-    // 先清除旧数据
-    const oldData = sessionStorage.getItem('pendingImageForJump')
-    if (oldData) {
-      console.log('[人物调整] 清除旧的待处理数据')
-      sessionStorage.removeItem('pendingImageForJump')
-    }
-    
-    // 将图片信息存储到 sessionStorage，供目标页面读取
-    const imageData = {
-      dataURL,
-      fileName,
-      filePath: tempFilePath,
-      timestamp: Date.now(),
-      source: 'action-expression-canvas',
-      targetPage: key
-    }
-    sessionStorage.setItem('pendingImageForJump', JSON.stringify(imageData))
-    console.log('[人物调整] 图片数据已存储到 sessionStorage')
-    
-    // 3、根据选择跳转到对应工具页面，并通过最终清理释放发送状态
-    let targetRoute = ''
-    let successMessage = ''
-    
-    switch (key) {
-      case 'removebg':
-        targetRoute = '/image-processing'
-        successMessage = '已跳转到抠图页面'
-        break
-      case 'comic':
-        targetRoute = '/comic'
-        successMessage = '已跳转到分格页面'
-        break
-      case 'dialog-frame':
-        targetRoute = '/dialog-frame'
-        successMessage = '已跳转到幻想框页面'
-        break
-      default:
-        message.error('未知的跳转目标')
-        isSendingToGenerate.value = false
-        return
-    }
-    
-    console.log('[人物调整] 准备跳转到:', targetRoute)
-    await router.push(targetRoute)
-    
-    message.success(successMessage)
-  } catch (error) {
-    console.error('[人物调整] 跳转失败:', error)
-    message.error('跳转失败：' + error.message)
-  } finally {
-    isSendingToGenerate.value = false
-  }
-}
+const jumpOptions = createCanvasJumpOptions()
 
 // 已移除所有调整图层算法实现
 
@@ -4126,7 +3616,7 @@ watch(showFront, async (newVal) => {
     console.log('🔄 操作通用控制时清除预设选择')
     selectedPresetId.value = null
   }
-  
+
   /**
    * 根据正面开关重新计算图层最终可见性。
    * 处理流程：
@@ -4138,7 +3628,7 @@ watch(showFront, async (newVal) => {
     for (let layer of layers) {
       const fullPath = [...currentPath, layer.uniqueName].join('/')
       const isSpecialGroup = /(侧面|侧身|侧视|背面|背影|背身|背视|后面|背景|武器|阴影|摇摇头|持剑|后手持剑|下压挥剑|后发|后头发|发型后)/.test(fullPath)
-      
+
       if (newVal) {
         // 正面勾选：恢复用户设置的状态
         layer.visible = layer.userVisible
@@ -4150,17 +3640,17 @@ watch(showFront, async (newVal) => {
           layer.visible = false
         }
       }
-      
+
       // 2、递归处理子图层，继承路径中的特殊分组信息
       if (layer.children && layer.children.length > 0) {
         recalculateVisible(layer.children, [...currentPath, layer.uniqueName])
       }
     }
   }
-  
+
   recalculateVisible(layerTreeData.value)
   console.log(`✅ [正面控制] 已重新计算所有图层visible状态，正面: ${newVal}`)
-  
+
   await renderAllLayers()
 })
 
@@ -4302,7 +3792,7 @@ const debouncedSyncCanvas = () => {
       console.log('[预览同步] PSD切换同步优先，跳过常规同步')
       return
     }
-    
+
     // 简化等待逻辑：只等待一次，如果正在渲染就延迟50ms重试
     if (isRendering.value) {
       perfLogger.logEvent('preview-sync:defer', { reason: 'canvas-rendering' }, { sampleEvery: 2 })
@@ -4312,7 +3802,7 @@ const debouncedSyncCanvas = () => {
       }, 50)
       return
     }
-    
+
     // 3、确保画布尺寸有效再异步同步
     if (canvasRef.value && canvasRef.value.width > 0 && canvasRef.value.height > 0) {
       syncCanvasToPreview() // 不await，让它异步执行
@@ -4338,7 +3828,7 @@ watch(currentPsdData, () => {
   if (psdSwitchSyncTimer) {
     clearTimeout(psdSwitchSyncTimer)
   }
-  
+
   // 清除常规同步定时器，避免重复同步
   if (syncDebounceTimer) {
     clearTimeout(syncDebounceTimer)
@@ -4346,7 +3836,7 @@ watch(currentPsdData, () => {
   }
 
   logPreviewSyncTrigger('psd-switch', { psdId: currentPsdData.value?.id })
-  
+
   // 延迟同步，确保画布已渲染（优化：减少等待时间，使用更智能的重试机制）
   psdSwitchSyncTimer = setTimeout(async () => {
     // 简化等待逻辑：最多重试3次，每次间隔100ms
@@ -4365,17 +3855,17 @@ watch(currentPsdData, () => {
         setTimeout(trySync, 100)
         return
       }
-      
+
       // 2、提交有效画布并恢复常规同步资格
       if (canvasRef.value && canvasRef.value.width > 0 && canvasRef.value.height > 0) {
         syncCanvasToPreview() // 不await，异步执行
         console.log('📂 [预览窗口] PSD文件切换，已触发画布同步')
       }
-      
+
       // 清除定时器标记，允许后续的常规同步
       psdSwitchSyncTimer = null
     }
-    
+
     trySync()
   }, 200) // 减少到200ms，配合重试机制更快响应
 }, { deep: false })
