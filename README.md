@@ -124,7 +124,15 @@ npm test
 
 主画布与预设悬浮预览可单独运行 `node --test tests/canvas-preset-hover.test.mjs`，覆盖真实鼠标移入、移动、移出及两种预览开关，核验浮层 PNG 和布局。此独立参考来自 `b2aad27` 的未迁移源码，默认子目录为 `canvas-preset-hover-renderer1024-dpr1-v1`；`tests/record-hover-preview.mjs` 只允许在该基准提交、业务源码干净时显式创建新目录，回归不会自动补建或覆盖参考。
 
-`node --test tests/psd-session.test.mjs` 验证两份不同素材各自编辑、三种互斥设置、十轮往返及关闭重导入。会话参考来自 `59eefa6`，录制入口 `tests/record-psd-session.mjs` 要求该基准提交、干净源码和独占新目录。此测试覆盖前手叶图层场景；原版另有后发图层关闭后返回时像素变化的问题，已单独记录在 `tests/evidence/psd-session-original-layer-issue-20260906.json`，常规测试通过不代表该问题已解决。
+`node --test tests/psd-session.test.mjs` 验证两份不同素材各自编辑、三种互斥设置、十轮往返及关闭重导入。会话参考来自 `59eefa6`，录制入口 `tests/record-psd-session.mjs` 要求该基准提交、干净源码和独占新目录。原有前手叶图层场景和28项会话断言保持不变。
+
+后发图层关闭后返回时像素变化的问题已作独立最小修复：`handleLayerVisibilityChange` 返回绘制回调的 Promise，让页面已有的 `await` 真正等待绘制完成后再反向同步通用开关。PSD 合成、蒙版、混合模式等算法不变；这不代表所有绘制入口的并发问题都已解决。`node --test tests/psd-session-hair.test.mjs` 已接入 `npm test`，保留原公开操作、完整DOM恢复和编辑/首次返回RGBA零差异断言，并分别持续六秒逐帧观察，四个早期/后期结果都必须匹配独立规范图，而非只要求两幅结果相等。
+
+经明确授权，两份原素材完整100场景中仅星空 `group-10-toggle`、`group-10-restore` 使用独立的 `layer-render-completion-v1` 参考，另外98场景包括后续预览和导出仍读取原参考，零容差不变。两个分组和后发规范图均来自 `a33579b` 原算法：各自独立重放原操作后，通过公开「表情互斥」关闭/开启、每次等待完整画布十二帧稳定，再严格断言完整DOM与控制状态不变，最后证明与候选像素一致。旧参考永久只读，不能用旧失败返回图或修复程序的输出自行批准新参考。
+
+`tests/helpers/layer-render-reference.mjs` 的有限清单固定素材哈希、原场景名、原PNG摘要、运行环境和新参考摘要；缺新文件、环境不符或清单改变均直接失败，没有自动录制或回退。新PNG和manifest只保存在本地忽略目录，素材和私人图片不得提交。`tests/record-layer-render-completion.mjs <候选调查目录>` 是独立显式入口，要求 `a33579b` 原源码干净、完整100场景及后发候选证据，并重建旧程序重新执行上述独立核验；新目录独占创建且文件只读，不能覆盖已有版本。
+
+`node tests/verify-layer-render-completion.mjs targeted` 运行后发、Promise完成/拒绝及覆盖边界测试；`node tests/verify-layer-render-completion.mjs all` 执行完整 `npm test`，前后逐项校验全部260个旧参考及新目录哈希。只检查参考可用 `references`。详细脱敏依据见 `tests/evidence/layer-render-completion-20260906.json`；原后发失败证据仍保留。`lint` 已追加 `useLayerTree.js`。
 
 ## 联系方式
 

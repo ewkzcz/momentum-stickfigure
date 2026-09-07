@@ -461,7 +461,7 @@ export function useLayerTree(deps) {
     debugLog('🎨 [图层树] 准备触发渲染回调')
     if (onRenderTrigger) {
       debugLog('🎨 [图层树] 调用 onRenderTrigger()')
-      onRenderTrigger()
+      return onRenderTrigger() // 等待绘制完成后再反向同步，避免共享画布并发重绘。
     } else {
       debugWarn('⚠️ [图层树] onRenderTrigger 未定义')
     }

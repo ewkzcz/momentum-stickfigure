@@ -1,0 +1,37 @@
+{
+  "point": "后发并发重绘最小修复试验与不可变参考冲突",
+  "date": "2026-09-06",
+  "baselineCommit": "a33579beab6ee821c76f025287916cf1a6064979",
+  "candidate": "useLayerTree.handleLayerVisibilityChange返回onRenderTrigger()的Promise，仅增加return",
+  "strictReproduction": {
+    "command": "node tests/probes/psd-session-hair.mjs",
+    "before": "原版和机械迁移后四次均失败，33974个RGBA像素差异，编辑和返回各持续六秒不再变化",
+    "after": "公开DOM、首次返回画布、持续六秒后的画布三个原断言全部通过",
+    "assertionsChanged": false,
+    "evidenceId": "momentum-regression-f57V9D",
+    "newEditedVsOldEditedPixels": 33974,
+    "newReturnedVsOldReturnedPixels": 0,
+    "newEditedVsNewReturnedPixels": 0
+  },
+  "immutableReferenceRegression": {
+    "command": "npm test",
+    "passed": 13,
+    "failed": 2,
+    "skipped": 0,
+    "failedScene": "xing-kong/group-10-toggle",
+    "differentRgbaPixels": 34551,
+    "bounds": { "left": 283, "top": 312, "right": 815, "bottom": 1601 },
+    "failureEvidenceId": "momentum-regression-g1vvct",
+    "note": "两项失败为素材子测试及父组；该子测试失败后未继续其余星空场景，不能宣称仅一幅旧参考受影响",
+    "otherPassingCoverage": ["云间麒麟全部场景", "三份自制素材", "悬浮状态", "会话十轮往返", "预设布局", "上传失败", "配置恢复", "预览"]
+  },
+  "disposition": {
+    "candidateBusinessChangeReverted": true,
+    "restoredBuild": "已重建a33579b产物并回放两份原素材100场景，全部RGBA零差异；业务源码无未提交差异",
+    "probeLintCorrection": "将浏览器标准全局显式限定为window，未改变失败断言或业务行为",
+    "candidateCommitted": false,
+    "referencesOverwritten": false,
+    "rgbaToleranceRelaxed": false,
+    "status": "原严格恢复断言与原版已批准图像参考在此并发错误路径上冲突；保留证据，不能按既有零差异门槛接受修复"
+  }
+}

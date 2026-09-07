@@ -8,6 +8,7 @@ import path from 'node:path'
 import { launchDesktop, repository, readJson } from './desktop.mjs'
 import { verifyFixture, assertSamePixels } from './images.mjs'
 import { runPsdScenario } from '../scenarios/psd.mjs'
+import { completionPsdBytes } from './layer-render-reference.mjs'
 
 export const referenceDirectory = path.resolve(process.env.MOMENTUM_REFERENCE_DIR || path.join(repository, 'temp/regression-reference-v2'))
 export const syntheticReferenceDirectory = path.join(referenceDirectory, 'synthetic-preview-range-fixed')
@@ -64,7 +65,9 @@ export async function checkPsdFixture(fixture, record = false, rootDirectory = r
       } else {
         const reference = expected.snapshots[actual.snapshots.length - 1]
         assert.deepEqual(scene, reference, `${fixture.id}/${name}：业务状态或操作顺序发生变化`)
-        await assertSamePixels(bytes, await readFile(path.join(directory, `${name}.png`)), `${fixture.id}/${name}`)
+        const originalBytes = await readFile(path.join(directory, `${name}.png`))
+        const expectedBytes = rootDirectory === referenceDirectory ? await completionPsdBytes(rootDirectory, fixture, scene, actual.environment, originalBytes) : originalBytes
+        await assertSamePixels(bytes, expectedBytes, `${fixture.id}/${name}`)
       }
       console.log(`${record ? '参考采集' : '像素一致'} ${fixture.id}/${name}`)
     })
