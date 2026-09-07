@@ -1,0 +1,453 @@
+{
+  "head": "2cc1737a44af9c48c89db09401eb2cba59d07e74",
+  "modulePath": "src/renderer/src/components/pages/ActionExpressionPage/composables/usePartTabLayout.js",
+  "sourceSha256": {
+    "before": "f8f34c689bb6051a30915a418e30e2e7a3c9cf79f161760131f16203d92d5b9e",
+    "after": "a3aa128c7ebad7d7d364258ccf1bf65b42c611c640257c5fda5b914fa8fb8081",
+    "module": "051ba43951f24148ef0e305b3169074907f0fdad88e4c02975b33d08786c2e25"
+  },
+  "boundary": {
+    "originalStartLine": 2540,
+    "originalEndLine": 3162,
+    "movedLines": 623,
+    "declarations": 21,
+    "returnedNames": [
+      "partTabs",
+      "allPartsListsMap",
+      "getFirstDefaultTabKey",
+      "initialSorted",
+      "resetTabConfig",
+      "dragOverTabKey",
+      "dropPosition",
+      "handleTabDragStart",
+      "handleTabDragEnd",
+      "handleTabDragOver",
+      "handleTabDragLeave",
+      "handleTabDrop",
+      "handleContainerDragOver",
+      "handleContainerDrop",
+      "categorizedTabs"
+    ]
+  },
+  "lines": {
+    "pageBefore": 6740,
+    "pageAfter": 6165,
+    "pageReduction": 575,
+    "module": 680
+  },
+  "migratedStatements": [
+    {
+      "name": "partTabs",
+      "originalStartLine": 2541,
+      "originalEndLine": 2611,
+      "astSha256": "4f3d688e18bf466d1f83248c96fcba66ae6637c52bdfb6b3afc7b9fbe31f72cd"
+    },
+    {
+      "name": "allPartsListsMap",
+      "originalStartLine": 2614,
+      "originalEndLine": 2654,
+      "astSha256": "fa7cc9a4f3cc0d0dbb821aeb626a1e1f7bf815b31fee9af08d95bf8f799b4591"
+    },
+    {
+      "name": "groupExistsMap",
+      "originalStartLine": 2657,
+      "originalEndLine": 2744,
+      "astSha256": "faf839b533dd4acf9a9c44a7b3b5bbb44caf68d40d061bf892ebda174ffd9f32"
+    },
+    {
+      "name": "getFirstDefaultTabKey",
+      "originalStartLine": 2752,
+      "originalEndLine": 2768,
+      "astSha256": "0220d0ee9dd34e7e563b9190efefbdc5ca8062523f7e2558579a84a914d1a1a4"
+    },
+    {
+      "name": "visiblePartTabs",
+      "originalStartLine": 2772,
+      "originalEndLine": 2774,
+      "astSha256": "0f1e18a0a6cb74ee943697047304b69b3f5d48fc679684f0d556f6bd6174fceb"
+    },
+    {
+      "name": "tabConfig",
+      "originalStartLine": 2778,
+      "originalEndLine": 2780,
+      "astSha256": "f26402b1eb37f7407c22c3a041a665aadbe60aea843046ed2b46c398e94d0e84"
+    },
+    {
+      "name": "initialSorted",
+      "originalStartLine": 2783,
+      "originalEndLine": 2783,
+      "astSha256": "2a33d19c16cff1996fdfc98b27448d2a24d6c4ebefb8de4a0ec8b959bb1c2dfb"
+    },
+    {
+      "name": "initialTabOrder",
+      "originalStartLine": 2786,
+      "originalEndLine": 2789,
+      "astSha256": "aa4ae1c34996ffe0b41f38ad934456be1ca35fc2eabc56b8e0698a961240534e"
+    },
+    {
+      "name": "resetTabConfig",
+      "originalStartLine": 2797,
+      "originalEndLine": 2817,
+      "astSha256": "5e79f5c0c3ef39a6808562751141d5b7a09f64d0477605b04a962977fe831cd0"
+    },
+    {
+      "name": "setCustomOrder",
+      "originalStartLine": 2824,
+      "originalEndLine": 2827,
+      "astSha256": "a86d6324a7c0cf812dc87d04fefeba314c4e9a289122590b750a3bfd8fceb8bb"
+    },
+    {
+      "name": "draggedTabKey",
+      "originalStartLine": 2830,
+      "originalEndLine": 2830,
+      "astSha256": "98c2e1e769e597a0c927c776fa004881c9e4ea61fc98dcf37a80f62b2eb69aca"
+    },
+    {
+      "name": "dragOverTabKey",
+      "originalStartLine": 2831,
+      "originalEndLine": 2831,
+      "astSha256": "2784c8c7643c338e773aedf7c2bef286f8e0d81e0a204977f3c1fb90f544dda7"
+    },
+    {
+      "name": "dropPosition",
+      "originalStartLine": 2832,
+      "originalEndLine": 2832,
+      "astSha256": "e9e5b215683ead48c916d6c25770b795af14aafff178e58a06be6cf4bbd4aa77"
+    },
+    {
+      "name": "handleTabDragStart",
+      "originalStartLine": 2840,
+      "originalEndLine": 2847,
+      "astSha256": "76bc884c74018fe3d97f9dda1b5c609a569a5d2318f4d46239440738bcf309f8"
+    },
+    {
+      "name": "handleTabDragEnd",
+      "originalStartLine": 2854,
+      "originalEndLine": 2860,
+      "astSha256": "5071e9adbba012364bd512bd9ad52afe8eaa966f354ff40baf7e7c7e2dc4236e"
+    },
+    {
+      "name": "handleTabDragOver",
+      "originalStartLine": 2868,
+      "originalEndLine": 2881,
+      "astSha256": "1e5f49af1ce355ba20a3532b6ea7f5000f60cb3814873a446c52e11eb31b417f"
+    },
+    {
+      "name": "handleTabDragLeave",
+      "originalStartLine": 2888,
+      "originalEndLine": 2892,
+      "astSha256": "8839208e30fe53cc374b1cf3f060a2cebcda7677d5c904495e6e84da66b073cd"
+    },
+    {
+      "name": "handleTabDrop",
+      "originalStartLine": 2901,
+      "originalEndLine": 2936,
+      "astSha256": "33caeaaa371b7ce188dd67bfcbe178d2d698f973c5d5df95adea7fef6ea3aba1"
+    },
+    {
+      "name": "handleContainerDragOver",
+      "originalStartLine": 2944,
+      "originalEndLine": 2961,
+      "astSha256": "be426126f5ca7c2046818bfe8a551817f26cd7d10f417e6a298d4fe4a856f604"
+    },
+    {
+      "name": "handleContainerDrop",
+      "originalStartLine": 2970,
+      "originalEndLine": 3015,
+      "astSha256": "310bf3137b6a2994477725cbb29e73f3a441592430e5615e05cfd6e033eaf0dc"
+    },
+    {
+      "name": "categorizedTabs",
+      "originalStartLine": 3018,
+      "originalEndLine": 3162,
+      "astSha256": "87310e21da350dd97a99070a8b364307d92e756c1370e94078f94dd22c9ee8bc"
+    }
+  ],
+  "assertions": {
+    "movedAstEquivalent": true,
+    "getterReadSubstitutions": 3,
+    "originalCommentsAndStatementText": true,
+    "completePageAstAfterInlining": true,
+    "remainingStatementTextUnchanged": true,
+    "remainingStatements": 265,
+    "templateAndStylesByteIdentical": true,
+    "watchRegistrationOrderUnchanged": true,
+    "watchCount": 20,
+    "watchSources": [
+      "partItemSize",
+      "partItemSize",
+      "currentTab",
+      "enableCanvasHover",
+      "enablePresetHover",
+      "[templates1, currentTab]",
+      "[templates2, currentTab]",
+      "showBackground",
+      "showFront",
+      "showSide",
+      "showBack",
+      "showShadow",
+      "showWeapon",
+      "showBackHair",
+      "showShakeHead",
+      "showHoldSword",
+      "showBackHandSword",
+      "showDownwardSlash",
+      "[selectedParts, currentTab]",
+      "currentPsdData"
+    ],
+    "newModuleWatchRegistrations": 0,
+    "initializationCallAtOriginalBoundary": true,
+    "noEagerRefReads": true,
+    "earlyPartTabsSafe": true,
+    "earlyAllPartsListsMapSafe": true,
+    "onlyOriginalPartsReferences": true,
+    "singleInitialSortedRef": true,
+    "noCapturedLateLayerRefs": true,
+    "noProxy": true,
+    "noNewReference": true
+  },
+  "dependencies": [
+    {
+      "name": "currentPsdData",
+      "declarationScriptLine": 306,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "frontHandNormalParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "frontHandRightParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "frontHandBothParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "backHandParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "frontLayerBackHandParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "bothHandsParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "upperBodyParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "lowerBodyParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "actionParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicExpressionTabs",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicExpressionParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicFrontHandTabs",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicFrontHandParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicBackHandTabs",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicBackHandParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicBothHandsTabs",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicBothHandsParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicUpperBodyParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicLowerBodyParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "dynamicActionParts",
+      "declarationScriptLine": 600,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "enhancedExpressionTabs",
+      "declarationScriptLine": 891,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "combinedExpressionParts",
+      "declarationScriptLine": 891,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    },
+    {
+      "name": "message",
+      "declarationScriptLine": 104,
+      "constOriginalReference": true,
+      "laterReassignments": 0
+    }
+  ],
+  "moduleFreeNames": [
+    "Object",
+    "Set"
+  ],
+  "initialization": {
+    "lateGetter": "getHasRenderedContent: () => hasRenderedContent.value；只替换原来三处 .value 读取，不缓存、不提前求值，原 computed 随后立即声明。",
+    "graph": "categorizedTabs → visiblePartTabs → partTabs/groupExistsMap；首次排序 → hasRenderedContent → selectedParts → allPartsListsMap → 原部件 refs/combinedExpressionParts。allPartsListsMap 无 selectedParts 或 hasRenderedContent 反向读取，不产生求值环。",
+    "earlyRead": "页面早期搜索和可见列表均为闭包/computed；模块在原 partTabs 位置同步创建。真实 Vue 测试证明创建零输入读取，提前读取 partTabs 与 allPartsListsMap 不读取渲染选择 getter。",
+    "layerRef": "selectedParts 保留页面闭包，读取稍后重新赋值的 layerTreeData；模块没有接收临时图层引用。",
+    "sessionReset": "initialSorted 在模块内唯一创建，原 usePsdSession 参数及重置语句未改。",
+    "ownership": "仅迁移完整标签目录/列表映射/存在性/默认键及分行排序拖动；hasRenderedContent、currentPartsList、emptyStateText、switchTab、150ms 单双击、选择及渲染完整留在页面。"
+  },
+  "realUI": {
+    "baselineId": "momentum-regression-IkJQP7",
+    "afterId": "momentum-regression-YmI8Uk",
+    "scenes": 32,
+    "beforeAfterIdentical": true,
+    "sourceBoundary": "公开上传；真实 DOM 标准 DragEvent；真实鼠标单击；不覆盖操作系统原生拖动，不读取或注入 Vue 私有状态",
+    "fixtures": [
+      {
+        "id": "yun-jian-qi-lin",
+        "sha256": "b60f61ca07ba99d22bc5cec2de3f9b29b5b2d397925438e290f1ef649e00197b"
+      },
+      {
+        "id": "xing-kong",
+        "sha256": "a1cd270115d88bbf715ce1786f87e6d8a36bb6790db168542ae2ccb732300435"
+      }
+    ]
+  },
+  "references": {
+    "files": 264,
+    "allReferenceDigestSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "changed": 0,
+    "added": 0
+  },
+  "protectedHashes": {
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/useExpressionAnalysis.js": "3995daca6dde6612fd0f4ca24bac251fa08001ef36757bfc0966645f9db6615f",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/useLayerTree.js": "9dd0cb3899b253140ff8a384687ab022c86e55b0e421a9f31bf8aa1ca1ac6faa",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdSession.js": "8b52b70b4a107fc8f19e8301bb5b9d3ea902f7dd0bb931685ff7c62d8ddf9ecc",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdParser.js": "8ac4ac12c9fcb8e84620191c9b9817a20dbdf5b2dad1b1490cb1bd264e1c8b51",
+    "tests/evidence/expression-migration-ast-20260907.json": "fe7a8da4b2606cc198efe4b5733d6d185df3424679638ddfb0ed97a76891bb2c"
+  },
+  "checks": {
+    "baselineBuild": "通过；业务源码为原 HEAD",
+    "baselinePartTabs": "1/1 通过，18.154s",
+    "migratedQuality": "lint、check:size、build 通过；规模违规 0；保留既有未使用导入、空 chunk 和大 chunk 构建警告",
+    "migratedTargeted": "part-tabs、psd-tabs、psd-session 3/3 通过；60.737s；会话 28 快照逐项一致"
+  },
+  "knownFailures": "本次新增排序与定向测试无失败。既有窗口提前关闭及 synthetic preview 隐藏超时证据仍保留，根因未确认，未修改其断言或混入修复。",
+  "untested": [
+    "新标签拖动使用标准 DragEvent，不覆盖操作系统原生鼠标拖放手势。",
+    "新用例覆盖各行显示与行内/跨行/行尾排序、单击切换和重置；未新增双击取消及图层恢复专项，原处理器 AST 和完整回归负责原行为保障。",
+    "未遍历全部组合表情内容及缩略图，未测试 Windows/Linux 或外部程序接收拖出。",
+    "跨 PSD 专项在点击重置后往返；未新增自定义排序未重置时跨 PSD 保留顺序、容器行首、拖离取消或无来源放置专项。对应原处理器和会话重置语句已通过 AST 等价审计。"
+  ],
+  "audit": "一次性 AST 与运行时依赖审计，执行后删除该脚本，仅保留摘要。",
+  "auditCorrections": [
+    "首次审计的纯 Node 运行缺少 localStorage，触发既有配置默认回退日志；补充仅在审计进程生效的空配置存储后验证标准默认路径，未改生产代码。",
+    "首次审计错误假设项目优化规划.md 被 Git 跟踪，git show 失败；将其移出 Git 内容对比清单，该计划文件未读取或修改，不将其宣称为已完成 Git 比对。"
+  ],
+  "parentReview": {
+    "ast": "21条迁移声明和三处延迟getter逆展开后，整个页面语句/监听位置等价；模板和样式逐字一致",
+    "targeted": { "tests": 1, "passed": 1, "failed": 0, "skipped": 0, "durationMs": 17582.237 },
+    "fullResultReadback": "直接读取layer-render-acceptance-eOK5GL/result.json确认完整20/20通过及264参考未变",
+    "referenceCheck": "layer-render-acceptance-CVIRli再次逐项校验新旧参考通过",
+    "temporaryAuditRemoved": true
+  },
+  "fullVerification": {
+    "command": "node tests/verify-layer-render-completion.mjs all",
+    "foregroundWaitMs": 420000,
+    "evidenceId": "layer-render-acceptance-eOK5GL",
+    "status": 0,
+    "tests": 20,
+    "pass": 20,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "testDurationMs": 238650.296042,
+    "acceptanceDurationMs": 239014,
+    "psdRgbaAndDomSnapshots": 154,
+    "hoverSnapshots": 28,
+    "sessionSnapshots": 28,
+    "partTabUiSnapshots": 32,
+    "partTabDesktopId": "momentum-regression-HQ1bqR",
+    "hairSixSecondObservation": "通过；编辑和返回各六秒，完整DOM恢复、2项规范DOM、4项规范RGBA全部一致",
+    "templateListsStorageUploadPreview": "全部通过",
+    "originalReferences": {
+      "files": 260,
+      "sha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde"
+    },
+    "allReferenceFiles": 264,
+    "allReferenceDigestSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "unchangedUseLayerTreeSha256": "9dd0cb3899b253140ff8a384687ab022c86e55b0e421a9f31bf8aa1ca1ac6faa",
+    "anomalies": "本次完整验收无非预期失败；解析失败日志为既有测试主动注入且断言通过。此前窗口异常未复现，也不据本次通过认定原因或修复。",
+    "auditRemoved": true,
+    "committedOrPushed": false
+  }
+}
