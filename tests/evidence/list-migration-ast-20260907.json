@@ -1,0 +1,1009 @@
+{
+  "head": "208761d8d648ea8e9b710ecf058756416b7276ac",
+  "modulePath": "src/renderer/src/components/pages/ActionExpressionPage/composables/useTemplatePresetList.js",
+  "migratedStatements": [
+    {
+      "names": [
+        "handleSavePreset"
+      ],
+      "startLine": 4024,
+      "endLine": 4030,
+      "sha256": "b47a86caeaaf97af019dab8d1359b83f1e2f83f975043e9895dd8c9060704ec3"
+    },
+    {
+      "names": [
+        "getPresetDisplayName"
+      ],
+      "startLine": 4038,
+      "endLine": 4064,
+      "sha256": "b4462e68b040ed9abe799ef0c5a54b048558110d592a4c6b95f468835fa69fb5"
+    },
+    {
+      "names": [
+        "getPresetFullDescription"
+      ],
+      "startLine": 4072,
+      "endLine": 4090,
+      "sha256": "9163e58f440234543010dd6134cbf88fa22edd494c9b53cb06a52ee36fe7a667"
+    },
+    {
+      "names": [
+        "selectedTemplateIds1"
+      ],
+      "startLine": 4713,
+      "endLine": 4713,
+      "sha256": "3f44df858da0971f7159531012107f0c28910078b8ca70f0fb7101e22cef4d54"
+    },
+    {
+      "names": [
+        "selectedTemplateIds2"
+      ],
+      "startLine": 4714,
+      "endLine": 4714,
+      "sha256": "2e6861e3918fcb10dbd2a346d1265b9d73f095e10f627f0232d4bb82ff4c226f"
+    },
+    {
+      "names": [
+        "selectedPresetIds"
+      ],
+      "startLine": 4715,
+      "endLine": 4715,
+      "sha256": "8f2f589fef10086d6859932c26d46bfd3025ce78ea292db8190cc8032f0aad2d"
+    },
+    {
+      "names": [
+        "contextMenuVisible"
+      ],
+      "startLine": 4716,
+      "endLine": 4716,
+      "sha256": "ecec3ba4e34a87f1e4631bb1432383569baad5c5d21f77633f6565a86aa3c2ee"
+    },
+    {
+      "names": [
+        "contextMenuPosition"
+      ],
+      "startLine": 4717,
+      "endLine": 4717,
+      "sha256": "391bab2d3d4687126a18f38586ed5804f1eff599ebb793377e2703cac33bb046"
+    },
+    {
+      "names": [
+        "contextMenuTemplateType"
+      ],
+      "startLine": 4718,
+      "endLine": 4718,
+      "sha256": "60c96adee267ff909d57c1d6f04518ae9f7127d853041d7ffd9c16010052d0f8"
+    },
+    {
+      "names": [
+        "contextMenuItemType"
+      ],
+      "startLine": 4719,
+      "endLine": 4719,
+      "sha256": "dabde092baf55f44b1f3a90a7bbbdb02f512dda3edffae49a8940043c23a6af0"
+    },
+    {
+      "names": [
+        "contextMenuSingleItemId"
+      ],
+      "startLine": 4720,
+      "endLine": 4720,
+      "sha256": "1bc9acf6d2cb6d6ba1b67a4c57e77201b2779b3ec0a46144c3fcf31341e58ffc"
+    },
+    {
+      "names": [
+        "templateDragState"
+      ],
+      "startLine": 4721,
+      "endLine": 4726,
+      "sha256": "3c5e3cebc4f16741630d6994962a9d008b59b321d731f6597d72b1de86e3a75c"
+    },
+    {
+      "names": [
+        "contextMenuTemplateDetail"
+      ],
+      "startLine": 4727,
+      "endLine": 4727,
+      "sha256": "5beb467fcffd7ba64b309254853f59676c6b997fbc78ea7beabaa826408a8252"
+    },
+    {
+      "names": [
+        "TEMPLATE_DETAIL_WIDTH"
+      ],
+      "startLine": 4730,
+      "endLine": 4730,
+      "sha256": "64509caf8d79cb27b35d62036a80a57e00dc712e0708ecf64c6e4bcbbe0e8b15"
+    },
+    {
+      "names": [
+        "TEMPLATE_DETAIL_HEIGHT"
+      ],
+      "startLine": 4731,
+      "endLine": 4731,
+      "sha256": "ff9098d80b42c9fe25b1bf04f9c3e2baa4c2ba942b1b363b24dd9434d93c92cf"
+    },
+    {
+      "names": [
+        "BASIC_MENU_WIDTH"
+      ],
+      "startLine": 4732,
+      "endLine": 4732,
+      "sha256": "704935c5a0af369be195c99ee96c4d6249b1fad0ac8a75d30dd1f39f1a939a84"
+    },
+    {
+      "names": [
+        "BASIC_MENU_HEIGHT"
+      ],
+      "startLine": 4733,
+      "endLine": 4733,
+      "sha256": "58b6ce3122595f1028e4219991404e0e969f5120cd4744eaaac8060f32d3e53b"
+    },
+    {
+      "names": [
+        "templateDetailEntries"
+      ],
+      "startLine": 4736,
+      "endLine": 4744,
+      "sha256": "76ea5c1ba1cf6765dfbb3e77da4cdfeb19486122cbc73098a439734c88f75a3d"
+    },
+    {
+      "names": [
+        "templateTypeLabelMap"
+      ],
+      "startLine": 4747,
+      "endLine": 4752,
+      "sha256": "cdf9609b17bffedeb1a312866947ec26e9fcdaf8aab08a4eeab38ace616970fb"
+    },
+    {
+      "names": [
+        "templateDetailTypeLabel"
+      ],
+      "startLine": 4754,
+      "endLine": 4762,
+      "sha256": "3e46ee3b78f88ea2aa7c73f706d36b1506548a22ec8c2a5c42b91520d44cdbce"
+    },
+    {
+      "names": [
+        "templateDetailTimestamp"
+      ],
+      "startLine": 4764,
+      "endLine": 4764,
+      "sha256": "953cc882c55555941a6c27f69982359b26c5e870f60dcd2d5c410d1d6e5b94f7"
+    },
+    {
+      "names": [
+        "templateDetailSummary"
+      ],
+      "startLine": 4766,
+      "endLine": 4770,
+      "sha256": "a5da69723711c174862e91cd6bea03891377938e33de6471632fb007a7437bdf"
+    },
+    {
+      "names": [
+        "getContextMenuSafePosition"
+      ],
+      "startLine": 4778,
+      "endLine": 4798,
+      "sha256": "5ff0bd026cd55a23c42d9c01e1543df2e349e835f1a5233960e82faa43fa28f1"
+    },
+    {
+      "names": [
+        "handleTemplateCardClick"
+      ],
+      "startLine": 4806,
+      "endLine": 4825,
+      "sha256": "39d4cd0d34d816bc6f3562f4b0edec55b20180f2db82085adb620c2637e1355a"
+    },
+    {
+      "names": [
+        "handleTemplateContextMenu"
+      ],
+      "startLine": 4834,
+      "endLine": 4866,
+      "sha256": "f27fa2da6c1bb08b6d57e8e402beefb10331fce4ccd18c6f7b443b4e19d744f9"
+    },
+    {
+      "names": [
+        "closeContextMenu"
+      ],
+      "startLine": 4873,
+      "endLine": 4878,
+      "sha256": "077f8d5480587507ddc98d96897248bf0d2f45c77ca3610ee118c6389ea61f1c"
+    },
+    {
+      "names": [
+        "handleBatchDeleteTemplates"
+      ],
+      "startLine": 4886,
+      "endLine": 4921,
+      "sha256": "82254cb2ba20cd312abfcc62eb2e423112df2495845e60ff43ca50245c67ac4f"
+    },
+    {
+      "names": [
+        "handleContextMenuRename"
+      ],
+      "startLine": 4930,
+      "endLine": 5008,
+      "sha256": "dab2ad8c87fede7d8ef915e95af1e1433847a4cf9fddf5da79cf96a452f1ad24"
+    },
+    {
+      "names": [
+        "handlePageClick"
+      ],
+      "startLine": 5015,
+      "endLine": 5018,
+      "sha256": "ce736afbf6615df8bba5cf47d51aeaa88427e8f8a3b545ed3da52e6aa7577bd5"
+    },
+    {
+      "names": [
+        "isTemplateMultiSelected"
+      ],
+      "startLine": 5025,
+      "endLine": 5029,
+      "sha256": "678b2853fbfad4696077ede38abf6fdab97159b6864781ad378d29f7535451e6"
+    },
+    {
+      "names": [
+        "isTemplateDragging"
+      ],
+      "startLine": 5036,
+      "endLine": 5036,
+      "sha256": "0f462b5d1639faa28b0669a9e245535fefac3ea4b592a1f48182ffbaa874af60"
+    },
+    {
+      "names": [
+        "isTemplateDragOver"
+      ],
+      "startLine": 5042,
+      "endLine": 5045,
+      "sha256": "d07a80302169fb05ed177a686ef68af3a2d75a96e3fb6c311add6ada7985cf67"
+    },
+    {
+      "names": [
+        "templateTypeToInternal"
+      ],
+      "startLine": 5052,
+      "endLine": 5055,
+      "sha256": "ded2a13cd7092df362aa670e37db80c5b940dc37a0ee7ba3347a049495889142"
+    },
+    {
+      "names": [
+        "getTemplateListByType"
+      ],
+      "startLine": 5062,
+      "endLine": 5065,
+      "sha256": "969ddd5ce9d4e2c8c3a68fa3f8021ceb2b015e426d3edef7bd67c347367208c4"
+    },
+    {
+      "names": [
+        "updateTemplateSortOrderMeta"
+      ],
+      "startLine": 5072,
+      "endLine": 5078,
+      "sha256": "72c8378d7604760a33554cb3d7e621851d8eadc5cdfddaf59d79d852fbdbae44"
+    },
+    {
+      "names": [
+        "persistTemplateOrder"
+      ],
+      "startLine": 5086,
+      "endLine": 5102,
+      "sha256": "09758e206e0b183a2a114b8bfc2c3d3089f3efc42d8efa8449d9bf904459478d"
+    },
+    {
+      "names": [
+        "resetTemplateDragState"
+      ],
+      "startLine": 5109,
+      "endLine": 5115,
+      "sha256": "ff695da31c581534e02f3a7f21bd7be072bb463dec910c321e4803bf1759d90a"
+    },
+    {
+      "names": [
+        "isTemplateDragAcceptable"
+      ],
+      "startLine": 5122,
+      "endLine": 5125,
+      "sha256": "189fb98415f1ad8b5b88154d24d155bb9dbf26c262c9b7c10e45e3a174d7f15d"
+    },
+    {
+      "names": [
+        "handleTemplateDragStart"
+      ],
+      "startLine": 5133,
+      "endLine": 5144,
+      "sha256": "743eec8cf2f066bfafc6e88aacff3f95430728a3bc860941f3d7b64fd4b271a2"
+    },
+    {
+      "names": [
+        "updateTemplateDropPosition"
+      ],
+      "startLine": 5151,
+      "endLine": 5157,
+      "sha256": "93b8fd7124ca464e02cccc0e23af6706a9b4607ce4b3a70bec675b9b38c0474f"
+    },
+    {
+      "names": [
+        "handleTemplateDragEnter"
+      ],
+      "startLine": 5164,
+      "endLine": 5168,
+      "sha256": "8c517dc449bab60ae9fa509a8d555d2ce50aefc7f228713a1f815e5545e20bcc"
+    },
+    {
+      "names": [
+        "handleTemplateDragOver"
+      ],
+      "startLine": 5175,
+      "endLine": 5180,
+      "sha256": "824807e09cea051400f1c8793f04d9f75c1809a883e6aeb9063b80d196185418"
+    },
+    {
+      "names": [
+        "handleTemplateDragLeave"
+      ],
+      "startLine": 5188,
+      "endLine": 5198,
+      "sha256": "0af3e517121675092c30c282d2311223f647a00d0a2c05d4c9833c67262b4f1a"
+    },
+    {
+      "names": [
+        "reorderTemplateList"
+      ],
+      "startLine": 5206,
+      "endLine": 5228,
+      "sha256": "9afac14262f77422e60f92c96ac977f682b0fc5e737f58140558b15f247c75df"
+    },
+    {
+      "names": [
+        "moveTemplateToEdge"
+      ],
+      "startLine": 5236,
+      "endLine": 5250,
+      "sha256": "4135e834f8052df1fea7847a7d486ac156c9c6879f2a216e76108d64ca771684"
+    },
+    {
+      "names": [
+        "handleTemplateDrop"
+      ],
+      "startLine": 5258,
+      "endLine": 5269,
+      "sha256": "d2aa119082ffd5a131fe302cf3144852205f14a0e47bcecf970a464680b306a2"
+    },
+    {
+      "names": [
+        "handleTemplateDragEnd"
+      ],
+      "startLine": 5277,
+      "endLine": 5292,
+      "sha256": "78665af6b44b801636fabdb3a6bd8fad394899525fdf0de19dac2031d43dc3a1"
+    },
+    {
+      "names": [
+        "isTemplateDragContextActiveOnCurrentTab"
+      ],
+      "startLine": 5299,
+      "endLine": 5309,
+      "sha256": "67b73bde2ca0e406324ce9414827c9f459845805dc8676b56527b156ac895f99"
+    },
+    {
+      "names": [
+        "handleTemplateListDragOver"
+      ],
+      "startLine": 5317,
+      "endLine": 5344,
+      "sha256": "56eb45080f2956423cbf50e9219848920679221eaf88a0a6b49a2b9815004df6"
+    },
+    {
+      "names": [
+        "handleTemplateListDragLeave"
+      ],
+      "startLine": 5352,
+      "endLine": 5376,
+      "sha256": "1e0fad86369952f028a99ab3f86fe26309b4b92745fef3c860305e39c1c6e646"
+    },
+    {
+      "names": [
+        "handleTemplateListDrop"
+      ],
+      "startLine": 5384,
+      "endLine": 5401,
+      "sha256": "a9ae24cc0fb53def9e180660ec39523fdbd99ed5648810d68ababefd50234474"
+    },
+    {
+      "names": [
+        "handlePresetCardClick"
+      ],
+      "startLine": 5410,
+      "endLine": 5426,
+      "sha256": "944b763f7d06b2ebafe7a30bb1f23a4985e6871436831ee02499aa3da2562e5a"
+    },
+    {
+      "names": [
+        "handlePresetContextMenu"
+      ],
+      "startLine": 5434,
+      "endLine": 5457,
+      "sha256": "4cfb676849ed7f1df07a9329c2a46c26bebd48b4c9a9d5de8fbf229de141ad64"
+    },
+    {
+      "names": [
+        "handleBatchDeletePresets"
+      ],
+      "startLine": 5465,
+      "endLine": 5492,
+      "sha256": "d944becc3aaab510b926769103d8b0340b19f296b1d16ec0ac4260d7421eb131"
+    },
+    {
+      "names": [
+        "handleTemplateDetailApply"
+      ],
+      "startLine": 5500,
+      "endLine": 5508,
+      "sha256": "7efba3feb0a6e0e5093d2c593e6bd71adfcc1264b78e1f657eb623f1c347e8ae"
+    },
+    {
+      "names": [
+        "isPresetMultiSelected"
+      ],
+      "startLine": 5515,
+      "endLine": 5518,
+      "sha256": "ba96d80b9a61603b1eaabd3c368cf55a1a91abe1c66b7afe748fb4234c2e9d1f"
+    },
+    {
+      "names": [
+        "handleSaveTemplate1"
+      ],
+      "startLine": 5527,
+      "endLine": 5549,
+      "sha256": "1c25c14f4d2237128657346367dbc6ed2389560500f786a740c45833765559e7"
+    },
+    {
+      "names": [
+        "handleSaveTemplate2"
+      ],
+      "startLine": 5558,
+      "endLine": 5580,
+      "sha256": "32ac757ffa540543f8fe85d18521a670228cc96c96065ccb989666d0d9e26c62"
+    },
+    {
+      "names": [
+        "confirmDeleteTemplateById"
+      ],
+      "startLine": 5605,
+      "endLine": 5610,
+      "sha256": "d21f27ad73bc1512e5b58753e3e21da8bfde1128d682e99cb8ebbb3c95fcf59e"
+    },
+    {
+      "names": [
+        "startEditTemplateNameById"
+      ],
+      "startLine": 5617,
+      "endLine": 5622,
+      "sha256": "5dee8ee930a259be4b1e2f689f96a9baaa338f4ead0363a39475c00bd2087739"
+    },
+    {
+      "names": [
+        "handleTemplateNameBlur"
+      ],
+      "startLine": 5631,
+      "endLine": 5659,
+      "sha256": "b6f339f9bc0f11d4e74b5021a02967e9e9809931b4bd11f74d4c205a3e58ec22"
+    }
+  ],
+  "movedNames": [
+    "handleSavePreset",
+    "getPresetDisplayName",
+    "getPresetFullDescription",
+    "selectedTemplateIds1",
+    "selectedTemplateIds2",
+    "selectedPresetIds",
+    "contextMenuVisible",
+    "contextMenuPosition",
+    "contextMenuTemplateType",
+    "contextMenuItemType",
+    "contextMenuSingleItemId",
+    "templateDragState",
+    "contextMenuTemplateDetail",
+    "TEMPLATE_DETAIL_WIDTH",
+    "TEMPLATE_DETAIL_HEIGHT",
+    "BASIC_MENU_WIDTH",
+    "BASIC_MENU_HEIGHT",
+    "templateDetailEntries",
+    "templateTypeLabelMap",
+    "templateDetailTypeLabel",
+    "templateDetailTimestamp",
+    "templateDetailSummary",
+    "getContextMenuSafePosition",
+    "handleTemplateCardClick",
+    "handleTemplateContextMenu",
+    "closeContextMenu",
+    "handleBatchDeleteTemplates",
+    "handleContextMenuRename",
+    "handlePageClick",
+    "isTemplateMultiSelected",
+    "isTemplateDragging",
+    "isTemplateDragOver",
+    "templateTypeToInternal",
+    "getTemplateListByType",
+    "updateTemplateSortOrderMeta",
+    "persistTemplateOrder",
+    "resetTemplateDragState",
+    "isTemplateDragAcceptable",
+    "handleTemplateDragStart",
+    "updateTemplateDropPosition",
+    "handleTemplateDragEnter",
+    "handleTemplateDragOver",
+    "handleTemplateDragLeave",
+    "reorderTemplateList",
+    "moveTemplateToEdge",
+    "handleTemplateDrop",
+    "handleTemplateDragEnd",
+    "isTemplateDragContextActiveOnCurrentTab",
+    "handleTemplateListDragOver",
+    "handleTemplateListDragLeave",
+    "handleTemplateListDrop",
+    "handlePresetCardClick",
+    "handlePresetContextMenu",
+    "handleBatchDeletePresets",
+    "handleTemplateDetailApply",
+    "isPresetMultiSelected",
+    "handleSaveTemplate1",
+    "handleSaveTemplate2",
+    "confirmDeleteTemplateById",
+    "startEditTemplateNameById",
+    "handleTemplateNameBlur"
+  ],
+  "dependencies": [
+    {
+      "name": "activeTemplateType",
+      "kind": "const",
+      "originalLine": 4676,
+      "writes": []
+    },
+    {
+      "name": "applyTemplateById",
+      "kind": "const",
+      "originalLine": 5588,
+      "writes": []
+    },
+    {
+      "name": "computed",
+      "kind": "ImportBinding",
+      "originalLine": 1099,
+      "writes": []
+    },
+    {
+      "name": "confirmDeleteTemplate",
+      "kind": "const",
+      "originalLine": 4697,
+      "writes": []
+    },
+    {
+      "name": "currentTab",
+      "kind": "const",
+      "originalLine": 1731,
+      "writes": []
+    },
+    {
+      "name": "deletePreset",
+      "kind": "const",
+      "originalLine": 4006,
+      "writes": []
+    },
+    {
+      "name": "deleteTemplate",
+      "kind": "const",
+      "originalLine": 4698,
+      "writes": []
+    },
+    {
+      "name": "dialog",
+      "kind": "const",
+      "originalLine": 1196,
+      "writes": []
+    },
+    {
+      "name": "editingTemplate1Id",
+      "kind": "const",
+      "originalLine": 4681,
+      "writes": []
+    },
+    {
+      "name": "editingTemplate2Id",
+      "kind": "const",
+      "originalLine": 4682,
+      "writes": []
+    },
+    {
+      "name": "generateTemplatePreviewBase64",
+      "kind": "const",
+      "originalLine": 4489,
+      "writes": []
+    },
+    {
+      "name": "h",
+      "kind": "ImportBinding",
+      "originalLine": 1099,
+      "writes": []
+    },
+    {
+      "name": "handleSavePresetOriginal",
+      "kind": "const",
+      "originalLine": 3999,
+      "writes": []
+    },
+    {
+      "name": "handleSaveTemplateOriginal",
+      "kind": "const",
+      "originalLine": 4691,
+      "writes": []
+    },
+    {
+      "name": "isAddingTemplate",
+      "kind": "const",
+      "originalLine": 6039,
+      "writes": []
+    },
+    {
+      "name": "message",
+      "kind": "const",
+      "originalLine": 1195,
+      "writes": []
+    },
+    {
+      "name": "nextTick",
+      "kind": "ImportBinding",
+      "originalLine": 1099,
+      "writes": []
+    },
+    {
+      "name": "reactive",
+      "kind": "ImportBinding",
+      "originalLine": 1099,
+      "writes": []
+    },
+    {
+      "name": "ref",
+      "kind": "ImportBinding",
+      "originalLine": 1099,
+      "writes": []
+    },
+    {
+      "name": "renameTemplateFunc",
+      "kind": "const",
+      "originalLine": 4699,
+      "writes": []
+    },
+    {
+      "name": "renderTemplatePreview",
+      "kind": "const",
+      "originalLine": 5700,
+      "writes": []
+    },
+    {
+      "name": "saveTemplates",
+      "kind": "const",
+      "originalLine": 4689,
+      "writes": []
+    },
+    {
+      "name": "selectPreset",
+      "kind": "const",
+      "originalLine": 4002,
+      "writes": []
+    },
+    {
+      "name": "selectedParts",
+      "kind": "const",
+      "originalLine": 2479,
+      "writes": []
+    },
+    {
+      "name": "templates",
+      "kind": "const",
+      "originalLine": 4684,
+      "writes": []
+    },
+    {
+      "name": "templates1",
+      "kind": "const",
+      "originalLine": 4677,
+      "writes": []
+    },
+    {
+      "name": "templates2",
+      "kind": "const",
+      "originalLine": 4678,
+      "writes": []
+    }
+  ],
+  "earlyUses": [],
+  "lifecycle": [
+    {
+      "name": "onMounted",
+      "sha256": "eda0cc966fd336277555943e0fcb58c0907868744b2568273e1ef7d43d897f89"
+    },
+    {
+      "name": "onUnmounted",
+      "sha256": "72d974ce8090e368f07fed8cf373b123b98855f11ae9ae4e66851284cedc723f"
+    },
+    {
+      "name": "watch",
+      "sha256": "c48dde5451db78b8990ecf772b20c70bc160ec3d08ced99670c44c358f71417c"
+    },
+    {
+      "name": "watch",
+      "sha256": "3857be4e0957a1b5bb435ce6f525476abefda62af98a8e4d2d7ac56071f6c789"
+    },
+    {
+      "name": "watch",
+      "sha256": "02ec35e4743231648f48bc26bbeb36a63923972e44d63d32028579c019ae6b94"
+    },
+    {
+      "name": "watch",
+      "sha256": "f2feec404b3c4d0f8d9626d14b9c7723d3902c7c1d26d4121483b34ff1bb0366"
+    },
+    {
+      "name": "watch",
+      "sha256": "21ee12affd57ad3d39a6d8199843de474c1b2cc0400a4e45be4f0ec9b040a8be"
+    },
+    {
+      "name": "watch",
+      "sha256": "226d5832449a2f905d797bfcd907fe261095bf316597d9bf4583fcb5ebfc623f"
+    },
+    {
+      "name": "watch",
+      "sha256": "482b79b9b35d7119a70ce62ac2a19dea824450ea0d39af6e52dd03322888a7bb"
+    },
+    {
+      "name": "watch",
+      "sha256": "51313dc448c18d53c6c68325a4dfdcfbef9cfc2b9e2e83ae7cc8962cb0691138"
+    },
+    {
+      "name": "onMounted",
+      "sha256": "551a46b1ee4288f26f3a8bfe1011ec2954ee43dc834c989ffefc403f083ce0db"
+    },
+    {
+      "name": "onActivated",
+      "sha256": "245827349d260696962c31f843054268219ff9b265d7f4ec7a151147b6e82f84"
+    },
+    {
+      "name": "onUnmounted",
+      "sha256": "8f737bddb5c5e1a9fbd744df034d1d343418813a05a2bb8f56aef28f6de8d2c2"
+    },
+    {
+      "name": "watch",
+      "sha256": "2297ac632b1bf921c2ad2ec3fb82d4509f3dfa9eec3f77e0b8df1184648bb855"
+    },
+    {
+      "name": "watch",
+      "sha256": "71bc2948d77af36cb7fba175e3a3a0a6fca9268c292089b803d6335cb74a324c"
+    },
+    {
+      "name": "watch",
+      "sha256": "fb3b67271e1e46f582d525a86efd22acb31e9b14dafc7b2977df1c766cca05a4"
+    },
+    {
+      "name": "watch",
+      "sha256": "7d6b5a82f5fe7e49b47c9c328e70665a8edb5ee7470bb499cb085e9bb7b3e12e"
+    },
+    {
+      "name": "watch",
+      "sha256": "6b53030c67bdf2c446220a491bd8f8e1f24fed0c400f568eb3e7037bf256636a"
+    },
+    {
+      "name": "watch",
+      "sha256": "27da3c1c647a992194b4f70169bb99fca558433a56e57b5e32b1fdada19e34c4"
+    },
+    {
+      "name": "watch",
+      "sha256": "da7260adde6594d875aea19aa591b809385856991b18a1600d988f2923f2f769"
+    },
+    {
+      "name": "watch",
+      "sha256": "807f78b7b03200d8db48f03e2def7103b01dbbd91a52377b7eaf0e564b1af1a3"
+    },
+    {
+      "name": "watch",
+      "sha256": "68547c8f4832b338632aa6370a4dbc00c6947c2571ae8dcbdb6afb6b113729c5"
+    },
+    {
+      "name": "watch",
+      "sha256": "06fc80cebb4ae0815754861a499ce6edcbb0d042966d0c35325a4e941a5cf339"
+    },
+    {
+      "name": "watch",
+      "sha256": "7118b8c6eec88139f540bb8fffb72709265b1549e40b5bfb87052a84268b4492"
+    },
+    {
+      "name": "watch",
+      "sha256": "8e2d9471239cc8fc10e5e8b68d10d9c5314f0fab282534942d9358d38c6c95f2"
+    },
+    {
+      "name": "watch",
+      "sha256": "26473234b18f4cca8bd79f6fcf0c65a970f2485d9c2274b7a4d91bb896bb9ff9"
+    }
+  ],
+  "explicitDependencies": [
+    {
+      "name": "activeTemplateType",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "applyTemplateById",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "confirmDeleteTemplate",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "currentTab",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "deletePreset",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "deleteTemplate",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "dialog",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "editingTemplate1Id",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "editingTemplate2Id",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "generateTemplatePreviewBase64",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "handleSavePresetOriginal",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "handleSaveTemplateOriginal",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "isAddingTemplate",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "message",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "renameTemplateFunc",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "renderTemplatePreview",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "saveTemplates",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "selectPreset",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "selectedParts",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "templates",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "templates1",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    },
+    {
+      "name": "templates2",
+      "initializedBeforeCall": true,
+      "reassigned": false
+    }
+  ],
+  "standardGlobals": [
+    "Array",
+    "Math",
+    "Object",
+    "Set",
+    "console",
+    "document",
+    "setTimeout",
+    "window"
+  ],
+  "verified": true,
+  "statementCounts": {
+    "moved": 61,
+    "remaining": 299,
+    "lifecycle": 26
+  },
+  "movedDeclarationLines": 712,
+  "lines": {
+    "pageBefore": 8142,
+    "pageAfter": 7197,
+    "module": 1085
+  },
+  "returnedOriginalBindings": [
+    "getPresetDisplayName",
+    "getPresetFullDescription",
+    "contextMenuVisible",
+    "contextMenuPosition",
+    "contextMenuItemType",
+    "contextMenuSingleItemId",
+    "contextMenuTemplateDetail",
+    "templateDetailEntries",
+    "templateDetailTypeLabel",
+    "handleTemplateCardClick",
+    "handleTemplateContextMenu",
+    "closeContextMenu",
+    "handleBatchDeleteTemplates",
+    "handleContextMenuRename",
+    "handlePageClick",
+    "isTemplateMultiSelected",
+    "isTemplateDragging",
+    "isTemplateDragOver",
+    "handleTemplateDragStart",
+    "handleTemplateDragEnter",
+    "handleTemplateDragOver",
+    "handleTemplateDragLeave",
+    "handleTemplateDrop",
+    "handleTemplateDragEnd",
+    "handleTemplateListDragOver",
+    "handleTemplateListDragLeave",
+    "handleTemplateListDrop",
+    "handlePresetCardClick",
+    "handlePresetContextMenu",
+    "handleBatchDeletePresets",
+    "handleTemplateDetailApply",
+    "isPresetMultiSelected",
+    "handleSaveTemplate1",
+    "handleSaveTemplate2",
+    "startEditTemplateNameById"
+  ],
+  "hashes": {
+    "originalPage": "6d059b3d1656080bf4f64b3c47f4dc9dd43c9bd634b7f23bb7c0e0ead313d664",
+    "updatedPage": "51fae7244d9e04da1d799415bdbcb8b84d6704c459da1187bebd04381f2dde8b",
+    "module": "d1a30e6bd0847ad5bdd4434a60f39b7a64b524e40c090b63d0d8df172db2d219",
+    "template": "173a155963b7784909e6e28c587203a70b5828cdbccb2f29b970eede2128e93e",
+    "styles": "7d7978bd597cf5a2453372224bf9109481c5b523cf39741a0174af7f64a54e87"
+  },
+  "validationRecordedBeforeCommit": true,
+  "parentReview": { "fullSuite": { "tests": 19, "passed": 19, "failed": 0, "skipped": 0, "referenceFiles": 264, "referencesChanged": false, "durationMs": 296000 }, "astAudit": "26项语义、依赖、生命周期和顺序核验通过；模板与样式保持不变；临时审计脚本已删除", "temporaryAuditRemoved": true },
+  "unverified": ["模板重启恢复", "其它响应式尺寸的像素截图", "Windows及Linux桌面", "安装产物"]
+}
