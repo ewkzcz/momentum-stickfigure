@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "date": "2026-09-07",
+  "status": "blocked-before-source-migration",
+  "originalHead": "4a026be4683546bb66cee6aa7f0b772369ab0c2e",
+  "sourceStatusIncludingUntracked": "",
+  "sourceChanges": [],
+  "pageLines": 8143,
+  "newComposableCount": 0,
+  "reason": "原提交真实模板右键菜单调用未定义函数，无法满足原版新定向测试先通过的迁移前置条件。保留正确断言，没有修复或隐藏原有业务故障。",
+  "rootCause": {
+    "file": "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.vue",
+    "function": "handleTemplateContextMenu",
+    "originalLine": 4866,
+    "call": "adjustTemplateDetailMenuPosition()",
+    "astAudit": "一次性 Babel AST 列出原页面全部目标初始化和函数，源码全文仅有这一次调用，没有同名定义或导入；审计脚本已删除。",
+    "runtime": "ReferenceError: adjustTemplateDetailMenuPosition is not defined",
+    "errorSurface": "全局 Vue 错误处理器输出 renderer console.error，未触发 pageerror；只检查 desktop.errors 会漏报。",
+    "observedEffect": "异常发生前菜单状态已写入，所以浮层仍然显示，后续删除可以执行；不能据此判定右键业务无错误。"
+  },
+  "proposedBoundaryNotExecuted": {
+    "mainRegion": "原页面 4712–5660 行：三类多选集合、共享右键菜单与详情、模板拖拽排序、保存入口协调、模板应用入口及重命名交互。",
+    "additionalResponsibility": "handleSavePreset、getPresetDisplayName、getPresetFullDescription、handlePresetImageClick 可一起迁入预设与模板列表交互模块，合计超过 1000 行；预设显示名旧问题保持不变。",
+    "stateOwnership": "业务数据仍由 useTemplateData/usePresetData 持有，列表多选使用原 ref(new Set())，拖拽使用原 reactive 对象；不复制模板数组或 ref，不引入 Proxy 或隐式上下文。",
+    "initialization": "renderTemplatePreview 与 isAddingTemplate 位于原目标区域之后，不能在 4712 行直接捕获未初始化值。可在预览入口及新增标志就绪、原 watch 注册之前初始化，或保留显式晚绑定回调；尚未实施，不能宣称四类迁移 AST 等价验收完成。",
+    "excluded": ["PSD 绘制", "模板配置应用算法", "模板预览生成算法", "useLayerTree Promise", "旧未接入 useTemplateUI", "模板 v-on 名称", "scoped CSS", "规划文件"]
+  },
+  "test": {
+    "file": "tests/list-interactions.test.mjs",
+    "lines": 172,
+    "entry": "launchDesktop 原生产构建入口，隔离 HOME/userData/temp，无用户配置、密钥、Python 或外网。",
+    "inputs": [
+      { "id": "synthetic-layer-mask", "sha256": "e2fbc096cc396dcb00f30b8abc710fafcf3d0e6b2d8f42930d921fe7f9d23819" },
+      { "id": "synthetic-clipping-group", "sha256": "b5a09f53c37a3baf934cd82dfdeb3e3e480977cde929a46d695b2080c5853215" }
+    ],
+    "referenceStrategy": "两份公开真实 PSD 的初始画布对照已存在 synthetic-preview-range-fixed 不可变参考；模板创建前后对照同一次运行实际主画布，不采集任何新图像基线。",
+    "completedChecksBeforeFailure": [
+      "两份 synthetic 初始画布与原不可变参考 RGBA 零差异",
+      "工具栏创建两个动作模板、两个表情模板，配置均非空",
+      "四次创建的预览图片真实落盘且文件非空，生成前后主画布 RGBA 不变",
+      "两份 PSD 均显示共享的动作、表情模板列表",
+      "双击名称进入原重命名对话框，空名阻止提交，合法名显示更新",
+      "Playwright 真实鼠标在列表内拖动排序手柄，目标顺序确实变化，无系统原生拖出",
+      "Meta 修饰键真实多选两个动作模板，右键菜单显示正确配置",
+      "多选时应用和重命名按钮禁用，真实确认删除后卡片消失"
+    ],
+    "retainedFailureAssertion": "assert.deepEqual(result.rendererErrors, [], '模板右键菜单不得产生被 Vue 错误处理器捕获的业务运行错误')",
+    "diagnosticRuns": [
+      { "id": "momentum-regression-IhtYM5", "result": "测试代码初稿误读 relative_path；实际公开输出字段为 file_path，已据实际数据格式修正。" },
+      { "id": "momentum-regression-pJDTW1", "result": "上传第二文件未显式选中，比较仍活动的第一文件导致 724 像素差异；已补真实文件标签点击与 active DOM 检查，未改图像断言。" },
+      { "id": "momentum-regression-PPvRdE", "result": "正则匹配按钮受原 DOM 空白影响超时，已改为真实可访问按钮名；该次日志也已复现未定义函数错误。" },
+      { "id": "momentum-regression-BKm8Gv", "result": "捕获并确认 Vue 右键 ReferenceError；随后将错误采集精确限定 VueError，排除与该 UI 入口无关的既存日志噪声。" },
+      { "id": "momentum-regression-eQ9RU6", "result": "全部八阶段实际执行后，正确的无 VueError 断言失败；耗时 6709.765792 ms。" },
+      { "id": "momentum-regression-MN3NKx", "result": "完整 npm test 再次复现同一 ReferenceError；无重新生成参考或放宽原断言。" }
+    ]
+  },
+  "acceptance": {
+    "build": { "command": "npm run build", "status": 0, "source": "原 HEAD 干净源码", "warnings": "已有未使用导入、空 utils-vendor chunk 和大 chunk 提示" },
+    "lint": { "command": "npm run lint", "status": 0 },
+    "size": { "command": "npm run check:size", "status": 0, "existingOversizeFiles": 5, "newViolations": 0 },
+    "targeted": { "command": "node --test tests/list-interactions.test.mjs", "status": 1, "tests": 1, "pass": 0, "fail": 1 },
+    "all": { "command": "node tests/verify-layer-render-completion.mjs all", "status": 1, "evidenceId": "layer-render-acceptance-Q1S7Nt", "tests": 19, "pass": 18, "fail": 1, "skipped": 0, "cancelled": 0, "durationMs": 212078, "testDurationMs": 211783.308541, "meaning": "原有全部18项通过，仅新增模板右键原有故障回归失败。" },
+    "originalReferences": { "files": 260, "sha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde" },
+    "allReferences": { "files": 264, "sha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e", "beforeAfterEqual": true },
+    "layerTreeSourceSha256": "9dd0cb3899b253140ff8a384687ab022c86e55b0e421a9f31bf8aa1ca1ac6faa"
+  },
+  "notValidated": [
+    "职责迁移后的四类 AST 等价检查、lint/build/UI 验收：源码迁移尚未开始",
+    "新测试中的表情模板重命名、排序和删除，排序持久化重启、删除文件清理、模板应用后的动作/表情保留",
+    "本新增场景未扩展预设多选；原有预设生命周期回归在完整验收中通过",
+    "AI、外网、系统原生拖拽均未测试；原完整套件仅在已有隔离桌面边界检查导出落盘"
+  ],
+  "handoff": "留给父端复核决定独立原 bug 的处理次序；本任务没有提交、推送、修改 src 或任何计划文件。"
+}

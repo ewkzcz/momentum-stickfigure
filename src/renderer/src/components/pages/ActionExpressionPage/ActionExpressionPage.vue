@@ -4829,7 +4829,7 @@ const handleTemplateCardClick = (event, templateId, templateType) => {
  * 处理流程：
  * 1、同步右键目标与多选集合
  * 2、保存单项标识和模板详情
- * 3、计算菜单位置并显示，随后按实际尺寸调整
+ * 3、按已有安全位置计算显示菜单
  */
 const handleTemplateContextMenu = (event, templateId, templateType) => {
   // 1、接管原生右键菜单，确保目标位于当前选中集合
@@ -4863,7 +4863,6 @@ const handleTemplateContextMenu = (event, templateId, templateType) => {
   contextMenuItemType.value = 'template'
   contextMenuVisible.value = true
   templateDetailTimestamp.value = ''
-  adjustTemplateDetailMenuPosition()
 }
 
 /**
