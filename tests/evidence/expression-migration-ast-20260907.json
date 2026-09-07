@@ -1,0 +1,413 @@
+{
+  "head": "3f28cc718b019e7d3b8ad6b8a848b66ec496f426",
+  "modulePath": "src/renderer/src/components/pages/ActionExpressionPage/composables/useExpressionAnalysis.js",
+  "boundary": {
+    "startLine": 1981,
+    "endLine": 2450,
+    "declarations": 16,
+    "statementsIncludingWatch": 17,
+    "returnedNames": [
+      "buildExpressionMeta",
+      "expressionTabMetaMap",
+      "combinedExpressionParts",
+      "enhancedExpressionTabs",
+      "combinedThumbnailsMap",
+      "getComboSignature",
+      "buildUniquePathMap"
+    ],
+    "dependencies": [
+      "dynamicExpressionTabs",
+      "dynamicExpressionParts",
+      "currentPsdData",
+      "trimWhitespace"
+    ],
+    "freeNames": [
+      "Array",
+      "Boolean",
+      "Image",
+      "Map",
+      "Math",
+      "Number",
+      "Promise",
+      "Set",
+      "String",
+      "computed",
+      "console",
+      "currentPsdData",
+      "document",
+      "dynamicExpressionParts",
+      "dynamicExpressionTabs",
+      "ref",
+      "trimWhitespace",
+      "undefined",
+      "watch"
+    ]
+  },
+  "migratedStatements": [
+    {
+      "names": [
+        "detectExpressionCategoryFromLabel"
+      ],
+      "startLine": 1987,
+      "endLine": 1996,
+      "astSha256": "47d3cbcf54b75e95d838853bed8b48ff97171475e63c8c15feb42673eb618f79"
+    },
+    {
+      "names": [
+        "looksLikeExpressionContext"
+      ],
+      "startLine": 2003,
+      "endLine": 2007,
+      "astSha256": "ab8ff93e9825afc339d3621591bfc3019d9d8fba5c22d69a16c0c3744fb4b6f6"
+    },
+    {
+      "names": [
+        "getGroupParentName"
+      ],
+      "startLine": 2014,
+      "endLine": 2022,
+      "astSha256": "762840518d18d506b69557fc2fe6ba6c65d66c54321917d8060c2008b599e7d0"
+    },
+    {
+      "names": [
+        "extractBaseExpressionName"
+      ],
+      "startLine": 2029,
+      "endLine": 2041,
+      "astSha256": "44fd613c99f9a8e8985bc6a50d792dfaeb3bfe032da54d3605084e24870b57ab"
+    },
+    {
+      "names": [
+        "buildExpressionMeta"
+      ],
+      "startLine": 2049,
+      "endLine": 2141,
+      "astSha256": "2144dd8f5e1fef4d010c9453f22f40864b29caf9eed5f69471aba117cac920f4"
+    },
+    {
+      "names": [
+        "expressionAnalysis"
+      ],
+      "startLine": 2144,
+      "endLine": 2146,
+      "astSha256": "d745b21e6c4889ad2350b96064b511baeb35bf70da979c7256bf9d517b6d52dc"
+    },
+    {
+      "names": [
+        "expressionTabMetaMap"
+      ],
+      "startLine": 2149,
+      "endLine": 2156,
+      "astSha256": "fd4c5437d72ecb899322a3c92e27cee737976aae4befdb31c6d440661612af61"
+    },
+    {
+      "names": [
+        "expressionParentBaseMatrix"
+      ],
+      "startLine": 2159,
+      "endLine": 2159,
+      "astSha256": "689726ae9ebfafb23cdd63009557fb50021b6762c44350e16dbd282678d4a528"
+    },
+    {
+      "names": [
+        "combinedExpressionParts"
+      ],
+      "startLine": 2162,
+      "endLine": 2278,
+      "astSha256": "2838856e59e927869826d1b7a27ce63f5d59c928984b6c86380c4558adab1681"
+    },
+    {
+      "names": [
+        "enhancedExpressionTabs"
+      ],
+      "startLine": 2281,
+      "endLine": 2294,
+      "astSha256": "9e854c3f1ae37a802b5762c8af194c93b17f15d47701ed17b91c83781793ace3"
+    },
+    {
+      "names": [
+        "combinedThumbnailsMap"
+      ],
+      "startLine": 2297,
+      "endLine": 2297,
+      "astSha256": "5fad9a1b84824fe1854a1ba5c80a2e5a7fa35501ba006c770ad78a4a528996d3"
+    },
+    {
+      "names": [
+        "combinedImageCache"
+      ],
+      "startLine": 2298,
+      "endLine": 2298,
+      "astSha256": "05ad311ec52c64c63c4edff6217066c0a38ef10d33155bbf8f37c4d656f928cb"
+    },
+    {
+      "names": [
+        "loadImageCached"
+      ],
+      "startLine": 2306,
+      "endLine": 2316,
+      "astSha256": "c0930cec80dcb9dd9e23d2aacc57a676d480a88c413984c44895992b25066abf"
+    },
+    {
+      "names": [
+        "getComboSignature"
+      ],
+      "startLine": 2323,
+      "endLine": 2323,
+      "astSha256": "c5906a33524acbddb3bc668becda3ad93c75fd60ff706b4228a3e17b1affed36"
+    },
+    {
+      "names": [
+        "buildUniquePathMap"
+      ],
+      "startLine": 2331,
+      "endLine": 2352,
+      "astSha256": "0bbf0ed0ef8a9a69f989a5095d44e85af56425c9ba3eecff00a70423875dedbe"
+    },
+    {
+      "names": [
+        "generateCombinedThumbnail"
+      ],
+      "startLine": 2361,
+      "endLine": 2435,
+      "astSha256": "047dc738a921391f7d9e456329a4f60d61c1307e49d9d7929a6d77decad65d58"
+    },
+    {
+      "names": [
+        "watch(combinedExpressionParts)"
+      ],
+      "startLine": 2438,
+      "endLine": 2449,
+      "astSha256": "d324b7a3617b75a7d4ba44f1dec61eb1c9a4a1fab7a8899003b2d131539863d4"
+    }
+  ],
+  "assertions": {
+    "migratedAstUnchanged": true,
+    "chineseCommentsAndNumberedStepsUnchanged": true,
+    "remainingStatementsAstAndTextUnchanged": true,
+    "remainingStatementCount": 284,
+    "templateBytesUnchanged": true,
+    "styleBlocksUnchanged": true,
+    "fullInlineAstAndOrderIdentical": true,
+    "watchCount": 21,
+    "comboWatchIndexOneBased": 3,
+    "immediateAndDefaultFlushUnchanged": true,
+    "previousWatch": "partItemSize",
+    "nextWatch": "currentTab",
+    "explicitOriginalDependencies": true,
+    "noBuildLayerTreeDependency": true,
+    "noEarlyPsdReads": 0,
+    "noEarlyTrimCalls": 0,
+    "originalPartAndLayerIdentity": true,
+    "protectedFilesUnchanged": [
+      "src/renderer/src/components/pages/ActionExpressionPage/composables/useLayerTree.js",
+      "src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdParser.js",
+      "src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdSession.js",
+      "src/renderer/src/components/pages/ActionExpressionPage/composables/usePartsClassify.js",
+      "src/renderer/src/components/pages/ActionExpressionPage/composables/useTemplatePresetList.js",
+      "项目优化规划.md"
+    ]
+  },
+  "initialization": {
+    "currentPsdData": "原 shallowRef(null) 在调用前创建，后续仅修改 .value",
+    "dynamicExpressionTabs": "原 usePartsState() 返回的 ref([])，调用前已初始化",
+    "dynamicExpressionParts": "原 usePartsState() 返回的 ref({})，调用前已初始化",
+    "trimWhitespace": "原 canvasUtils.js 静态导入函数直接传入",
+    "immediate": "原 combinedExpressionParts 初值 []，for-of 为空；运行 getter 计数证明没有提前读取 PSD 或调用裁边",
+    "ownership": "只将原派生 computed、两个缩略图缓存迁入，未新增或复制 PSD/图层/部件状态"
+  },
+  "callAudit": {
+    "buildExpressionMeta": [
+      {
+        "remainingScriptLine": 5005,
+        "text": "initialSorted, updatePartsFromClassifyResult, clearAllPartsState, buildExpressionMeta, getFirstDefaultTabKey"
+      }
+    ],
+    "expressionTabMetaMap": [
+      {
+        "remainingScriptLine": 4060,
+        "text": "const meta = expressionTabMetaMap.value[tab.key] || {}"
+      },
+      {
+        "remainingScriptLine": 4070,
+        "text": "const meta = expressionTabMetaMap.value[groupKey] || {}"
+      },
+      {
+        "remainingScriptLine": 4397,
+        "text": "const currentMeta = expressionTabMetaMap.value[currentTab.value] || {}"
+      },
+      {
+        "remainingScriptLine": 4400,
+        "text": "const metaEntries = Object.entries(expressionTabMetaMap.value || {})"
+      }
+    ],
+    "combinedExpressionParts": [
+      {
+        "remainingScriptLine": 1482,
+        "text": "const combinedTab = combinedExpressionParts.value.length > 0"
+      },
+      {
+        "remainingScriptLine": 1544,
+        "text": "map.combinedExpressions = combinedExpressionParts.value || []"
+      },
+      {
+        "remainingScriptLine": 1622,
+        "text": "result['combinedExpressions'] = combinedExpressionParts.value.length > 0"
+      },
+      {
+        "remainingScriptLine": 2125,
+        "text": "baseParts = (combinedExpressionParts.value || []).map(item => {"
+      }
+    ],
+    "enhancedExpressionTabs": [
+      {
+        "remainingScriptLine": 1479,
+        "text": "const expressionTabs = enhancedExpressionTabs.value"
+      },
+      {
+        "remainingScriptLine": 4059,
+        "text": "enhancedExpressionTabs.value.forEach(tab => {"
+      }
+    ],
+    "combinedThumbnailsMap": [
+      {
+        "remainingScriptLine": 2127,
+        "text": "const thumb = combinedThumbnailsMap.value.get(sig) || item.thumbnail || null"
+      }
+    ],
+    "getComboSignature": [
+      {
+        "remainingScriptLine": 2126,
+        "text": "const sig = getComboSignature(item.items || [])"
+      }
+    ],
+    "buildUniquePathMap": [
+      {
+        "remainingScriptLine": 2885,
+        "text": "const pathMap = buildUniquePathMap(currentPsdData.value.layerHierarchy)"
+      }
+    ]
+  },
+  "lines": {
+    "pageBefore": 7197,
+    "pageAfter": 6740,
+    "module": 492,
+    "pageDelta": -457
+  },
+  "referenceProtection": {
+    "originalReferences": {
+      "files": 260,
+      "sha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde"
+    },
+    "totalReferenceFiles": 264,
+    "allReferenceDigestSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "authorizedOverrides": [
+      {
+        "fixture": "xing-kong",
+        "name": "group-10-toggle"
+      },
+      {
+        "fixture": "xing-kong",
+        "name": "group-10-restore"
+      }
+    ],
+    "addedReferenceFiles": 0
+  },
+  "sourceSha256": {
+    "pageBefore": "51fae7244d9e04da1d799415bdbcb8b84d6704c459da1187bebd04381f2dde8b",
+    "pageAfter": "f8f34c689bb6051a30915a418e30e2e7a3c9cf79f161760131f16203d92d5b9e",
+    "module": "3995daca6dde6612fd0f4ca24bac251fa08001ef36757bfc0966645f9db6615f"
+  },
+  "oneOffAudit": "执行后删除；仅保留脱敏断言与摘要，未访问用户配置、密钥或网络",
+  "verification": {
+    "baseline": {
+      "head": "3f28cc718b019e7d3b8ad6b8a848b66ec496f426",
+      "businessTreeClean": true,
+      "build": "npm run build：通过",
+      "originalPsdCommand": "node --test --test-concurrency=1 --test-name-pattern='PSD 合成与导出' tests/regression.test.mjs",
+      "originalPsdTests": { "tests": 3, "pass": 3, "fail": 0, "skipped": 0, "snapshots": 100 },
+      "targetedCommand": "npm run test:psd",
+      "targetedTests": { "tests": 8, "pass": 8, "fail": 0, "skipped": 0, "rgbaAndDomSnapshots": 154, "durationMs": 82124.4595 },
+      "desktopIds": ["momentum-regression-MNQGLS", "momentum-regression-kgx4bb", "momentum-regression-ZE2G7B", "momentum-regression-fPmAxi", "momentum-regression-Bls6cb", "momentum-regression-DgxIaE"]
+    },
+    "afterMigration": {
+      "lint": "npm run lint：通过；仅追加新模块到原 lint 范围",
+      "size": "npm run check:size：通过；本次规模违规 0，存量超限文件 5",
+      "build": "npm run build：通过；仍有原有未使用导入、空 chunk 和大 chunk 警告",
+      "targetedPsdRerun": { "command": "npm run test:psd", "tests": 8, "pass": 8, "fail": 0, "skipped": 0, "rgbaAndDomSnapshots": 154 },
+      "finalFailureRelatedTarget": {
+        "command": "node --test --test-name-pattern='PSD 自制素材' tests/regression.test.mjs",
+        "tests": 4, "pass": 4, "fail": 0, "skipped": 0, "rgbaAndDomSnapshots": 54, "durationMs": 25544.526542,
+        "desktopIds": ["momentum-regression-InhWf2", "momentum-regression-6gMWYV", "momentum-regression-oPwLaJ"]
+      },
+      "finalFullRegression": {
+        "command": "node tests/verify-layer-render-completion.mjs all",
+        "foregroundWaitMs": 420000,
+        "evidenceId": "layer-render-acceptance-UnBJIh",
+        "tests": 19, "pass": 19, "fail": 0, "cancelled": 0, "skipped": 0, "todo": 0,
+        "testDurationMs": 210870.801125, "acceptanceDurationMs": 211152,
+        "psdRgbaAndDomSnapshots": 154,
+        "originalReferenceFiles": 260, "allReferenceFiles": 264,
+        "allReferenceDigestSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+        "unchangedUseLayerTreeSha256": "9dd0cb3899b253140ff8a384687ab022c86e55b0e421a9f31bf8aa1ca1ac6faa"
+      },
+      "earlierSuccessfulFullRun": { "evidenceId": "layer-render-acceptance-jgkGKM", "status": 0, "tests": 19, "pass": 19, "fail": 0, "skipped": 0, "durationMs": 211685 },
+      "referenceChanges": 0,
+      "existingTestsChanged": false,
+      "committedOrPushed": false
+    }
+  },
+  "retainedFailures": [
+    {
+      "desktopId": "momentum-regression-VxqL1w",
+      "command": "npm run test:psd",
+      "tests": 8, "pass": 6, "fail": 2,
+      "fixture": "synthetic-clipping-group",
+      "stage": "tests/scenarios/psd.mjs:107，点击最后一个预设卡片",
+      "error": "locator.click: Target page, context or browser has been closed",
+      "confirmed": [
+        "失败前 part-selected 的画布与 DOM 参考已通过；卡片已解析到 DOM，但点击尚在等待可见、启用和稳定条件。",
+        "主进程日志记录主窗口正常关闭及服务注销、同步保存；没有可据以确认崩溃的日志。",
+        "diagnostics.json 的页面未捕获错误和隔离违规均为空。",
+        "后续相同代码、原断言的定向和完整回归通过。"
+      ],
+      "rootCause": "未确认。正常关闭日志不能识别发起者，不能据此断定外部手动中断、测试清理或业务窗口关闭。后续会话中断报告也不能反推为此次关闭的原因。",
+      "businessFixApplied": false
+    },
+    {
+      "desktopId": "momentum-regression-TP1CpX",
+      "evidenceId": "layer-render-acceptance-jOhLMr",
+      "command": "node tests/verify-layer-render-completion.mjs all",
+      "tests": 19, "pass": 17, "fail": 2, "skipped": 0,
+      "fixture": "synthetic-clipping-group",
+      "stage": "tests/scenarios/psd.mjs:123，等待独立预览画布可见",
+      "error": "locator.waitFor: Timeout 30000ms exceeded；64 次解析到隐藏 canvas",
+      "confirmed": [
+        "失败前 initial、图组切换恢复、part-selected、preset-restored、zoomed 均保持原参考。",
+        "主进程已记录预览窗口创建成功，主页面记录画布编码及同步成功，但该成功只代表 IPC 转发成功，不是预览端完成绘制的确认。",
+        "日志没有预览端收到主题、文件名或图片渲染成功的信息；当前画布被 hasImage 控制隐藏，未达到测试可见性条件。",
+        "生产时序为主进程等待 loadFile/loadURL 返回、人物页延迟 300ms 同步画布，预览端在 onMounted 订阅 canvas-update；现有链路没有预览订阅就绪握手或绘制确认。",
+        "现有测试等待新窗口事件后直接等待画布可见，不重发消息、不修改 Vue 状态。"
+      ],
+      "rootCause": "未确认。初始化期间消息未被预览端消费是候选解释；缺少当时订阅注册和消息接收的时间证据，不能确认消息丢失，也不能用未出现像素差异或重跑通过证明只是环境波动。",
+      "migrationAssessment": "AST 已证明迁移目标声明、页面余下语句和监听顺序等价；上述预览链路未修改。当前没有证据将此超时归因为表达式迁移，也未在旧 HEAD 重现该失败，故不标记为已确认旧缺陷。",
+      "followUpIfReproduced": "在独立任务只读记录预览挂载/订阅、IPC 发送/接收与解码完成时刻，再决定是否需要就绪握手；本次不混入预览修复。",
+      "businessFixApplied": false
+    }
+  ],
+  "parentRecoveryReview": {
+    "taskRecovery": "恢复原中断任务，未新建重复迁移；结束后无遗留测试进程",
+    "ast": "将新模块的16声明和watch原位展开后，全部页面语句/调用/监听顺序与3f28cc7等价；模板与样式逐字不变",
+    "sourceAdjustment": "清理新模块继承的一处行尾空格，语义未变",
+    "checks": "lint、规模与264个参考逐项完整性检查通过；复核完整19项测试原始结果通过",
+    "temporaryAuditRemoved": true,
+    "windowFailures": "两次窗口相关失败仍保留根因未确认，不宣称已修复业务窗口问题"
+  },
+  "recoveryNote": "父端报告会话验证被手动中断且恢复前无残留测试进程；另读取到 jgkGKM 的 19/19 完整成功结果。无法将会话中断与前述两次不同失败合并归因。本次恢复后重新完成 lint、size、build、原失败相关定向及完整回归，未重置或扩大改动。",
+  "untested": [
+    "未新增公开 UI 专项用例逐一选择全部表情标签或所有眉眼嘴组合，并将每张组合缩略图与独立参考逐项比对；本轮采用既有 154 项 PSD 快照及完整 19 项回归。",
+    "未故障注入缩略图 Image 加载拒绝、并发 PSD 快切、缓存路径跨文件碰撞；对应算法、缓存和异步时序保持原文。",
+    "未在旧 HEAD 专门重现两次窗口相关失败，根因均保留未确认。",
+    "未验收 Windows/Linux 或外部软件接收原生拖出；当前真实 Electron 环境为 darwin arm64、Electron 35.7.5。"
+  ]
+}
