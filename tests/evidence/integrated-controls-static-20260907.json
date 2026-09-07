@@ -1,0 +1,233 @@
+{
+  "head": "e8e2f4884bef8f81d92d15c60673058a0411b5f9",
+  "template": {
+    "wholePageExpandedAstEqual": true,
+    "componentInsertionAddsDomElements": 0,
+    "originalPanelLines": [
+      254,
+      625
+    ],
+    "movedModels": [
+      "exclusiveMode",
+      "actionExclusiveMode",
+      "expressionExclusiveMode",
+      "showFront",
+      "showSide",
+      "showBack",
+      "showBackground",
+      "showBaseLayer",
+      "showSecondBaseLayer",
+      "showWeapon",
+      "showBackHair",
+      "showShadow",
+      "showShakeHead",
+      "showHoldSword",
+      "showBackHandSword",
+      "showDownwardSlash",
+      "selectHeadOnly",
+      "selectNonHead",
+      "enableTrimWhitespace"
+    ],
+    "sizeModel": "partItemSizeInput; v-model.number unchanged",
+    "eventForwardings": [
+      {
+        "event": "header-click",
+        "target": "handleHeaderClick",
+        "payload": "$event"
+      },
+      {
+        "event": "switch-tab",
+        "target": "switchIntegratedPanelTab",
+        "payload": "'commonControls'"
+      },
+      {
+        "event": "switch-tab",
+        "target": "switchIntegratedPanelTab",
+        "payload": "'layerTree'"
+      },
+      {
+        "event": "save-preset",
+        "target": "handleSavePreset",
+        "payload": "$event"
+      },
+      {
+        "event": "save-template1",
+        "target": "handleSaveTemplate1",
+        "payload": "$event"
+      },
+      {
+        "event": "save-template2",
+        "target": "handleSaveTemplate2",
+        "payload": "$event"
+      },
+      {
+        "event": "search",
+        "target": "openSearchModal",
+        "payload": "$event"
+      },
+      {
+        "event": "size-confirm",
+        "target": "handleSizeInputConfirm",
+        "payload": "$event"
+      },
+      {
+        "event": "size-confirm",
+        "target": "handleSizeInputConfirm",
+        "payload": "$event"
+      },
+      {
+        "event": "toggle",
+        "target": "toggleIntegratedPanel",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "common-control-change",
+        "target": "handleCommonControlChange",
+        "payload": "$event"
+      },
+      {
+        "event": "select-head-only-change",
+        "target": "handleSelectHeadOnlyChange",
+        "payload": "$event"
+      },
+      {
+        "event": "select-non-head-change",
+        "target": "handleSelectNonHeadChange",
+        "payload": "$event"
+      },
+      {
+        "event": "reset",
+        "target": "resetCommonControls",
+        "payload": "$event"
+      }
+    ],
+    "layerTree": "原图层容器和 LayerTreePanel 留在父模板具名插槽，v-show、事件、真实 DOM 层级及父 scope 保持；原模板不存在 layerTreePanel ref",
+    "unchangedParentScriptAst": true,
+    "addedParentDeclarations": [
+      "commonControlModels",
+      "commonControlValues",
+      "updateCommonControlModel"
+    ],
+    "childIndependentStateFactories": 0
+  },
+  "css": {
+    "migratedRules": 67,
+    "retainedParentRules": 269,
+    "sharedTransitionRules": 3,
+    "compiledScopeRenameOnly": true,
+    "compiledRulesSha256": "9a00fbc7a5d75365facd6b80b17aea65a9d36070583bc22f36067a498226c040",
+    "ordering": "基础规则 → 基础后置覆盖 → 部件输入规则 → 800/600/400 媒体查询 → 按钮覆盖；声明和重要性不变",
+    "scope": "新组件内部 DOM 和 n-tooltip 插槽拥有新 scope；根节点继承父 scope，因此根布局规则留父；图层插槽保留父 scope，因此 layer-tree-content、empty-state 和窄屏 layer-tree-panel 规则留父；未新增 deep、全局规则或整份 CSS 重载",
+    "deepSelectorsMoved": 0,
+    "finalWhitespaceCleanupCompiledEquivalent": true
+  },
+  "files": [
+    {
+      "file": "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.vue",
+      "beforeLines": 3890,
+      "afterLines": 3577,
+      "sha256": "1f093ded8f0949a3b0f84bcfbbf24dace78c867ada67fd904ab4a6cb0982704b"
+    },
+    {
+      "file": "src/renderer/src/components/pages/ActionExpressionPage/components/IntegratedControlsPanel.vue",
+      "beforeLines": 0,
+      "afterLines": 889,
+      "sha256": "699db3f1853f5f9297e893af51e02a1a4aa021772c751fb0c6b85ecfd34a304b"
+    },
+    {
+      "file": "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.css",
+      "beforeLines": 1007,
+      "afterLines": 748,
+      "sha256": "47907395f01753e01cd130606cd7a4bfcb1bf5013e09aa1c85060ae641ea05dc"
+    },
+    {
+      "file": "src/renderer/src/components/pages/ActionExpressionPage/styles/part-panels.css",
+      "beforeLines": 768,
+      "afterLines": 709,
+      "sha256": "221b73785f973bad7267667a15478d784679cf20c2acd1b7791ba6004c94e4a2"
+    },
+    {
+      "file": "src/renderer/src/components/pages/ActionExpressionPage/styles/overrides.css",
+      "beforeLines": 794,
+      "afterLines": 694,
+      "sha256": "cc7db3126c45e0eaa6daceb212e21ba2fb540747aec523f9f80120b65807b522"
+    }
+  ],
+  "noNewTrailingWhitespace": true,
+  "passed": true
+}

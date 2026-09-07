@@ -17,19 +17,6 @@
     gap: 8px;
   }
 
-  .size-control-label {
-    font-size: 12px;
-  }
-
-  .size-control-input {
-    width: 55px;
-    font-size: 12px;
-    padding: 3px 6px;
-  }
-
-  .size-control-unit {
-    font-size: 12px;
-  }
 }
 
 /* 极窄窗口：保持用户自定义，进一步压缩 */
@@ -64,19 +51,6 @@
     gap: 6px;
   }
 
-  .size-control-label span {
-    display: none; /* 极窄屏幕隐藏文字，只保留图标 */
-  }
-
-  .size-control-input {
-    width: 50px;
-    font-size: 11px;
-    padding: 3px 5px;
-  }
-
-  .size-control-unit {
-    font-size: 11px;
-  }
 }
 
 @media (max-width: 768px) {
@@ -156,15 +130,6 @@
     min-width: 60px;
   }
 
-  .size-control-input {
-    width: 45px;
-    font-size: 11px;
-    padding: 2px 4px;
-  }
-
-  .size-control-unit {
-    font-size: 11px;
-  }
 }
 
 /* ==================== 插件模式优化（窄屏） ==================== */
@@ -278,72 +243,7 @@
   }
 }
 
-/* ==================== 预设、模板和搜索按钮样式 ==================== */
-/* 按钮基础样式 - 完全对齐 */
-.save-preset-button,
-.save-template-button,
-.search-preset-button {
-  padding: 6px 5px;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s ease;
-  font-weight: 500;
-  min-width: 40px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  line-height: 1;
-}
-
-/* 预设按钮 - 绿色 */
-.save-preset-button {
-  background: #18a058;
-}
-
-.save-preset-button:hover {
-  background: #16936d;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(24, 160, 88, 0.3);
-}
-
-.save-preset-button:active {
-  transform: translateY(0);
-}
-
-/* 模板按钮 - 紫色 */
-.save-template-button {
-  background: #7c3aed;
-}
-
-.save-template-button:hover {
-  background: #6d28d9;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
-}
-
-.save-template-button:active {
-  transform: translateY(0);
-}
-
-/* 搜索按钮 - 蓝色 */
-.search-preset-button {
-  background: #2080f0;
-}
-
-.search-preset-button:hover {
-  background: #1868d5;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(32, 128, 240, 0.3);
-}
-
-.search-preset-button:active {
-  transform: translateY(0);
-}
+/* 面板内按钮规则已迁至 IntegratedControlsPanel.vue 的局部样式。 */
 
 /* 预设名称输入框 */
 .preset-name-input {

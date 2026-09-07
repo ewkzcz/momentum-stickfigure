@@ -255,356 +255,26 @@
       </teleport>
 
       <!-- 通用控制和图层结构整合面板 -->
-      <div class="integrated-controls-panel">
-        <div class="panel-header-tabs" @click="handleHeaderClick">
-          <button
-            class="panel-tab-button"
-            :class="{ active: integratedPanelTab === 'commonControls' }"
-            @click="switchIntegratedPanelTab('commonControls')"
-            title="通用控制"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2v20M2 12h20M17 7l-5-5-5 5M7 17l5 5 5-5"/>
-            </svg>
-            <span>通用</span>
-          </button>
-          <button
-            class="panel-tab-button"
-            :class="{ active: integratedPanelTab === 'layerTree' }"
-            @click="switchIntegratedPanelTab('layerTree')"
-            title="图层结构"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
-            </svg>
-            <span>图层</span>
-          </button>
-
-          <!-- 工具栏：预设按钮、动作模板按钮、表情模板按钮、搜索按钮和缩放控制 -->
-          <button
-            class="save-preset-button"
-            @click="handleSavePreset"
-            title="添加当前画布为预设"
-          >
-            预设
-          </button>
-
-          <button
-            class="save-template-button"
-            @click="handleSaveTemplate1"
-            title="保存当前动作配置为动作模板"
-          >
-            动作模板
-          </button>
-
-          <button
-            class="save-template-button"
-            @click="handleSaveTemplate2"
-            title="保存当前表情配置为表情模板"
-          >
-            表情模板
-          </button>
-
-          <button
-            class="search-preset-button"
-            @click="openSearchModal"
-            title="搜索动作和表情"
-          >
-            搜索
-          </button>
-
-          <div class="size-control-compact">
-            <label class="size-control-label">缩放</label>
-            <input
-              type="number"
-              class="size-control-input"
-              v-model.number="partItemSizeInput"
-              min="50"
-              max="400"
-              step="1"
-              @keyup.enter="handleSizeInputConfirm"
-              @blur="handleSizeInputConfirm"
-              title="输入数值后按回车或失去焦点生效"
-            />
-            <span class="size-control-unit">px</span>
-          </div>
-
-          <span
-            class="collapse-icon"
-            :class="{ expanded: !integratedPanelCollapsed }"
-            @click="toggleIntegratedPanel"
-            title="点击折叠/展开"
-          >▼</span>
-        </div>
-        <transition name="panel-collapse">
-          <div v-show="!integratedPanelCollapsed" class="integrated-panel-content">
-            <!-- 通用控制内容 -->
-            <div v-show="integratedPanelTab === 'commonControls'" class="common-controls-content">
-            <div class="common-controls">
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="exclusiveMode"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>互斥</span>
-                  </template>
-                  勾选后，每个分组（如头部、身体等）同时只能选中一个部件
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="actionExclusiveMode"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>动作互斥</span>
-                  </template>
-                  勾选后，不同动作图组之间互斥
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="expressionExclusiveMode"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>表情互斥</span>
-                  </template>
-                  勾选后，不同表情图组之间互斥
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showFront"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>正面</span>
-                  </template>
-                  显示人物的正面视图
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showSide"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>侧面/侧身/侧视/侧视图</span>
-                  </template>
-                  显示人物的侧面、侧身或侧视图
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showBack"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>背面/背影/背身/背视/背视图/后面</span>
-                  </template>
-                  显示人物的背面、背影、背视图或后面
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showBackground"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>背景</span>
-                  </template>
-                  显示PSD文件中的背景图层
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showBaseLayer"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span class="warning-text">最下层(白色背景)</span>
-                  </template>
-                  PSD最底层的白色背景图层，通常不需要显示
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showSecondBaseLayer"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span class="warning-text">次下层(白色背景)</span>
-                  </template>
-                  PSD倒数第二层的白色背景，取消勾选可能影响部分图层显示
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showWeapon"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>武器</span>
-                  </template>
-                  显示武器图层
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showBackHair"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>后发/发型后</span>
-                  </template>
-                  显示后发或发型后部图层
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showShadow"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>阴影</span>
-                  </template>
-                  显示阴影图层
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showShakeHead"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>摇摇头/摇头</span>
-                  </template>
-                  显示摇头动作图层
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showHoldSword"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>持剑</span>
-                  </template>
-                  显示持剑动作图层
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showBackHandSword"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>后手持剑</span>
-                  </template>
-                  显示后手持剑动作图层
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="showDownwardSlash"
-                  @change="handleCommonControlChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>下压挥剑</span>
-                  </template>
-                  显示下压挥剑动作图层
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="selectHeadOnly"
-                  @change="handleSelectHeadOnlyChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>选择头部</span>
-                  </template>
-                  开启后只显示头部（不支持长发），其他全部隐藏
-                </n-tooltip>
-              </label>
-              <label class="control-item">
-                <input
-                  type="checkbox"
-                  v-model="selectNonHead"
-                  @change="handleSelectNonHeadChange"
-                />
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span>选择非头部</span>
-                  </template>
-                  开启后隐藏头部（不支持长发），显示其他图层
-                </n-tooltip>
-              </label>
-              <div class="control-item select-control-item">
-                <n-tooltip trigger="hover">
-                  <template #trigger>
-                    <span class="control-label">剪切空白像素</span>
-                  </template>
-                  裁剪空白像素，可能导致剪映中替换图片时偏移
-                </n-tooltip>
-                <n-select
-                  v-model:value="enableTrimWhitespace"
-                  :options="[
-                    { label: '不剪切', value: 'no-trim' },
-                    { label: '剪切', value: 'trim' },
-                    { label: '剪切水平方向', value: 'trim-horizontal' }
-                  ]"
-                  size="small"
-                  style="width: 135px; margin-left: 8px;"
-                />
-              </div>
-
-              <!-- 重置按钮 -->
-              <button
-                class="reset-button-inline"
-                @click="resetCommonControls"
-                title="重置控制面板到默认状态"
-              >
-                重置
-              </button>
-            </div>
-            </div>
-
+      <IntegratedControlsPanel
+        :common-controls="commonControlValues"
+        :integrated-panel-tab="integratedPanelTab"
+        :integrated-panel-collapsed="integratedPanelCollapsed"
+        v-model:part-item-size-input="partItemSizeInput"
+        @update-common-control="updateCommonControlModel"
+        @header-click="handleHeaderClick"
+        @switch-tab="switchIntegratedPanelTab"
+        @toggle="toggleIntegratedPanel"
+        @save-preset="handleSavePreset"
+        @save-template1="handleSaveTemplate1"
+        @save-template2="handleSaveTemplate2"
+        @search="openSearchModal"
+        @size-confirm="handleSizeInputConfirm"
+        @common-control-change="handleCommonControlChange"
+        @select-head-only-change="handleSelectHeadOnlyChange"
+        @select-non-head-change="handleSelectNonHeadChange"
+        @reset="resetCommonControls"
+      >
+        <template #layer-tree>
             <!-- 图层结构内容 -->
             <div v-show="integratedPanelTab === 'layerTree'" class="layer-tree-content">
               <LayerTreePanel
@@ -619,9 +289,8 @@
                 <p>请先上传PSD文件</p>
               </div>
             </div>
-          </div>
-        </transition>
-      </div>
+        </template>
+      </IntegratedControlsPanel>
 
       <!-- 可拖拽的分隔条（仅在画布展开时显示） -->
       <div
@@ -1100,6 +769,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, onActivated, nextTick,
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { NButton, NTooltip, NDropdown, NCheckbox, useMessage, useDialog } from 'naive-ui'
 import PsdTabsBar from './components/PsdTabsBar.vue'
+import IntegratedControlsPanel from './components/IntegratedControlsPanel.vue'
 import LayerTreePanel from './components/LayerTreePanel.vue'
 import PartSearchModal from './components/PartSearchModal.vue'
 import {
@@ -1943,6 +1613,23 @@ const {
   getCommonControlsState,
   restoreCommonControlsState
 } = commonControlsComposable
+
+// 1、展示契约只列出十九项通用控件的原始 ref，不传递整页上下文或创建第二份状态。
+const commonControlModels = {
+  exclusiveMode, actionExclusiveMode, expressionExclusiveMode, showFront, showSide, showBack,
+  showBackground, showBaseLayer, showSecondBaseLayer, showWeapon, showBackHair, showShadow,
+  showShakeHead, showHoldSword, showBackHandSword, showDownwardSlash, selectHeadOnly,
+  selectNonHead, enableTrimWhitespace
+}
+const commonControlValues = computed(() => Object.fromEntries(
+  Object.entries(commonControlModels).map(([key, model]) => [key, model.value])
+))
+
+/** 更新展示控件对应的原 ref。处理流程：1、同步写回，保持原 v-model 先于 change 的顺序。 */
+const updateCommonControlModel = (key, value) => {
+  // 1、只接受明确列出的控件字段，通用控制 watch 和业务事件仍使用原引用。
+  if (Object.hasOwn(commonControlModels, key)) commonControlModels[key].value = value
+}
 
 // ==================== 整合面板控制（通用控制 + 图层结构） ====================
 const integratedPanelCollapsed = ref(true) // 整合面板折叠状态，默认折叠

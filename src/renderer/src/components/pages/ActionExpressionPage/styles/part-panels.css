@@ -325,22 +325,6 @@
 
 /* 图片尺寸调整控件（已移到快捷操作面板，保留样式兼容性） */
 
-.size-control-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--theme-foreground);
-  white-space: nowrap;
-}
-
-.size-control-label svg {
-  width: 16px;
-  height: 16px;
-  opacity: 0.7;
-}
-
 .size-control-slider {
   flex: 1;
   height: 6px;
@@ -382,49 +366,6 @@
 .size-control-slider::-moz-range-thumb:hover {
   transform: scale(1.2);
   box-shadow: 0 0 0 4px rgba(24, 160, 88, 0.2);
-}
-
-.size-control-input {
-  width: 65px;
-  padding: 4px 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--theme-primary);
-  background: var(--theme-background-secondary);
-  border: 1px solid var(--theme-border);
-  border-radius: 4px;
-  text-align: center;
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.size-control-input:focus {
-  border-color: var(--theme-primary);
-  background: var(--theme-background);
-  box-shadow: 0 0 0 2px rgba(24, 160, 88, 0.1);
-}
-
-.size-control-input:hover {
-  border-color: var(--theme-primary);
-}
-
-/* 移除number类型输入框的上下箭头 */
-.size-control-input::-webkit-inner-spin-button,
-.size-control-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.size-control-input[type="number"] {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-.size-control-unit {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--theme-muted);
-  margin-left: -4px;
 }
 
 .parts-list {

@@ -1,0 +1,228 @@
+{
+  "head": "e8e2f4884bef8f81d92d15c60673058a0411b5f9",
+  "parentReview": { "templateWiring": "核对十九控件的只派生model转接、父端原ref同步写入及图层具名插槽，无独立状态", "targeted": { "tests": 1, "passed": 1, "failed": 0, "durationMs": 10958.331917 }, "fullResultReadback": "6IfUJQ原始result24/24通过，322356.390959ms", "references": "264文件再次逐项校验未变" },
+  "scope": "仅人物页整合控制展示、新增组件、相关 CSS、一个公开界面回归、两份证据与 package lint；不改通用控制 watch、图层选择、session、画布渲染或旧问题",
+  "oldComponents": {
+    "checked": [
+      "ComponentPanel.vue",
+      "LayerPanel.vue",
+      "LayerTreePanel.vue"
+    ],
+    "result": "前两者未被人物页引用，行为与当前整合面板不同；不复用。真实 LayerTreePanel 继续由父模板插槽持有。",
+    "noLayerTreePanelRefOnOriginalPage": true
+  },
+  "originalHeadBaseline": {
+    "sourceCleanBeforeMigration": true,
+    "command": "node --test --test-name-pattern='预设生命周期|部件选择协调' tests/regression.test.mjs tests/part-selection.test.mjs",
+    "passed": 2,
+    "presetDesktopId": "momentum-regression-JFkNbX",
+    "selectionDesktopId": "momentum-regression-df3ZJH",
+    "newPanelTest": {
+      "command": "node --test tests/integrated-controls.test.mjs",
+      "desktopId": "momentum-regression-hv86nK",
+      "passed": true,
+      "scenes": 8
+    },
+    "testAuthoringFailuresBeforeSourceMigration": [
+      {
+        "desktopId": "momentum-regression-f4XS1l",
+        "reason": "上传空态文字存在两个节点；定位收窄到整合面板内容"
+      },
+      {
+        "desktopId": "momentum-regression-Ze94X5",
+        "reason": "同步 isVisible 读取早于原关闭过渡结束；改等待公开 hidden 状态"
+      },
+      {
+        "desktopId": "momentum-regression-W7YQ7q",
+        "reason": "同步 isVisible 读取早于原展开更新；改等待公开 visible 状态"
+      },
+      {
+        "desktopId": "momentum-regression-7134HU",
+        "reason": "标题 2,2 坐标命中标签而非空白；改用实际标题空白 600,10"
+      }
+    ],
+    "failureLogsPreserved": true,
+    "previewRetries": 0
+  },
+  "migratedTargeted": {
+    "panel": {
+      "beforeDesktopId": "momentum-regression-hv86nK",
+      "afterDesktopId": "momentum-regression-qo98Hk",
+      "beforeAfterDifferentPixels": 0,
+      "scenarios": [
+        {
+          "name": "empty-layers-1024",
+          "viewport": {
+            "width": 1024,
+            "height": 700
+          },
+          "rgbaSha256": "c64c439a87e8d5842d85a1e2b634386fd1bd3167f4c05378a8e4a35c9ed63b28",
+          "canvasSha256": "a4405f37ebbe619fd433414a6c1cdd6b940a0ef637da1eaf9239f1562e1c31ae",
+          "domAndComputedStyleSha256": "0b9441feb983276e6ee9b1fee0bbee44814eef56f073232d1aa7b31b9d4e6b9f"
+        },
+        {
+          "name": "collapsed-1024",
+          "viewport": {
+            "width": 1024,
+            "height": 700
+          },
+          "rgbaSha256": "2efe1b2678e56a715aba358dc8d13a49bf2208ddee6ded2950360846e81dbdd2",
+          "canvasSha256": "deeba147000493e6d1c102be896bcd7346393bcb6db935110490645b0349af03",
+          "domAndComputedStyleSha256": "3e661335fe6e81063207c5739b753728a3301027b9d6e9c7cbdd61133a74a98c"
+        },
+        {
+          "name": "common-1024",
+          "viewport": {
+            "width": 1024,
+            "height": 700
+          },
+          "rgbaSha256": "c8dc7bbfc1a6471517bf08702ead72485792618039fb1debe261517f9a2fcad7",
+          "canvasSha256": "deeba147000493e6d1c102be896bcd7346393bcb6db935110490645b0349af03",
+          "domAndComputedStyleSha256": "84d651049c921f77230b0d50c627b947fe2bcd40b73e65c83c37df7ed05688a0"
+        },
+        {
+          "name": "layers-1024",
+          "viewport": {
+            "width": 1024,
+            "height": 700
+          },
+          "rgbaSha256": "279cb11b3bddfd18ada3336d25a11f069259a14643fd52ca3ec67f0f535baba4",
+          "canvasSha256": "35002e0cb9fdfb870a79c48896061096898500dea16a7d800593c903fb6332b7",
+          "domAndComputedStyleSha256": "289e4660bd538e701c5f02ebfd0cf5ca5a85b6c6d8e78d9a52bd146fa603beba"
+        },
+        {
+          "name": "size-restored-1024",
+          "viewport": {
+            "width": 1024,
+            "height": 700
+          },
+          "rgbaSha256": "5ffffcee6bb559da2abe8e9cd0aa9dcf2bbe206f142216057f160930c0e711d6",
+          "canvasSha256": "35002e0cb9fdfb870a79c48896061096898500dea16a7d800593c903fb6332b7",
+          "domAndComputedStyleSha256": "824ba84120187e55dbf9b24c7b4d97f7c9a9884a4c71c7c7ea54d55502c1c9bc"
+        },
+        {
+          "name": "common-800",
+          "viewport": {
+            "width": 800,
+            "height": 700
+          },
+          "rgbaSha256": "2f0ad3d2aeeec5c0996a75fd4bce743b310a9831bdb520fb2b65b12c05f4130e",
+          "canvasSha256": "deeba147000493e6d1c102be896bcd7346393bcb6db935110490645b0349af03",
+          "domAndComputedStyleSha256": "a52396cbd9521baa00e5694d9ef2ee8e599de18734e9d47ca3562dda1693fddd"
+        },
+        {
+          "name": "common-600",
+          "viewport": {
+            "width": 600,
+            "height": 700
+          },
+          "rgbaSha256": "3e023aec1896b43f8b7d600ce9bb7f889983635ffda48834807d717b2c0e0e9a",
+          "canvasSha256": "deeba147000493e6d1c102be896bcd7346393bcb6db935110490645b0349af03",
+          "domAndComputedStyleSha256": "80370d94d3eeab44d708597a648be2284fe8d7c7fe440e3f6e7d5f190410d865"
+        },
+        {
+          "name": "common-400",
+          "viewport": {
+            "width": 400,
+            "height": 700
+          },
+          "rgbaSha256": "c6ba118c6f35f1a706503de1d59a134fa440e4ac0b691da6e9cd3dce205e4e7f",
+          "canvasSha256": "deeba147000493e6d1c102be896bcd7346393bcb6db935110490645b0349af03",
+          "domAndComputedStyleSha256": "c77f37d562f9997f4d836d83e1d995af2305cbcb0ffa1baadd6af08dcdeb36a7"
+        }
+      ],
+      "assertions": [
+        "同标签折叠、跨标签切换、箭头与标题空白冒泡",
+        "互斥/动作互斥/表情互斥/正面真实复选框更新",
+        "缩放输入先不生效、Enter 123、blur 上限400、Enter下限50、恢复85",
+        "预设实际存储含预览路径，动作/表情模板配置和预览元数据非空",
+        "搜索招手实际返回结果并关闭；按钮不误触折叠",
+        "1024x700 五个场景及800/600/400三种窄屏布局"
+      ]
+    },
+    "selection": {
+      "beforeDesktopId": "momentum-regression-df3ZJH",
+      "afterDesktopId": "momentum-regression-4CMdeX",
+      "scenarios": 30,
+      "domHashAndRgbaEqual": true,
+      "differentPixels": 0,
+      "scope": "真实多选、三种互斥、手部代理、正面过滤影响画布但保留选择；不修正正面恢复/组合标签双击"
+    },
+    "presets": {
+      "afterDesktopId": "momentum-regression-tMblCy",
+      "passed": true,
+      "renderer": {
+        "width": 1024,
+        "height": 700,
+        "devicePixelRatio": 1,
+        "focused": true,
+        "visibility": "visible",
+        "screenWidth": 1024,
+        "screenHeight": 700,
+        "viewportScale": 1
+      },
+      "immutableLayoutReferenceDifferentPixels": 0
+    }
+  },
+  "final": {
+    "lint": "通过，包含新增 Vue 组件及 tests",
+    "size": "通过，本次规模违规0；人物页仍为既有超限待拆分文件",
+    "build": "通过；保留原有未使用 import、空 chunk 与大 bundle 警告",
+    "fullCommand": "node tests/verify-layer-render-completion.mjs all",
+    "foregroundBlockUntilMs": 480000,
+    "acceptanceEvidence": "temp/layer-render-acceptance-R6skV4/result.json",
+    "log": "temp/layer-render-acceptance-R6skV4/test.log",
+    "logSha256": "502d97984b2d4540857ee88c41b55ba82b9dc06a47ecc52a42da8beb0d185a73",
+    "mode": "all",
+    "status": 0,
+    "durationMs": 323279,
+    "originalReferences": {
+      "files": 260,
+      "sha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde"
+    },
+    "totalReferenceFiles": 264,
+    "allReferenceDigestSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "sourceSha256": "9dd0cb3899b253140ff8a384687ab022c86e55b0e421a9f31bf8aa1ca1ac6faa",
+    "head": "e8e2f4884bef8f81d92d15c60673058a0411b5f9",
+    "testSummary": [
+      "ℹ tests 24",
+      "ℹ suites 0",
+      "ℹ pass 24",
+      "ℹ fail 0",
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 323084.981041"
+    ],
+    "panelFullRunDesktopId": "momentum-regression-0VUpN6",
+    "previewFailureObserved": false,
+    "referenceOverridesExpanded": false,
+    "finalNonBehaviorCleanup": "首次全量通过后移除 CSS EOF 空白、纠正测试注释，随后再次完整执行 lint、check:size、build、all、diff --check，24/24通过",
+    "finalCleanTreeVerification": {
+      "acceptanceEvidence": "temp/layer-render-acceptance-6IfUJQ/result.json",
+      "log": "temp/layer-render-acceptance-6IfUJQ/test.log",
+      "durationMs": 322558,
+      "tests": 24,
+      "pass": 24,
+      "fail": 0,
+      "referenceFiles": 264,
+      "referenceDigestSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+      "panelDesktopId": "momentum-regression-I0uxW0",
+      "previewFailureObserved": false
+    }
+  },
+  "unchanged": [
+    "项目优化规划.md",
+    ".cursor plan",
+    "所有既有测试和264份新旧参考",
+    "配置/字体/有限两场景override",
+    "通用控制watch与layer/session/canvas业务实现"
+  ],
+  "limitations": [
+    "新增独立展示组件仍依赖父页面提供四项明确props与事件，图层插槽必须由父模板生成以保留scope",
+    "正面恢复与组合标签双击旧问题按要求保留",
+    "本次未重新诊断已记录的两项旧问题；真实过滤与选择回归保持原结果"
+  ],
+  "noCommitOrPush": true,
+  "passed": true
+}
