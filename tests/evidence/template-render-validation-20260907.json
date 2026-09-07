@@ -1,0 +1,681 @@
+{
+  "head": "e296d8ce364df72678830e77447018bc0a3e185e",
+  "parentReview": { "ast": "7函数与5状态逆向恢复getter后等价，240个剩余节点顺序及模板样式原样", "fullResultReadback": "XSUlMy原始结果22/22通过，288043.187792ms", "targeted": { "tests": 1, "passed": 1, "failed": 0, "durationMs": 32018.132083 }, "references": "264文件再次逐项检查未变", "temporaryAuditRemoved": true },
+  "boundary": "仅模板应用、真实预览生成、模板 canvas 引用及绘制标记编排；未混入悬浮预览、列表业务或选择算法",
+  "changedFiles": [
+    "package.json",
+    "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.vue",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/useTemplateRenderCoordinator.js",
+    "tests/template-application.test.mjs",
+    "tests/evidence/template-render-ast-20260907.json",
+    "tests/evidence/template-render-validation-20260907.json"
+  ],
+  "pageLinesBefore": 5169,
+  "pageLinesAfter": 4400,
+  "removedPageLines": 769,
+  "moduleLines": 833,
+  "sourceSha256": {
+    "original": "5685124560fb40e35a1f28c16084a75e8c4724bcf1f5daf63a31456dc1eef491",
+    "vue": "b5fedc943e5eeb2db9972f00fe71b6f38394601d824fffbe9b8249755b09424e",
+    "module": "ef7a70254a7b650866e4a4def0cf6d7469a4facf093795144c08584d5967832f"
+  },
+  "testSourceSha256": "6717f0e96c75f044f36af746d63cee9324aa8a4402cb50c00431cf86dfc2c9f0",
+  "baseline": {
+    "desktopId": "momentum-regression-IDpov4",
+    "result": "template-application-result.json",
+    "sourceHeadVerifiedBeforeMigration": true,
+    "buildPassed": true,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 32652.523041
+  },
+  "migratedTarget": {
+    "desktopId": "momentum-regression-L3UJct",
+    "beforeDesktopId": "momentum-regression-IDpov4",
+    "result": "template-application-result.json",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 32264.036583,
+    "comparisonEnv": "MOMENTUM_TEMPLATE_BEFORE",
+    "comparisonMode": "同次原 HEAD 临时产物显式只读对照；非永久 reference；未替换旧参考"
+  },
+  "fixtures": [
+    {
+      "id": "synthetic-layer-mask",
+      "sha256": "e2fbc096cc396dcb00f30b8abc710fafcf3d0e6b2d8f42930d921fe7f9d23819"
+    },
+    {
+      "id": "synthetic-clipping-group",
+      "sha256": "b5a09f53c37a3baf934cd82dfdeb3e3e480977cde929a46d695b2080c5853215"
+    },
+    {
+      "id": "synthetic-blend-modes",
+      "sha256": "886bc95d9b741945509b8f92b6ea09dc25b869da3cea389c6aa40dfd7af29bfd"
+    }
+  ],
+  "publicUI": {
+    "inputs": [
+      "真实上传按钮及文件对话框结果",
+      "真实左手/表情标签与部件卡片",
+      "保存动作模板/保存表情模板按钮",
+      "实际模板卡片点击",
+      "右键详情中的应用按钮"
+    ],
+    "casesPerFixture": [
+      "招手+微笑的保存输入",
+      "保存动作后恢复主画布",
+      "保存表情后恢复主画布",
+      "卡片入口改选自然垂手+平静",
+      "卡片入口直接点击相同动作的期望",
+      "卡片动作应用只恢复招手、保留平静",
+      "卡片表情应用恢复微笑、保留招手",
+      "右键入口改选自然垂手+平静",
+      "右键入口直接点击相同动作的期望",
+      "右键动作应用只恢复招手、保留平静",
+      "右键表情应用恢复微笑、保留招手"
+    ],
+    "readBoundary": "只读公开 DOM、主 canvas、实际 localStorage 输出及落盘 JPEG；未读取/写入 Vue 私有实例或注入业务状态",
+    "assertions": [
+      "改选实际改变画布",
+      "动作应用恢复同一 DOM 部件选择",
+      "表情应用恢复微笑 DOM 选择",
+      "应用时保持模板标签不跳转",
+      "不同类型的未应用选择保持原状",
+      "原透明度最终为 1、绘制标记释放",
+      "模板生成和应用均使用零容差 RGBA 对照"
+    ],
+    "sceneCount": 33,
+    "comparisonsWithinEachRun": [
+      {
+        "name": "action-save-restored-0",
+        "differentPixels": 0
+      },
+      {
+        "name": "expression-save-restored-0",
+        "differentPixels": 0
+      },
+      {
+        "name": "card-action-applied-0",
+        "differentPixels": 0
+      },
+      {
+        "name": "card-expression-applied-0",
+        "differentPixels": 0
+      },
+      {
+        "name": "context-action-applied-0",
+        "differentPixels": 0
+      },
+      {
+        "name": "context-expression-applied-0",
+        "differentPixels": 0
+      },
+      {
+        "name": "action-save-restored-1",
+        "differentPixels": 0
+      },
+      {
+        "name": "expression-save-restored-1",
+        "differentPixels": 0
+      },
+      {
+        "name": "card-action-applied-1",
+        "differentPixels": 0
+      },
+      {
+        "name": "card-expression-applied-1",
+        "differentPixels": 0
+      },
+      {
+        "name": "context-action-applied-1",
+        "differentPixels": 0
+      },
+      {
+        "name": "context-expression-applied-1",
+        "differentPixels": 0
+      },
+      {
+        "name": "action-save-restored-2",
+        "differentPixels": 0
+      },
+      {
+        "name": "expression-save-restored-2",
+        "differentPixels": 0
+      },
+      {
+        "name": "card-action-applied-2",
+        "differentPixels": 0
+      },
+      {
+        "name": "card-expression-applied-2",
+        "differentPixels": 0
+      },
+      {
+        "name": "context-action-applied-2",
+        "differentPixels": 0
+      },
+      {
+        "name": "context-expression-applied-2",
+        "differentPixels": 0
+      }
+    ],
+    "beforeAfterScenes": [
+      {
+        "name": "saved-0",
+        "file": "saved-0.png",
+        "pngSha256": "6992f7ab0a282aabad95b4055974e6204b537b7d66d90142f7feadb0624bee41",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "action-save-restored-0",
+        "file": "action-save-restored-0.png",
+        "pngSha256": "6992f7ab0a282aabad95b4055974e6204b537b7d66d90142f7feadb0624bee41",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "expression-save-restored-0",
+        "file": "expression-save-restored-0.png",
+        "pngSha256": "6992f7ab0a282aabad95b4055974e6204b537b7d66d90142f7feadb0624bee41",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-changed-0",
+        "file": "card-changed-0.png",
+        "pngSha256": "deeba147000493e6d1c102be896bcd7346393bcb6db935110490645b0349af03",
+        "domSha256": "c40c00d09c59be25ddc1749852b7d684c806b10a46213241d67afa458332e218",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-action-expected-0",
+        "file": "card-action-expected-0.png",
+        "pngSha256": "dd130ae569f0b7618cd9d1b84787f6c7f5f6c70beb2cd901b0dab7dccf4f6488",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-action-applied-0",
+        "file": "card-action-applied-0.png",
+        "pngSha256": "dd130ae569f0b7618cd9d1b84787f6c7f5f6c70beb2cd901b0dab7dccf4f6488",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-expression-applied-0",
+        "file": "card-expression-applied-0.png",
+        "pngSha256": "6992f7ab0a282aabad95b4055974e6204b537b7d66d90142f7feadb0624bee41",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-changed-0",
+        "file": "context-changed-0.png",
+        "pngSha256": "deeba147000493e6d1c102be896bcd7346393bcb6db935110490645b0349af03",
+        "domSha256": "c40c00d09c59be25ddc1749852b7d684c806b10a46213241d67afa458332e218",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-action-expected-0",
+        "file": "context-action-expected-0.png",
+        "pngSha256": "dd130ae569f0b7618cd9d1b84787f6c7f5f6c70beb2cd901b0dab7dccf4f6488",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-action-applied-0",
+        "file": "context-action-applied-0.png",
+        "pngSha256": "dd130ae569f0b7618cd9d1b84787f6c7f5f6c70beb2cd901b0dab7dccf4f6488",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-expression-applied-0",
+        "file": "context-expression-applied-0.png",
+        "pngSha256": "6992f7ab0a282aabad95b4055974e6204b537b7d66d90142f7feadb0624bee41",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "saved-1",
+        "file": "saved-1.png",
+        "pngSha256": "46e1c82584982f8afc31b28cf3e95ed2ca6240f5f7a6964b47f60e15f9365144",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "action-save-restored-1",
+        "file": "action-save-restored-1.png",
+        "pngSha256": "46e1c82584982f8afc31b28cf3e95ed2ca6240f5f7a6964b47f60e15f9365144",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "expression-save-restored-1",
+        "file": "expression-save-restored-1.png",
+        "pngSha256": "46e1c82584982f8afc31b28cf3e95ed2ca6240f5f7a6964b47f60e15f9365144",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-changed-1",
+        "file": "card-changed-1.png",
+        "pngSha256": "f3c90a4383049f4194adb733e52ae0927d2dc0766f59a4eabfe341d9019f5f0b",
+        "domSha256": "c40c00d09c59be25ddc1749852b7d684c806b10a46213241d67afa458332e218",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-action-expected-1",
+        "file": "card-action-expected-1.png",
+        "pngSha256": "e938931de99b36b031bfc837e50a3a3b58c5aa9aa7067962938fd28a6c453a0c",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-action-applied-1",
+        "file": "card-action-applied-1.png",
+        "pngSha256": "e938931de99b36b031bfc837e50a3a3b58c5aa9aa7067962938fd28a6c453a0c",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-expression-applied-1",
+        "file": "card-expression-applied-1.png",
+        "pngSha256": "46e1c82584982f8afc31b28cf3e95ed2ca6240f5f7a6964b47f60e15f9365144",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-changed-1",
+        "file": "context-changed-1.png",
+        "pngSha256": "f3c90a4383049f4194adb733e52ae0927d2dc0766f59a4eabfe341d9019f5f0b",
+        "domSha256": "c40c00d09c59be25ddc1749852b7d684c806b10a46213241d67afa458332e218",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-action-expected-1",
+        "file": "context-action-expected-1.png",
+        "pngSha256": "e938931de99b36b031bfc837e50a3a3b58c5aa9aa7067962938fd28a6c453a0c",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-action-applied-1",
+        "file": "context-action-applied-1.png",
+        "pngSha256": "e938931de99b36b031bfc837e50a3a3b58c5aa9aa7067962938fd28a6c453a0c",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-expression-applied-1",
+        "file": "context-expression-applied-1.png",
+        "pngSha256": "46e1c82584982f8afc31b28cf3e95ed2ca6240f5f7a6964b47f60e15f9365144",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "saved-2",
+        "file": "saved-2.png",
+        "pngSha256": "bf982c48b7974d41f9050131120532342856cd09ad959d02fd9eb58df56faa79",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "action-save-restored-2",
+        "file": "action-save-restored-2.png",
+        "pngSha256": "bf982c48b7974d41f9050131120532342856cd09ad959d02fd9eb58df56faa79",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "expression-save-restored-2",
+        "file": "expression-save-restored-2.png",
+        "pngSha256": "bf982c48b7974d41f9050131120532342856cd09ad959d02fd9eb58df56faa79",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-changed-2",
+        "file": "card-changed-2.png",
+        "pngSha256": "55dd0c85543e2078be6a91e7d856165c0b4530d0cd9f33e4251bfc46bf4403fb",
+        "domSha256": "c40c00d09c59be25ddc1749852b7d684c806b10a46213241d67afa458332e218",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-action-expected-2",
+        "file": "card-action-expected-2.png",
+        "pngSha256": "3c2a429a036684b2c6b99389f9daad6673dcdf6dd1c39a6378c1f36c8bfb4623",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-action-applied-2",
+        "file": "card-action-applied-2.png",
+        "pngSha256": "3c2a429a036684b2c6b99389f9daad6673dcdf6dd1c39a6378c1f36c8bfb4623",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "card-expression-applied-2",
+        "file": "card-expression-applied-2.png",
+        "pngSha256": "bf982c48b7974d41f9050131120532342856cd09ad959d02fd9eb58df56faa79",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-changed-2",
+        "file": "context-changed-2.png",
+        "pngSha256": "55dd0c85543e2078be6a91e7d856165c0b4530d0cd9f33e4251bfc46bf4403fb",
+        "domSha256": "c40c00d09c59be25ddc1749852b7d684c806b10a46213241d67afa458332e218",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-action-expected-2",
+        "file": "context-action-expected-2.png",
+        "pngSha256": "3c2a429a036684b2c6b99389f9daad6673dcdf6dd1c39a6378c1f36c8bfb4623",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-action-applied-2",
+        "file": "context-action-applied-2.png",
+        "pngSha256": "3c2a429a036684b2c6b99389f9daad6673dcdf6dd1c39a6378c1f36c8bfb4623",
+        "domSha256": "271fc21ce2d32b6f81a537568a3856d4402d0ebd8f5bf3b054d5141e346f48a1",
+        "domEqual": true,
+        "differentPixels": 0
+      },
+      {
+        "name": "context-expression-applied-2",
+        "file": "context-expression-applied-2.png",
+        "pngSha256": "bf982c48b7974d41f9050131120532342856cd09ad959d02fd9eb58df56faa79",
+        "domSha256": "eed2e599a4f98b1faae32ec67d790057ac3f1aaae259cdf6db6dd7a7d9e1f31b",
+        "domEqual": true,
+        "differentPixels": 0
+      }
+    ],
+    "previews": [
+      {
+        "name": "action-preview-0",
+        "config": [
+          {
+            "tabName": "前手",
+            "selectedParts": [
+              "招手"
+            ]
+          }
+        ],
+        "width": 41,
+        "height": 76,
+        "fileSha256": "05d66d91110f8351c7a42e23a9063fd7aa3cbd2852e5ba0e7dedec1dd270c9a1",
+        "rgbaSha256": "7b9e0e17263cc7e978dfc4ed2b4d08881be702afe3293d2d2e7b3c98727b02fa",
+        "file": "action-preview-0.jpg",
+        "format": "JPEG",
+        "decodedFromRealFile": true,
+        "beforeAfterDifferentPixels": 0
+      },
+      {
+        "name": "expression-preview-0",
+        "config": [
+          {
+            "tabName": "表情",
+            "selectedParts": [
+              "微笑"
+            ]
+          }
+        ],
+        "width": 41,
+        "height": 76,
+        "fileSha256": "05d66d91110f8351c7a42e23a9063fd7aa3cbd2852e5ba0e7dedec1dd270c9a1",
+        "rgbaSha256": "7b9e0e17263cc7e978dfc4ed2b4d08881be702afe3293d2d2e7b3c98727b02fa",
+        "file": "expression-preview-0.jpg",
+        "format": "JPEG",
+        "decodedFromRealFile": true,
+        "beforeAfterDifferentPixels": 0
+      },
+      {
+        "name": "action-preview-1",
+        "config": [
+          {
+            "tabName": "前手",
+            "selectedParts": [
+              "招手"
+            ]
+          }
+        ],
+        "width": 44,
+        "height": 76,
+        "fileSha256": "ee13bb4e0bfdefde2c782198e8d9e72a6a42ad07a6d9b4d7a8e2f7f6d616137a",
+        "rgbaSha256": "437fd223e74a59ea38417b5c1e3255e06e7d0d1046cc892bbbaef3edb376b27f",
+        "file": "action-preview-1.jpg",
+        "format": "JPEG",
+        "decodedFromRealFile": true,
+        "beforeAfterDifferentPixels": 0
+      },
+      {
+        "name": "expression-preview-1",
+        "config": [
+          {
+            "tabName": "表情",
+            "selectedParts": [
+              "微笑"
+            ]
+          }
+        ],
+        "width": 44,
+        "height": 76,
+        "fileSha256": "ee13bb4e0bfdefde2c782198e8d9e72a6a42ad07a6d9b4d7a8e2f7f6d616137a",
+        "rgbaSha256": "437fd223e74a59ea38417b5c1e3255e06e7d0d1046cc892bbbaef3edb376b27f",
+        "file": "expression-preview-1.jpg",
+        "format": "JPEG",
+        "decodedFromRealFile": true,
+        "beforeAfterDifferentPixels": 0
+      },
+      {
+        "name": "action-preview-2",
+        "config": [
+          {
+            "tabName": "前手",
+            "selectedParts": [
+              "招手"
+            ]
+          }
+        ],
+        "width": 44,
+        "height": 76,
+        "fileSha256": "b4c799ce4de7b8b76564e70ba14a03bb65b001240eb4eebf1195347bf4efa44d",
+        "rgbaSha256": "721fa1dcd8119273ef7c3955daaab27200f2a30b5a0286b3c187a90e5290e9d2",
+        "file": "action-preview-2.jpg",
+        "format": "JPEG",
+        "decodedFromRealFile": true,
+        "beforeAfterDifferentPixels": 0
+      },
+      {
+        "name": "expression-preview-2",
+        "config": [
+          {
+            "tabName": "表情",
+            "selectedParts": [
+              "微笑"
+            ]
+          }
+        ],
+        "width": 44,
+        "height": 76,
+        "fileSha256": "b4c799ce4de7b8b76564e70ba14a03bb65b001240eb4eebf1195347bf4efa44d",
+        "rgbaSha256": "721fa1dcd8119273ef7c3955daaab27200f2a30b5a0286b3c187a90e5290e9d2",
+        "file": "expression-preview-2.jpg",
+        "format": "JPEG",
+        "decodedFromRealFile": true,
+        "beforeAfterDifferentPixels": 0
+      }
+    ],
+    "previewCount": 6,
+    "fullRunRepeatedSameScenesAndPreviews": true
+  },
+  "quality": {
+    "astAuditPassed": true,
+    "auditEvidence": "tests/evidence/template-render-ast-20260907.json",
+    "temporaryAuditDeleted": true,
+    "lintPassed": true,
+    "checkSizePassed": true,
+    "sizeViolations": 0,
+    "existingOversizedFiles": 5,
+    "buildPassed": true,
+    "diffCheckPassed": true,
+    "newFilesTrailingWhitespace": false,
+    "globalsChanged": false,
+    "existingBuildWarnings": [
+      "MenuItem/writePsdBuffer 未使用导入",
+      "utils-vendor 空块",
+      "超过 1000 kB 的打包块"
+    ]
+  },
+  "targetedExisting": [
+    {
+      "name": "模板列表创建/重命名/排序/多选/右键删除",
+      "desktopId": "momentum-regression-SCap78",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "预设跨素材恢复/删除/重启",
+      "desktopId": "momentum-regression-POJf1K",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "fullRegression": {
+    "command": "node tests/verify-layer-render-completion.mjs all",
+    "result": "temp/layer-render-acceptance-XSUlMy/result.json",
+    "log": "temp/layer-render-acceptance-XSUlMy/test.log",
+    "mode": "all",
+    "status": 0,
+    "durationMs": 288275,
+    "originalReferences": {
+      "files": 260,
+      "sha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde"
+    },
+    "totalReferenceFiles": 264,
+    "allReferenceDigestSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "sourceSha256": "9dd0cb3899b253140ff8a384687ab022c86e55b0e421a9f31bf8aa1ca1ac6faa",
+    "head": "e296d8ce364df72678830e77447018bc0a3e185e",
+    "testSummary": [
+      "ℹ tests 22",
+      "ℹ suites 0",
+      "ℹ pass 22",
+      "ℹ fail 0",
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 288043.187792"
+    ],
+    "tests": 22,
+    "passed": 22,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "addedTopLevelTests": 1,
+    "coverage": {
+      "psdRgbaScenes": 154,
+      "originalPsdScenes": 152,
+      "authorizedStandardPsdScenes": 2,
+      "hoverScenes": 28,
+      "sessionScenes": 28,
+      "selectionScenes": 30,
+      "partTabScenes": 32,
+      "templateApplicationScenes": 33,
+      "templatePreviewFilesDecoded": 6,
+      "uploadPixelAssertions": 16,
+      "hairStandardDomAssertions": 2,
+      "hairStandardRgbaAssertions": 4,
+      "other": [
+        "图层完成/拒绝传播",
+        "解析响应失败传播",
+        "标签栏",
+        "预览载荷",
+        "列表",
+        "预设生命周期",
+        "配置保存/重启/EIO保护"
+      ]
+    },
+    "templateDesktopId": "momentum-regression-Q3EAhH",
+    "referenceCheckAfterSeparateDiagnostics": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e"
+  },
+  "knownIssuesPreserved": {
+    "sourceRecord": "tests/evidence/part-selection-original-issues-20260907.json",
+    "command": "node --test --test-concurrency=1 tests/diagnose-part-selection-original.mjs",
+    "tests": 2,
+    "passed": 0,
+    "failed": 2,
+    "skipped": 0,
+    "status": 1,
+    "issues": [
+      {
+        "name": "此前已记录的正面关闭再恢复",
+        "desktopId": "momentum-regression-c8m2ww",
+        "differentPixels": 11407,
+        "bounds": {
+          "left": 793,
+          "top": 39,
+          "right": 1121,
+          "bottom": 1041
+        }
+      },
+      {
+        "name": "此前已记录的组合标签双击未清子分组",
+        "desktopId": "momentum-regression-kpvFB4",
+        "actual": "眉毛 (新表情)内容指示 true，严格期望 false"
+      }
+    ],
+    "changedDiagnosticOrExpectations": false,
+    "separateFromDefaultRegression": true
+  },
+  "limitations": [
+    "文本模板卡片在原版没有 canvas 挂载，setTemplateCanvasRef 未被模板使用；renderTemplatePreview 的实际目标 canvas 绘制分支本轮由 AST/原文保护，不以私有注入或启用 useTemplateUI 补覆盖。",
+    "公开应用入口使用 noJump=true；noJump=false、缺失项、异常恢复分支保持 AST/原文等价，但新公开 UI 定向未穷举这些分支。",
+    "新素材小于 800 像素，预览大图缩放分支仅由原文/AST保护；三种实际预览尺寸为 41x76、44x76、44x76。",
+    "原 HEAD 每份输入保存的动作/表情 JPEG 相同，迁移后逐字节和逐像素一致；这里只证明生成输出等价，不声称类型隔离预览已经正确。",
+    "本轮未复现此前原因未确认的窗口提前关闭或 preview 隐藏超时；未提高超时或修改参考。",
+    "两项已记录选择功能仍严格失败，不把迁移等价表述为这些功能通过。"
+  ],
+  "committed": false,
+  "pushed": false,
+  "planningFilesChanged": false,
+  "legacyTemplateUIEnabled": false
+}
