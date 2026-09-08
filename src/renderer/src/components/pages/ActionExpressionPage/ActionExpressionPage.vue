@@ -844,6 +844,7 @@ import { useTemplatePresetList } from './composables/useTemplatePresetList.js'
 import { useTemplateRenderCoordinator } from './composables/useTemplateRenderCoordinator.js'
 import { useDragState } from './composables/useDragState.js'
 import { useDragHandlers } from './composables/useDragHandlers.js'
+import { useCanvasActivationReset } from './composables/useCanvasActivationReset.js'
 import { useDragFinishedSubscription } from './composables/useDragFinishedSubscription.js'
 import { usePartImageDrag } from './composables/usePartImageDrag.js'
 import {
@@ -2364,52 +2365,16 @@ onMounted(async () => {
   }
 })
 
-/**
- * 返回缓存的人物编辑页面时重新居中画布。
- * 处理流程：
- * 1、等待视图恢复后读取原滚动模式
- * 2、临时切换模式并重置缩放与手动滚动状态
- * 3、下一轮视图更新后恢复原模式，重新计算尺寸并绘制
- */
-onActivated(() => {
-  // 1、每次从其他页面回来时，等待缓存视图重新激活
-  nextTick(() => {
-    const currentMode = scrollMode.value
-
-    // 2、先切换到另一模式，触发尺寸和滚动位置重置
-    if (currentMode === 'scale') {
-      // 当前是画布缩放模式：切换到区域调整 -> 再切回画布缩放
-      scrollMode.value = 'region'
-      canvasScale.value = 1.0
-      userHasManuallyScrolled.value = false
-      updateCanvasDisplaySize()
-
-      // 3、恢复原画布缩放模式并重新绘制
-      nextTick(() => {
-        scrollMode.value = 'scale'
-        canvasScale.value = 1.0
-        userHasManuallyScrolled.value = false
-        updateCanvasDisplaySize()
-        renderAllLayers()
-      })
-    } else {
-      // 当前是区域调整模式：切换到画布缩放 -> 再切回区域调整
-      scrollMode.value = 'scale'
-      canvasScale.value = 1.0
-      userHasManuallyScrolled.value = false
-      updateCanvasDisplaySize()
-
-      // 恢复原区域调整模式并重新绘制
-      nextTick(() => {
-        scrollMode.value = 'region'
-        canvasScale.value = 1.0
-        userHasManuallyScrolled.value = false
-        updateCanvasDisplaySize()
-        renderAllLayers()
-      })
-    }
-  })
+// 保持原生命周期注册位置；延迟读取初始化后才替换的渲染函数。
+const { resetCanvasOnActivated } = useCanvasActivationReset({
+  nextTick,
+  scrollMode,
+  canvasScale,
+  userHasManuallyScrolled,
+  updateCanvasDisplaySize,
+  renderAllLayers: () => renderAllLayers()
 })
+onActivated(resetCanvasOnActivated)
 
 /**
  * 卸载人物编辑页面并释放文件与监听资源。
