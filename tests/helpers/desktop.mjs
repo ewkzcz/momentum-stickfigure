@@ -17,6 +17,7 @@ function isolatedEnvironment(root, renderMode) {
     XDG_CONFIG_HOME: path.join(root, 'home/.config'), XDG_CACHE_HOME: path.join(root, 'cache'),
     APPDATA: path.join(root, 'app-data'), LOCALAPPDATA: path.join(root, 'app-data'),
     MOMENTUM_TEST_RENDER_MODE: renderMode,
+    MOMENTUM_TEST_BACKGROUND: '1',
     MOMENTUM_TEST_ROOT: root, MOMENTUM_TEST_ENTRY: path.join(repository, 'out/main/index.js') }
 }
 
@@ -51,9 +52,17 @@ export async function launchDesktop(existingRoot, renderMode = 'default') {
     /** 关闭真实应用并保存脱离用户配置的诊断记录。 */
     async close() {
       // 1、先采集隔离检查结果，再让生产退出持久化正常执行。
-      const safety = await application.evaluate(() => ({ violations: globalThis.__momentumTest.violations, writes: globalThis.__momentumTest.writes }))
-      await application.close()
+      const safety = await application.evaluate(() => ({ violations: globalThis.__momentumTest.violations, writes: globalThis.__momentumTest.writes, background: globalThis.__momentumTest.backgroundPolicy.snapshot() }))
+      try {
+        assert.equal(safety.background.installed, true, '后台保护未安装')
+        assert.deepEqual(safety.background.windowEvents, [], '测试期间出现原生显示或聚焦事件')
+        assert.ok(safety.background.windows.every(window => !window.visible && !window.focused && !window.alwaysOnTop && !window.focusable && !window.devToolsOpened), `后台窗口状态违规：${JSON.stringify(safety.background)}`)
+      } finally {
+        await application.close()
+      }
       const finalSafety = await readJson(path.join(root, 'isolation.json'))
+      assert.deepEqual(finalSafety.background.windowEvents, [], '应用退出时出现原生显示或聚焦事件')
+      assert.ok(finalSafety.background.windows.every(window => !window.visible && !window.focused && !window.alwaysOnTop && !window.focusable && !window.devToolsOpened), `退出时后台窗口状态违规：${JSON.stringify(finalSafety.background)}`)
       await writeFile(path.join(root, 'desktop.log'), logs.join(''))
       await writeFile(path.join(root, 'diagnostics.json'), JSON.stringify({ errors, safety: finalSafety }, null, 2))
       assert.deepEqual(safety.violations, [], '业务代码尝试越界写入')

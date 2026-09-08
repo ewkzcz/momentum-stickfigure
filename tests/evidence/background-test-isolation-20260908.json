@@ -1,0 +1,32 @@
+{
+  "point": "强制桌面回归后台运行，禁止窗口抢占屏幕",
+  "date": "2026-09-08",
+  "baselineCommit": "64b0efd1184a86796dac71ffbd65248d2cdc6746",
+  "policy": {
+    "environment": "MOMENTUM_TEST_BACKGROUND=1",
+    "application": "macOS activation policy prohibited，隐藏Dock",
+    "windowConstruction": "真实BrowserWindow构造前覆盖show=false、focusable=false、alwaysOnTop=false、skipTaskbar=true",
+    "runtimeGuard": "拦截窗口show/showInactive/focus/置顶/可聚焦及开发者工具调用；真实窗口查询仍要求hidden、unfocused、not-always-on-top、not-focusable",
+    "dialogs": "拦截测试中的系统消息框、通知、菜单弹出和系统提示",
+    "productionBehavior": "生产入口未修改；后台标记只在测试环境传入"
+  },
+  "validation": {
+    "backgroundBoundaryTest": "通过，主动show/showInactive/focus/setAlwaysOnTop/setFocusable/openDevTools均被拦截",
+    "outputTest": "通过，两条跨页接收路径和独立预览连续10次真实RGBA验证",
+    "fullCommand": "node tests/verify-layer-render-completion.mjs all",
+    "tests": 26,
+    "passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 475071.373834,
+    "allReferenceFiles": 264,
+    "referenceSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "oldReferenceSha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde",
+    "referencesChanged": false,
+    "lint": "通过",
+    "sourceSize": "五个遗留超限文件，无新增规模违规"
+  },
+  "scope": "仅测试启动链和测试场景删除窗口前置调用；未改变PSD、画布、导出、预览协议或生产正常窗口行为",
+  "unverified": ["无法在当前macOS桌面进程外部观察系统级焦点日志", "Windows/Linux后台窗口策略", "生产应用正常前台窗口行为"]
+}

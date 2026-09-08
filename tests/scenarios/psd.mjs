@@ -124,7 +124,7 @@ export async function runPsdScenario(desktop, fixture, snapshot) {
   const previewImage = await stableCanvas(preview, '.canvas-wrapper canvas')
   await snapshot('preview', previewImage, {})
   await preview.getByRole('button', { name: '关闭', exact: true }).click()
-  await page.bringToFront()
+  // 后台测试只通过已连接的渲染器发送输入，不激活原生窗口。
   const exported = await exportByDrag(desktop)
   await snapshot('export', { png: exported.toString('base64') }, {})
   assert.deepEqual(desktop.errors, [], '页面产生未捕获运行错误')

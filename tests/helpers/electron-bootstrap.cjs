@@ -4,7 +4,18 @@ const path = require('node:path')
 const os = require('node:os')
 const { pathToFileURL } = require('node:url')
 const { syncBuiltinESMExports } = require('node:module')
-const { app, BrowserWindow, clipboard, dialog, globalShortcut, shell } = require('electron')
+const electron = require('electron')
+const { installBackgroundPolicy } = require('./background-policy.cjs')
+let background
+try {
+  if (process.env.MOMENTUM_TEST_BACKGROUND !== '1') throw new Error('桌面测试必须使用强制后台启动器')
+  background = installBackgroundPolicy(electron)
+} catch (error) {
+  console.error('后台保护安装失败，拒绝启动业务：', error)
+  electron.app.exit(1)
+  throw error
+}
+const { app, BrowserWindow, clipboard, dialog, globalShortcut, shell } = background.facade
 
 const root = process.env.MOMENTUM_TEST_ROOT
 if (!root || !path.isAbsolute(root) || !fs.existsSync(path.join(root, '.momentum-test-root'))) {
@@ -115,7 +126,7 @@ for (const name of ['open', 'openSync', 'createWriteStream']) {
 syncBuiltinESMExports()
 
 // 3、仅替代原生交互边界，业务解析、图层渲染和文件写入均运行原实现。
-const state = { root, violations, writes, faults, openPaths: [], savePath: null, drags: [], clipboard: '', external: [] }
+const state = { root, violations, writes, faults, backgroundPolicy: background.policy, openPaths: [], savePath: null, drags: [], clipboard: '', external: [] }
 globalThis.__momentumTest = state
 // 子进程与 Node 网络在本地回归中没有授权用途，误触即记录并拒绝。
 for (const name of ['spawn', 'spawnSync', 'exec', 'execSync', 'execFile', 'execFileSync', 'fork']) {
@@ -131,7 +142,7 @@ for (const protocol of ['node:http', 'node:https']) {
   }
 }
 syncBuiltinESMExports()
-process.on('exit', () => fs.writeFileSync(path.join(root, 'isolation.json'), JSON.stringify({ violations, writes }, null, 2)))
+process.on('exit', () => fs.writeFileSync(path.join(root, 'isolation.json'), JSON.stringify({ violations, writes, background: background.policy.snapshot() }, null, 2)))
 dialog.showOpenDialog = async () => {
   const filePaths = state.openPaths.splice(0)
   return { canceled: filePaths.length === 0, filePaths }
