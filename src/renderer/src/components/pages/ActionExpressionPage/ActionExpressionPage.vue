@@ -844,6 +844,7 @@ import { useTemplatePresetList } from './composables/useTemplatePresetList.js'
 import { useTemplateRenderCoordinator } from './composables/useTemplateRenderCoordinator.js'
 import { useDragState } from './composables/useDragState.js'
 import { useDragHandlers } from './composables/useDragHandlers.js'
+import { useDragFinishedSubscription } from './composables/useDragFinishedSubscription.js'
 import { usePartImageDrag } from './composables/usePartImageDrag.js'
 import {
   useLayerTree
@@ -1564,6 +1565,8 @@ const {
     currentPsdFile
   }
 })
+
+const { registerDragFinished, cleanupDragFinished } = useDragFinishedSubscription()
 
 // ==================== 部件小图拖拽功能 ====================
 const {
@@ -2349,12 +2352,7 @@ onMounted(async () => {
   // 注意：键盘事件监听已由 useKeyboard composable 内部管理，无需手动添加
 
   // 监听 drag-finished 事件
-  if (window.electronAPI?.on) {
-    dragFinishedUnsubscribe = window.electronAPI.on('drag-finished', handleDragFinished)
-    console.log('✅ 已注册 drag-finished 事件监听')
-  } else {
-    console.warn('⚠️ electronAPI.on 不可用')
-  }
+  registerDragFinished(handleDragFinished)
 
   // 3、等待列表容器可用后初始化虚拟滚动，并保存卸载时的清理函数
   await nextTick()
@@ -2431,10 +2429,7 @@ onUnmounted(() => {
   // 注意：分隔条拖拽监听已由 useCanvasDivider composable 内部管理，无需手动清理
 
   // 清理拖拽监听
-  if (dragFinishedUnsubscribe) {
-    dragFinishedUnsubscribe()
-  }
-  window.electronAPI?.removeAllListeners?.('drag-finished')
+  cleanupDragFinished()
 
   // 清理虚拟滚动
   if (window.__virtualScrollCleanup) {
@@ -2468,14 +2463,8 @@ onBeforeRouteLeave(async (to, from) => {
   return true
 })
 
-// ==================== 拖拽到剪映功能（已提取到 composables） ====================
-
-let dragFinishedUnsubscribe = null
-
-/**
- * ==================== 图层树相关功能（已提取到 composables/useLayerTree.js） ====================
- * 注意：实际的初始化在渲染函数定义之后进行
- */
+// ==================== 图层树相关功能（已提取到 composables/useLayerTree.js） ====================
+// 注意：实际的初始化在渲染函数定义之后进行
 
 // ==================== 设置通用控制的依赖函数（在 renderAllLayers 定义后） ====================
 // 注意：commonControlsComposable 已在文件前面创建并解构，这里只是设置依赖

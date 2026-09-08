@@ -1,0 +1,27 @@
+{
+  "point": "集中管理系统拖拽完成订阅与卸载清理",
+  "date": "2026-09-08",
+  "baselineCommit": "52b5da984db9139e9dc095a36d02d9ab96af28bf",
+  "changes": {
+    "module": "src/renderer/src/components/pages/ActionExpressionPage/composables/useDragFinishedSubscription.js",
+    "pageBefore": 2745,
+    "pageAfter": 2734,
+    "newModuleLines": 48,
+    "ownership": "只持有原drag-finished订阅返回的取消函数；页面仍在原onMounted/onUnmounted位置调用注册与清理",
+    "timing": "注册仍在resize监听之后；清理仍先调用原取消函数，再调用removeAllListeners兜底；原PSD和画布逻辑不变"
+  },
+  "validation": {
+    "lint": "通过",
+    "checkSize": "通过，本次规模违规0，五个遗留超限仍待继续拆分",
+    "build": "通过，原有构建警告保留",
+    "targetedCommand": "node --test tests/background-isolation.test.mjs tests/canvas-output.test.mjs",
+    "targeted": { "tests": 2, "passed": 2, "failed": 0, "skipped": 0, "durationMs": 24794.611875 },
+    "fullCommand": "node tests/verify-layer-render-completion.mjs all",
+    "full": { "tests": 26, "passed": 26, "failed": 0, "skipped": 0, "durationMs": 475071.373834 },
+    "backgroundOnly": true,
+    "referenceFiles": 264,
+    "referenceSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "referencesChanged": false
+  },
+  "unverified": ["真实操作系统拖拽接收", "Windows/Linux", "多次重复注册和异常订阅返回的故障注入"]
+}
