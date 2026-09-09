@@ -29,7 +29,7 @@ async function waitForVisualSettled(page) {
       const css = window.getComputedStyle(node)
       return css.opacity === '1' && (css.transform === 'none' || css.transform === 'matrix(1, 0, 0, 1, 0, 0)')
     }) && document.getAnimations().every(animation => animation.playState === 'finished')
-  }, { timeout: 15000 })
+  }, undefined, { timeout: 15000 })
 }
 
 /** 按可见标签定位表单项；1、使用组件库公开结构而不访问组件内部状态。 */
@@ -92,11 +92,24 @@ async function layout(desktop, name, evidence) {
   await waitForVisualSettled(page)
   const form = page.locator('.settings-tab-content:visible .settings-form')
   await form.evaluate(node => { node.closest('.settings-content').scrollTop = 0 })
-  const state = await form.evaluate(root => [root, ...root.querySelectorAll('*')].map(node => {
-    const rect = node.getBoundingClientRect()
-    const css = window.getComputedStyle(node)
-    return { tag: node.tagName, class: node.getAttribute('class'), bounds: [rect.x, rect.y, rect.width, rect.height], margin: css.margin, padding: css.padding, color: css.color, background: css.backgroundColor, font: css.font, display: css.display, lineHeight: css.lineHeight, border: css.border, boxSizing: css.boxSizing, flex: css.flex, textFillColor: css.webkitTextFillColor }
-  }))
+  const state = await form.evaluate(async root => {
+    // 1、逐帧记录全部计算样式、伪元素和实际边界，连续三帧相同才接受。
+    const snapshot = () => [root, ...root.querySelectorAll('*')].map(node => {
+      const rect = node.getBoundingClientRect()
+      const styles = pseudo => { const css = window.getComputedStyle(node, pseudo); return Object.fromEntries([...css].map(key => [key, css.getPropertyValue(key)])) }
+      return { tag: node.tagName, class: node.getAttribute('class'), bounds: [rect.x, rect.y, rect.width, rect.height], style: styles(null), before: styles('::before'), after: styles('::after') }
+    })
+    let previous; let stable = 0
+    const deadline = performance.now() + 15000
+    while (performance.now() < deadline) {
+      await new Promise(requestAnimationFrame)
+      const state = snapshot(); const current = JSON.stringify(state)
+      stable = current === previous ? stable + 1 : 0
+      if (stable >= 2 && document.getAnimations().every(animation => animation.playState === 'finished')) return state
+      previous = current
+    }
+    throw new Error('完整计算样式未达到连续三帧稳定')
+  })
   // 2、只抹去随机隔离路径的字形，不遮盖输入边框、背景、尺寸或其他元素。
   const options = { animations: 'disabled', caret: 'hide', scale: 'css', style: '.n-message-container,.n-tooltip { visibility: hidden !important; } input[placeholder="请选择项目文件存储的绝对路径"] { color: transparent !important; -webkit-text-fill-color: transparent !important; }' }
   let previous
