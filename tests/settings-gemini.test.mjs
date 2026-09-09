@@ -11,6 +11,27 @@ const storageKey = 'gemini-image-config'
 const fields = [['baseUrl', '中转站地址'], ['apiKey', 'API 密钥'], ['projectRoot', '保存根目录'], ['outputDir', '图片保存路径'], ['logDir', '日志路径']]
 const fakeKey = 'local-only-fake-gemini-key-never-send'
 
+/** 等待页面运动和主题过渡真实结束；1、连续两帧确认终态，避免在中间帧采样。 */
+async function waitForVisualSettled(page) {
+  await page.waitForFunction(async () => {
+    const selectors = ['.app-main', '.app-layout', '.settings-page']
+    const nodes = selectors.map(selector => document.querySelector(selector)).filter(Boolean)
+    if (nodes.length !== selectors.length) return false
+    const animations = document.getAnimations()
+    if (animations.some(animation => animation.playState !== 'finished')) return false
+    if (nodes.some(node => {
+      const css = window.getComputedStyle(node)
+      return css.opacity !== '1' || (css.transform !== 'none' && css.transform !== 'matrix(1, 0, 0, 1, 0, 0)')
+    })) return false
+    if (document.documentElement.classList.contains('theme-transition') || document.body.classList.contains('theme-transition')) return false
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    return nodes.every(node => {
+      const css = window.getComputedStyle(node)
+      return css.opacity === '1' && (css.transform === 'none' || css.transform === 'matrix(1, 0, 0, 1, 0, 0)')
+    }) && document.getAnimations().every(animation => animation.playState === 'finished')
+  }, { timeout: 15000 })
+}
+
 /** 按可见标签定位表单项；1、使用组件库公开结构而不访问组件内部状态。 */
 function item(page, label) {
   // 1、避免其他设置页中同名输入干扰。
@@ -68,7 +89,7 @@ async function layout(desktop, name, evidence) {
   assert.ok((await values(page)).projectRoot.startsWith(desktop.root))
   await page.mouse.move(1, 1)
   await page.evaluate(() => { document.activeElement?.blur(); return document.fonts.ready })
-  await page.waitForFunction(() => !document.querySelector('.settings-page .n-base-wave--active'))
+  await waitForVisualSettled(page)
   const form = page.locator('.settings-tab-content:visible .settings-form')
   await form.evaluate(node => { node.closest('.settings-content').scrollTop = 0 })
   const state = await form.evaluate(root => [root, ...root.querySelectorAll('*')].map(node => {
