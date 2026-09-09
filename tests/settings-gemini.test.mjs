@@ -90,6 +90,7 @@ async function layout(desktop, name, evidence) {
   await page.mouse.move(1, 1)
   await page.evaluate(() => { document.activeElement?.blur(); return document.fonts.ready })
   await waitForVisualSettled(page)
+  await page.waitForFunction(() => !document.querySelector('.settings-page .n-base-wave--active'))
   const form = page.locator('.settings-tab-content:visible .settings-form')
   await form.evaluate(node => { node.closest('.settings-content').scrollTop = 0 })
   const state = await form.evaluate(async root => {
