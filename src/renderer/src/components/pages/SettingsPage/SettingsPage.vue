@@ -57,230 +57,12 @@
 
               <!-- 自定义图层名称 -->
               <n-tab-pane name="customlayers" tab="自定义图层名称">
-                <n-form
-                  :model="stickfigureConfig"
-                  label-placement="left"
-                  label-width="140px"
-                  class="settings-form"
+                <StickfigureGroupNameSettings
+                  :config="stickfigureConfig"
+                  :default-group-names="DEFAULT_GROUP_NAMES"
+                  @update-group-field="(key, value) => { stickfigureConfig.groupNames[key] = value }"
+                  @reset-group-name="resetGroupName"
                 >
-                  <n-alert type="info" style="margin-bottom: 20px;">
-                    <template #header>
-                      自定义图层名称说明
-                    </template>
-                    <n-text>
-                      配置PSD文件中各类图层组的名称预设，支持自定义多个名称。多个名称用顿号、逗号或换行分隔。
-                    </n-text>
-                  </n-alert>
-
-                  <n-form-item label="前手图组名称" path="groupNames.frontHand">
-                    <n-input-group>
-                      <n-input
-                        v-model:value="stickfigureConfig.groupNames.frontHand"
-                        type="textarea"
-                        :placeholder="DEFAULT_GROUP_NAMES.frontHand"
-                        :autosize="{ minRows: 2, maxRows: 2 }"
-                        :style="{ flex: 1 }"
-                      />
-                      <n-button
-                        @click="resetGroupName('frontHand')"
-                        title="重置为默认预设"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" fill="currentColor"/>
-                            </svg>
-                          </n-icon>
-                        </template>
-                        重置
-                      </n-button>
-                    </n-input-group>
-                    <template #feedback>
-                      <n-text depth="3" style="font-size: 12px;">
-                        默认预设：{{ DEFAULT_GROUP_NAMES.frontHand }}
-                      </n-text>
-                    </template>
-                  </n-form-item>
-
-                  <n-form-item label="后手图组名称" path="groupNames.backHand">
-                    <n-input-group>
-                      <n-input
-                        v-model:value="stickfigureConfig.groupNames.backHand"
-                        type="textarea"
-                        :placeholder="DEFAULT_GROUP_NAMES.backHand"
-                        :autosize="{ minRows: 2, maxRows: 2 }"
-                        :style="{ flex: 1 }"
-                      />
-                      <n-button
-                        @click="resetGroupName('backHand')"
-                        title="重置为默认预设"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" fill="currentColor"/>
-                            </svg>
-                          </n-icon>
-                        </template>
-                        重置
-                      </n-button>
-                    </n-input-group>
-                    <template #feedback>
-                      <n-text depth="3" style="font-size: 12px;">
-                        默认预设：{{ DEFAULT_GROUP_NAMES.backHand }}
-                      </n-text>
-                    </template>
-                  </n-form-item>
-
-                  <n-form-item label="双手图组名称" path="groupNames.bothHands">
-                    <n-input-group>
-                      <n-input
-                        v-model:value="stickfigureConfig.groupNames.bothHands"
-                        type="textarea"
-                        :placeholder="DEFAULT_GROUP_NAMES.bothHands"
-                        :autosize="{ minRows: 2, maxRows: 2 }"
-                        :style="{ flex: 1 }"
-                      />
-                      <n-button
-                        @click="resetGroupName('bothHands')"
-                        title="重置为默认预设"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" fill="currentColor"/>
-                            </svg>
-                          </n-icon>
-                        </template>
-                        重置
-                      </n-button>
-                    </n-input-group>
-                    <template #feedback>
-                      <n-text depth="3" style="font-size: 12px;">
-                        默认预设：{{ DEFAULT_GROUP_NAMES.bothHands }}
-                      </n-text>
-                    </template>
-                  </n-form-item>
-
-                  <n-form-item label="动作图组名称" path="groupNames.action">
-                    <n-input-group>
-                      <n-input
-                        v-model:value="stickfigureConfig.groupNames.action"
-                        type="textarea"
-                        :placeholder="DEFAULT_GROUP_NAMES.action"
-                        :autosize="{ minRows: 2, maxRows: 2 }"
-                        :style="{ flex: 1 }"
-                      />
-                      <n-button
-                        @click="resetGroupName('action')"
-                        title="重置为默认预设"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" fill="currentColor"/>
-                            </svg>
-                          </n-icon>
-                        </template>
-                        重置
-                      </n-button>
-                    </n-input-group>
-                    <template #feedback>
-                      <n-text depth="3" style="font-size: 12px;">
-                        默认预设：{{ DEFAULT_GROUP_NAMES.action }}
-                      </n-text>
-                    </template>
-                  </n-form-item>
-
-                  <n-form-item label="表情图组名称" path="groupNames.expression">
-                    <n-input-group>
-                      <n-input
-                        v-model:value="stickfigureConfig.groupNames.expression"
-                        type="textarea"
-                        :placeholder="DEFAULT_GROUP_NAMES.expression"
-                        :autosize="{ minRows: 2, maxRows: 2 }"
-                        :style="{ flex: 1 }"
-                      />
-                      <n-button
-                        @click="resetGroupName('expression')"
-                        title="重置为默认预设"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" fill="currentColor"/>
-                            </svg>
-                          </n-icon>
-                        </template>
-                        重置
-                      </n-button>
-                    </n-input-group>
-                    <template #feedback>
-                      <n-text depth="3" style="font-size: 12px;">
-                        默认预设：{{ DEFAULT_GROUP_NAMES.expression }}
-                      </n-text>
-                    </template>
-                  </n-form-item>
-
-                  <n-form-item label="上身图组名称" path="groupNames.upperBody">
-                    <n-input-group>
-                      <n-input
-                        v-model:value="stickfigureConfig.groupNames.upperBody"
-                        type="textarea"
-                        :placeholder="DEFAULT_GROUP_NAMES.upperBody"
-                        :autosize="{ minRows: 2, maxRows: 2 }"
-                        :style="{ flex: 1 }"
-                      />
-                      <n-button
-                        @click="resetGroupName('upperBody')"
-                        title="重置为默认预设"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" fill="currentColor"/>
-                            </svg>
-                          </n-icon>
-                        </template>
-                        重置
-                      </n-button>
-                    </n-input-group>
-                    <template #feedback>
-                      <n-text depth="3" style="font-size: 12px;">
-                        默认预设：{{ DEFAULT_GROUP_NAMES.upperBody }}
-                      </n-text>
-                    </template>
-                  </n-form-item>
-
-                  <n-form-item label="下身图组名称" path="groupNames.lowerBody">
-                    <n-input-group>
-                      <n-input
-                        v-model:value="stickfigureConfig.groupNames.lowerBody"
-                        type="textarea"
-                        :placeholder="DEFAULT_GROUP_NAMES.lowerBody"
-                        :autosize="{ minRows: 2, maxRows: 2 }"
-                        :style="{ flex: 1 }"
-                      />
-                      <n-button
-                        @click="resetGroupName('lowerBody')"
-                        title="重置为默认预设"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" fill="currentColor"/>
-                            </svg>
-                          </n-icon>
-                        </template>
-                        重置
-                      </n-button>
-                    </n-input-group>
-                    <template #feedback>
-                      <n-text depth="3" style="font-size: 12px;">
-                        默认预设：{{ DEFAULT_GROUP_NAMES.lowerBody }}
-                      </n-text>
-                    </template>
-                  </n-form-item>
 
                   <!-- 保存按钮 -->
                   <div class="save-button-container">
@@ -293,7 +75,7 @@
                       保存配置
                     </n-button>
                   </div>
-                </n-form>
+                </StickfigureGroupNameSettings>
               </n-tab-pane>
             </n-tabs>
           </div>
@@ -1065,6 +847,7 @@ import { useHoverPreviewSetting } from '../../../composables/useHoverPreviewSett
 import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-config.js'
 import StickfigureBasicSettings from './components/StickfigureBasicSettings.vue'
 import StickfigureFrontHandSettings from './components/StickfigureFrontHandSettings.vue'
+import StickfigureGroupNameSettings from './components/StickfigureGroupNameSettings.vue'
 
 const route = useRoute()
 const message = useMessage()
