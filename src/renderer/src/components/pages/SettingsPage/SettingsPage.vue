@@ -149,73 +149,18 @@
       <!-- 对话插件设置 -->
       <div v-show="activeTab === 'dialog'" class="settings-tab-content">
           <div class="settings-content">
-            <n-form
-              ref="dialogFormRef"
-              :model="dialogConfig"
-              label-placement="left"
-              label-width="140px"
-              class="settings-form"
+            <DialogSettings
+              :config="dialogConfig"
+              :is-selecting-folder="isSelectingDialogFolder"
+              @update-field="(key, value) => { dialogConfig[key] = value }"
+              @select-output-folder="selectDialogOutputFolder"
             >
-              <!-- 图片保存目录 -->
-              <n-form-item label="图片保存目录" path="outputRoot">
-                <n-input-group>
-                  <n-input
-                    v-model:value="dialogConfig.outputRoot"
-                    placeholder="请选择对话框图片保存的根目录"
-                    readonly
-                    :style="{ flex: 1 }"
-                  />
-                  <n-button
-                    type="primary"
-                    @click="selectDialogOutputFolder"
-                    :loading="isSelectingDialogFolder"
-                  >
-                    <template #icon>
-                      <n-icon>
-                        <svg viewBox="0 0 24 24">
-                          <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" fill="currentColor"/>
-                        </svg>
-                      </n-icon>
-                    </template>
-                    浏览
-                  </n-button>
-                </n-input-group>
-                <template #feedback>
-                  <n-text depth="3" style="font-size: 12px;">
-                    对话框图片将保存到此目录
-                  </n-text>
-                </template>
-              </n-form-item>
-
-              <!-- 自动创建日期文件夹 -->
-              <n-form-item label="自动创建日期文件夹" path="createDateFolder">
-                <n-switch v-model:value="dialogConfig.createDateFolder">
-                  <template #checked>
-                    开启
-                  </template>
-                  <template #unchecked>
-                    关闭
-                  </template>
-                </n-switch>
-                <template #feedback>
-                  <n-text depth="3" style="font-size: 12px;">
-                    开启后，图片将保存到以日期命名的子文件夹中（例如：2024-01-01）
-                  </n-text>
-                </template>
-              </n-form-item>
-
-              <!-- 保存按钮 -->
               <div class="save-button-container">
-                <n-button
-                  type="primary"
-                  size="large"
-                  @click="saveDialogConfig"
-                  :loading="isSavingDialog"
-                >
+                <n-button type="primary" size="large" @click="saveDialogConfig" :loading="isSavingDialog">
                   保存设置
                 </n-button>
               </div>
-            </n-form>
+            </DialogSettings>
           </div>
       </div>
         
@@ -411,6 +356,7 @@ import StickfigureGroupNameSettings from './components/StickfigureGroupNameSetti
 import HotkeySettings from './components/HotkeySettings.vue'
 import GeminiSettings from './components/GeminiSettings.vue'
 import HdToolkitSettings from './components/HdToolkitSettings.vue'
+import DialogSettings from './components/DialogSettings.vue'
 
 const route = useRoute()
 const message = useMessage()
