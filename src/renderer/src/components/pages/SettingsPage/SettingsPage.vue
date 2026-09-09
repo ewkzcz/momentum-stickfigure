@@ -35,81 +35,12 @@
 
               <!-- 前手特殊图层 -->
               <n-tab-pane name="fronthand" tab="前手特殊图层">
-                <n-form
-                  :model="stickfigureConfig"
-                  label-placement="left"
-                  label-width="140px"
-                  class="settings-form"
+                <StickfigureFrontHandSettings
+                  :config="stickfigureConfig"
+                  @update-field="(key, value) => { stickfigureConfig[key] = value }"
+                  @reset-both-names="resetFrontHandBothNames"
+                  @reset-right-names="resetFrontHandRightNames"
                 >
-                  <n-alert type="info" style="margin-bottom: 20px;">
-                    <template #header>
-                      前手特殊图层说明
-                    </template>
-                    <n-text>
-                      配置前手中的特殊动作图层名称，用于识别双手动作和右手动作。多个名称用顿号、逗号或换行分隔。
-                    </n-text>
-                  </n-alert>
-
-                  <n-form-item label="前手-双手名称" path="frontHandBothNames">
-                    <n-input-group>
-                      <n-input
-                        v-model:value="stickfigureConfig.frontHandBothNames"
-                        type="textarea"
-                        placeholder="请输入前手-双手的特殊名称"
-                        :autosize="{ minRows: 3, maxRows: 5 }"
-                        :style="{ flex: 1 }"
-                      />
-                      <n-button
-                        @click="resetFrontHandBothNames"
-                        title="重置为默认值"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" fill="currentColor"/>
-                            </svg>
-                          </n-icon>
-                        </template>
-                        重置
-                      </n-button>
-                    </n-input-group>
-                    <template #feedback>
-                      <n-text depth="3" style="font-size: 12px;">
-                        前手中的双手动作名称，如：交叉、合十、抱拳、结印、托脸、戳手指、双手抱臂、敲手。请注意中英文标点符号和空格！
-                      </n-text>
-                    </template>
-                  </n-form-item>
-
-                  <n-form-item label="前手-右手名称" path="frontHandRightNames">
-                    <n-input-group>
-                      <n-input
-                        v-model:value="stickfigureConfig.frontHandRightNames"
-                        type="textarea"
-                        placeholder="请输入前手-右手的特殊名称"
-                        :autosize="{ minRows: 3, maxRows: 5 }"
-                        :style="{ flex: 1 }"
-                      />
-                      <n-button
-                        @click="resetFrontHandRightNames"
-                        title="重置为默认值"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" fill="currentColor"/>
-                            </svg>
-                          </n-icon>
-                        </template>
-                        重置
-                      </n-button>
-                    </n-input-group>
-                    <template #feedback>
-                      <n-text depth="3" style="font-size: 12px;">
-                        前手中的右手动作名称，如：伏案右、拍胸、端起、捂嘴右、拎东西、扶着头、摸头右（2）、举手右、托腮（2）、擦汗、拳胸、吃东西动作、后手举起、单手结印、擦泪、比枪等。请注意中英文标点符号和空格！
-                      </n-text>
-                    </template>
-                  </n-form-item>
-
                   <!-- 保存按钮 -->
                   <div class="save-button-container">
                     <n-button
@@ -121,7 +52,7 @@
                       保存配置
                     </n-button>
                   </div>
-                </n-form>
+                </StickfigureFrontHandSettings>
               </n-tab-pane>
 
               <!-- 自定义图层名称 -->
@@ -1133,6 +1064,7 @@ import { normalizeApiBaseUrl } from '@shared/api-url.js'
 import { useHoverPreviewSetting } from '../../../composables/useHoverPreviewSetting.js'
 import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-config.js'
 import StickfigureBasicSettings from './components/StickfigureBasicSettings.vue'
+import StickfigureFrontHandSettings from './components/StickfigureFrontHandSettings.vue'
 
 const route = useRoute()
 const message = useMessage()
