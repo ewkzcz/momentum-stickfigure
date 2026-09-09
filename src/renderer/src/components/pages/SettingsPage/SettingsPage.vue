@@ -1245,7 +1245,7 @@ const saveGeminiConfig = async () => {
 
     // 3、目录创建失败只记录警告，不撤销已保存配置。
     try {
-      await window.falApi?.createDirectories?.(geminiConfig)
+      await window.falApi?.createDirectories?.(JSON.parse(JSON.stringify(geminiConfig)))
     } catch (dirError) {
       console.warn('创建目录失败:', dirError)
     }
