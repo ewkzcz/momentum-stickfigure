@@ -477,117 +477,29 @@
               </div>
             </template>
 
-            <!-- 动作模板卡片展示（模板不使用虚拟滚动，因为数量较少） -->
-            <template v-else-if="currentTab === 'template1'">
-              <div v-if="templates1.length === 0" class="empty-state">
-                <p>暂无动作模板，点击"动作模板"按钮创建</p>
-              </div>
-              <div
-                v-for="template in templates1"
-                :key="template.id"
-                :class="[
-                  'part-item',
-                  'template-item',
-                  'template-text-only',
-                  {
-                    active: selectedTemplate1Id === template.id,
-                    'multi-selected': isTemplateMultiSelected(template.id, 'template1'),
-                    'template-dragging': isTemplateDragging(template.id),
-                    'template-drag-over-before': isTemplateDragOver(template.id, 'before'),
-                    'template-drag-over-after': isTemplateDragOver(template.id, 'after')
-                  }
-                ]"
-                @click="handleTemplateCardClick($event, template.id, 'template1')"
-                @contextmenu="handleTemplateContextMenu($event, template.id, 'template1')"
-                @dragover.prevent="handleTemplateDragOver($event, template.id, 'template1')"
-                @dragenter.prevent="handleTemplateDragEnter($event, template.id, 'template1')"
-                @dragleave="handleTemplateDragLeave($event, template.id, 'template1')"
-                @drop.prevent="handleTemplateDrop($event, template.id, 'template1')"
-              >
-                <!-- 只显示文字内容 -->
-                <div class="template-text-content">
-                  <span
-                    class="template-card-drag-handle"
-                    draggable="true"
-                    title="拖拽调整模板顺序"
-                    @dragstart.stop="handleTemplateDragStart($event, template.id, 'template1')"
-                    @dragend.stop="handleTemplateDragEnd"
-                    @click.stop
-                    @contextmenu.stop
-                  ></span>
-                  <div
-                    class="template-card-body"
-                    @mouseenter="handleTemplateHoverEnter($event, template)"
-                    @mousemove="handleTemplateHoverMove"
-                    @mouseleave="handleTemplateHoverLeave"
-                  >
-                    <div
-                      class="template-card-title"
-                      @dblclick="startEditTemplateNameById(template.id, 'template1')"
-                      :title="template.description || template.name"
-                    >
-                      {{ template.name }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <!-- 表情模板卡片展示（模板不使用虚拟滚动，因为数量较少） -->
-            <template v-else-if="currentTab === 'template2'">
-              <div v-if="templates2.length === 0" class="empty-state">
-                <p>暂无表情模板，点击"表情模板"按钮创建</p>
-              </div>
-              <div
-                v-for="template in templates2"
-                :key="template.id"
-                :class="[
-                  'part-item',
-                  'template-item',
-                  'template-text-only',
-                  {
-                    active: selectedTemplate2Id === template.id,
-                    'multi-selected': isTemplateMultiSelected(template.id, 'template2'),
-                    'template-dragging': isTemplateDragging(template.id),
-                    'template-drag-over-before': isTemplateDragOver(template.id, 'before'),
-                    'template-drag-over-after': isTemplateDragOver(template.id, 'after')
-                  }
-                ]"
-                @click="handleTemplateCardClick($event, template.id, 'template2')"
-                @contextmenu="handleTemplateContextMenu($event, template.id, 'template2')"
-                @dragover.prevent="handleTemplateDragOver($event, template.id, 'template2')"
-                @dragenter.prevent="handleTemplateDragEnter($event, template.id, 'template2')"
-                @dragleave="handleTemplateDragLeave($event, template.id, 'template2')"
-                @drop.prevent="handleTemplateDrop($event, template.id, 'template2')"
-              >
-                <!-- 只显示文字内容 -->
-                <div class="template-text-content">
-                  <span
-                    class="template-card-drag-handle"
-                    draggable="true"
-                    title="拖拽调整模板顺序"
-                    @dragstart.stop="handleTemplateDragStart($event, template.id, 'template2')"
-                    @dragend.stop="handleTemplateDragEnd"
-                    @click.stop
-                    @contextmenu.stop
-                  ></span>
-                  <div
-                    class="template-card-body"
-                    @mouseenter="handleTemplateHoverEnter($event, template)"
-                    @mousemove="handleTemplateHoverMove"
-                    @mouseleave="handleTemplateHoverLeave"
-                  >
-                    <div
-                      class="template-card-title"
-                      @dblclick="startEditTemplateNameById(template.id, 'template2')"
-                      :title="template.description || template.name"
-                    >
-                      {{ template.name }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
+            <!-- 模板卡片展示（模板不使用虚拟滚动，因为数量较少） -->
+            <TemplateListPanel
+              v-else-if="currentTab === 'template1' || currentTab === 'template2'"
+              :templates="currentTab === 'template1' ? templates1 : templates2"
+              :template-type="currentTab"
+              :selected-id="currentTab === 'template1' ? selectedTemplate1Id : selectedTemplate2Id"
+              :empty-text="currentTab === 'template1' ? '暂无动作模板，点击&quot;动作模板&quot;按钮创建' : '暂无表情模板，点击&quot;表情模板&quot;按钮创建'"
+              :is-multi-selected="isTemplateMultiSelected"
+              :is-dragging="isTemplateDragging"
+              :is-drag-over="isTemplateDragOver"
+              @card-click="handleTemplateCardClick"
+              @context-menu="handleTemplateContextMenu"
+              @drag-over="handleTemplateDragOver"
+              @drag-enter="handleTemplateDragEnter"
+              @drag-leave="handleTemplateDragLeave"
+              @drop="handleTemplateDrop"
+              @drag-start="handleTemplateDragStart"
+              @drag-end="handleTemplateDragEnd"
+              @hover-enter="handleTemplateHoverEnter"
+              @hover-move="handleTemplateHoverMove"
+              @hover-leave="handleTemplateHoverLeave"
+              @rename="startEditTemplateNameById"
+            />
 
             <!-- 普通部件列表（使用虚拟滚动） -->
             <template v-else>
@@ -772,6 +684,7 @@ import PsdTabsBar from './components/PsdTabsBar.vue'
 import IntegratedControlsPanel from './components/IntegratedControlsPanel.vue'
 import LayerTreePanel from './components/LayerTreePanel.vue'
 import PartSearchModal from './components/PartSearchModal.vue'
+import TemplateListPanel from './components/TemplateListPanel.vue'
 import {
   normalizeString,
   generateId,
