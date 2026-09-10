@@ -783,6 +783,7 @@ import { useVirtualScroll } from './composables/useVirtualScroll.js'
 import { useCanvasOutputCoordinator, createCanvasJumpOptions } from './composables/useCanvasOutputCoordinator.js'
 import { buildCanvasOutputFileName } from './utils/canvasOutputName.js'
 import { useCanvasPresetHoverPreview } from './composables/useCanvasPresetHoverPreview.js'
+import { useTemplateHoverPreview } from './composables/useTemplateHoverPreview.js'
 import { useHoverPreviewSetting } from '../../../composables/useHoverPreviewSetting.js'
 import { createPerformanceLogger } from '@renderer/utils/performanceLogger.js'
 
@@ -1727,152 +1728,17 @@ const {
   syncCanvasToPreview // 将画布同步方法下发给预设逻辑，保障预设切换后预览窗口立即刷新
 })
 
-// 模板悬浮预览状态
-const templateHoverPreview = reactive({
-  visible: false,
-  src: '',
-  x: 0,
-  y: 0,
-  width: 0,
-  height: 0
+// 模板悬浮预览由 useTemplateHoverPreview 管理，依赖模板数据使用延迟 getter。
+const {
+  templateHoverPreview,
+  handleTemplateHoverEnter,
+  handleTemplateHoverMove,
+  handleTemplateHoverLeave
+} = useTemplateHoverPreview({
+  enablePresetHover,
+  getTemplatePreview: () => getTemplatePreview,
+  getActiveTemplateType: () => activeTemplateType.value
 })
-
-// 模板悬浮预览事件处理
-// 用于防止快速移入移出导致的闪烁
-let templateHoverTimer = null
-let currentHoverTemplateId = null
-
-/**
- * 获取模板预览并显示悬浮图片。
- * 处理流程：
- * 1、清理隐藏定时器，同一模板直接更新位置
- * 2、按模板自身类型获取预览图
- * 3、图片加载后检查悬停目标，缩放并显示浮层
- */
-const handleTemplateHoverEnter = async (event, template) => {
-  // 1、检查开关，取消尚未执行的隐藏操作
-  if (!enablePresetHover.value) return
-
-  // 清除之前的隐藏定时器
-  if (templateHoverTimer) {
-    clearTimeout(templateHoverTimer)
-    templateHoverTimer = null
-  }
-
-  // 如果是同一个模板，只更新位置
-  if (currentHoverTemplateId === template.id && templateHoverPreview.visible) {
-    handleTemplateHoverMove(event)
-    return
-  }
-
-  currentHoverTemplateId = template.id
-
-  // 2、使用模板自身的类型属性获取预览
-  // 这样可以确保在动作模板标签页也能预览表情模板，反之亦然
-  const templateType = template.templateType || activeTemplateType.value
-  const base64Data = await getTemplatePreview(template.id, templateType)
-
-  if (!base64Data) {
-    console.log('⚠️ 模板无预览图:', template.name)
-    return
-  }
-
-  try {
-    // 创建临时图片对象以获取真实尺寸
-    const img = new Image()
-    img.src = base64Data
-
-    img.onload = () => {
-      // 3、检查是否仍然悬浮在同一个模板上，避免异步结果覆盖新目标
-      if (currentHoverTemplateId !== template.id) {
-        return
-      }
-
-      let width = img.width
-      let height = img.height
-
-      // 计算缩放后的尺寸，保持宽高比（自适应屏幕大小）
-      const maxWidth = Math.min(window.innerWidth * 0.5, 800)
-      const maxHeight = Math.min(window.innerHeight * 0.7, 600)
-
-      // 按比例缩放
-      if (width > maxWidth) {
-        height = (maxWidth / width) * height
-        width = maxWidth
-      }
-      if (height > maxHeight) {
-        width = (maxHeight / height) * width
-        height = maxHeight
-      }
-
-      templateHoverPreview.src = base64Data
-      templateHoverPreview.visible = true
-      templateHoverPreview.width = width
-      templateHoverPreview.height = height
-
-      handleTemplateHoverMove(event)
-    }
-  } catch (error) {
-    console.error('生成模板预览失败:', error)
-  }
-}
-
-/**
- * 更新模板预览浮层的鼠标跟随位置。
- * 处理流程：
- * 1、读取浮层尺寸并计算候选坐标
- * 2、约束窗口边界并提交位置
- */
-const handleTemplateHoverMove = (event) => {
-  // 1、隐藏时跳过定位，显示时基于当前图片尺寸计算
-  if (!templateHoverPreview.visible) return
-
-  const gap = 12
-  const width = templateHoverPreview.width || 400
-  const height = templateHoverPreview.height || 300
-
-  // 计算位置，确保不超出窗口
-  let x = event.clientX + gap
-  let y = event.clientY + gap
-
-  // 如果右侧空间不足，显示在左侧
-  if (x + width > window.innerWidth - 8) {
-    x = event.clientX - width - gap
-  }
-
-  // 如果下方空间不足，向上调整
-  if (y + height > window.innerHeight - 8) {
-    y = window.innerHeight - height - 8
-  }
-
-  // 确保不超出左侧和顶部
-  x = Math.max(8, x)
-  y = Math.max(8, y)
-
-  // 2、提交已修正窗口边界的浮层坐标
-  templateHoverPreview.x = x
-  templateHoverPreview.y = y
-}
-
-/**
- * 延迟关闭模板悬浮预览。
- * 处理流程：
- * 1、替换已有隐藏定时器
- * 2、延迟清理浮层及当前模板标识，减少子元素切换闪烁
- */
-const handleTemplateHoverLeave = () => {
-  // 1、清理之前的隐藏任务，保留最后一次离开事件
-  if (templateHoverTimer) {
-    clearTimeout(templateHoverTimer)
-  }
-
-  // 2、延迟隐藏并重置悬停状态
-  templateHoverTimer = setTimeout(() => {
-    templateHoverPreview.visible = false
-    currentHoverTemplateId = null
-    templateHoverTimer = null
-  }, 100) // 100ms 延迟
-}
 
 // 监听悬浮预览开关，关闭时立即隐藏对应预览
 watch(enableCanvasHover, (newValue) => {
