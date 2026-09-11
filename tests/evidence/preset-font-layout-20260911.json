@@ -1,0 +1,19 @@
+{
+  "purpose": "经用户明确授权，仅为预设生命周期 layout 增加独立字体环境参考；旧参考永久保留，所有像素比较仍为零容差。",
+  "sourceCommit": "6c4ec36d965734bfd38bb68df3402fe76e33509e",
+  "sourceTree": "faa23cba22aef42c043958fc60f04f6bfc05a591",
+  "reference": "preset-layout-font-20260910-v1",
+  "originalReference": "preset-lifecycle-renderer1024-dpr1-focus-v1",
+  "originalLayoutSha256": "794207f53f1840b83dafa4a3cc49d62810583a696295ea62c57163f651e48aa0",
+  "manifestSha256": "be54fac2e15f2326df99f06fb21c89ceec2abe9d321c2f9807dfd9faa116a9e3",
+  "layoutSha256": "fb0cec7a13bb8190c4f745fc68ab992d493033c5fdd019cb4259c166a27d6b7a",
+  "fontFile": "System/Library/PrivateFrameworks/FontServices.framework/Resources/Reserved/PingFangUI.ttc",
+  "fontSha256": "13b201d63324db59de86956c11c46d1f0ad9ac0aeaa0b9d035c012a794062db7",
+  "oldReferenceFiles": 264,
+  "oldReferenceDigest": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+  "captureDesktopId": "momentum-regression-hTupHd",
+  "originalReplayDesktopId": "momentum-regression-mzLoM4",
+  "candidateReplayDesktopId": "momentum-regression-2khQ5Z",
+  "method": "保全未提交业务候选，恢复原提交完整 src 与构建配置，校验源码树并重新构建；原场景中其余图像继续核验旧参考，只采集 layout。完整场景成功后独占创建只读目录。原版独立回放通过，恢复候选并重新构建后独立回放通过。",
+  "limits": "差异集中于中文笔画，原始源码和候选在当前环境截图一致；具体 CoreText/字体缓存变化原因尚未确定。仅适用于已冻结的 macOS arm64/Electron/字体及渲染器环境。布局图和私人素材保留在本地忽略目录，不提交。"
+}
