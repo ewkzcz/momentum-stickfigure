@@ -1,8 +1,8 @@
 /** 预设生命周期回归：验证快照与编辑状态区分、跨素材恢复、文件删除及重启。 */
 import assert from 'node:assert/strict'
 import path from 'node:path'
-import { access, readFile, writeFile, mkdir, chmod } from 'node:fs/promises'
-import { execFileSync } from 'node:child_process'
+import { access, readFile, writeFile } from 'node:fs/promises'
+import { presetLayoutBytes, presetOriginalReferenceName, loadPresetLayoutReference, assertPresetOldReferences, assertPresetOriginalSource } from '../helpers/preset-layout-reference.mjs'
 import { launchDesktop, repository, readJson } from '../helpers/desktop.mjs'
 import { fixtures, referenceDirectory } from '../helpers/reference.mjs'
 import { stableCanvas, observeImages, assertSamePixels, verifyFixture, decodePng } from '../helpers/images.mjs'
@@ -80,21 +80,32 @@ async function presetMetadata(page) {
   return page.evaluate(() => JSON.parse(localStorage.getItem('stickfigure-all-presets') || '{"psdItems":[]}').psdItems.flatMap((item) => item.presets || []))
 }
 
-/** 为两份指定素材执行预设往返、删除和重启场景。 */
+/** 正常入口只读参考；即使场景失败，也逐项复核全部旧参考未变。 */
 export async function checkPresetLifecycle(record = false, referenceName = process.env.MOMENTUM_PRESET_REFERENCE || defaultReference) {
+  // 1、旧全组录制入口永久禁用，字体采集仅由独立原源码入口执行。
+  assert.equal(record, false, '正常预设测试禁止录制参考')
+  const manifest = await loadPresetLayoutReference(referenceDirectory)
+  try { return await runPresetLifecycle(referenceName) }
+  finally { await assertPresetOldReferences(referenceDirectory, manifest.oldReferenceFiles) }
+}
+
+/** 专用采集入口仍跑原场景，其余图片继续严格比较旧参考，不生成 PSD 预期。 */
+export async function captureOriginalPresetLayout(capture) {
+  // 1、运行前后再次核验完整原 src，禁止调用者以候选源码绕过录制边界。
+  assertPresetOriginalSource(repository)
+  try { return await runPresetLifecycle(presetOriginalReferenceName, capture) }
+  finally { assertPresetOriginalSource(repository) }
+}
+
+/** 为两份指定素材执行预设往返、删除和重启场景。 */
+async function runPresetLifecycle(referenceName, captureLayout) {
   assert.match(referenceName, /^preset-lifecycle-[a-z0-9-]+$/, '预设参考必须使用明确且不含路径的独立环境名称')
   const samples = await fixtures()
   assert.ok(samples.length >= 2, '预设跨 PSD 回归需要两份指定素材')
   const [first, second] = samples
   for (const fixture of [first, second]) await verifyFixture(fixture.absolutePath, fixture.sha256)
   const directory = path.join(referenceDirectory, referenceName)
-  let sourceTree
-  if (record) {
-    execFileSync('git', ['diff', '--exit-code', 'HEAD', '--', 'src', 'electron.vite.config.mjs'], { cwd: repository })
-    sourceTree = execFileSync('git', ['rev-parse', 'HEAD:src'], { cwd: repository, encoding: 'utf8' }).trim()
-    await mkdir(directory)
-  }
-  const expected = record ? null : await readJson(path.join(directory, 'manifest.json'))
+  const expected = await readJson(path.join(directory, 'manifest.json'))
   const states = []
   let desktop = await launchDesktop(undefined, 'software-layout')
   const root = desktop.root
@@ -104,12 +115,13 @@ export async function checkPresetLifecycle(record = false, referenceName = proce
     // 1、每个场景保存实际输出；回归时不得修改参考。
     states.push(name)
     await writeFile(path.join(root, `${name}.png`), bytes)
-    if (record) {
-      await writeFile(path.join(directory, `${name}.png`), bytes, { flag: 'wx' })
-      await chmod(path.join(directory, `${name}.png`), 0o444)
+    assert.equal(expected.scenes[states.length - 1], name)
+    const originalBytes = await readFile(path.join(directory, `${name}.png`))
+    if (captureLayout && name === 'layout') {
+      await captureLayout(bytes, environment, originalBytes)
     } else {
-      assert.equal(expected.scenes[states.length - 1], name)
-      await assertSamePixels(bytes, await readFile(path.join(directory, `${name}.png`)), name)
+      const referenceBytes = await presetLayoutBytes(referenceDirectory, referenceName, name, environment || expected.environment, originalBytes)
+      await assertSamePixels(bytes, referenceBytes, name)
     }
   }
   let savedPreset
@@ -157,7 +169,7 @@ export async function checkPresetLifecycle(record = false, referenceName = proce
     await desktop.page.mouse.move(1, 1)
     await desktop.page.waitForFunction(() => document.getAnimations().every((animation) => animation.playState !== 'running' || animation.effect?.getComputedTiming().iterations === Infinity))
     environment = await layoutEnvironment(desktop)
-    if (!record) assert.deepEqual(environment, expected.environment, 'layout 环境与参考不一致；应显式记录独立环境候选，禁止覆盖旧参考')
+    assert.deepEqual(environment, expected.environment, 'layout 环境与参考不一致；应显式记录独立环境候选，禁止覆盖旧参考')
     const layout = await stableLayout(desktop.page)
     await snapshot('layout', layout)
 
@@ -188,11 +200,6 @@ export async function checkPresetLifecycle(record = false, referenceName = proce
     assert.deepEqual(desktop.errors, [])
   } finally { await desktop.close() }
   for (const fixture of [first, second]) await verifyFixture(fixture.absolutePath, fixture.sha256)
-  if (record) {
-    await writeFile(path.join(directory, 'manifest.json'), JSON.stringify({ version: 2, referenceName, sourceTree, environment, recordedAt: new Date().toISOString(), scenes: states, fixtureHashes: [first.sha256, second.sha256] }, null, 2), { flag: 'wx' })
-    await chmod(path.join(directory, 'manifest.json'), 0o444)
-  } else {
-    assert.deepEqual(expected.fixtureHashes, [first.sha256, second.sha256])
-    assert.deepEqual(expected.scenes, states)
-  }
+  assert.deepEqual(expected.fixtureHashes, [first.sha256, second.sha256])
+  assert.deepEqual(expected.scenes, states)
 }
