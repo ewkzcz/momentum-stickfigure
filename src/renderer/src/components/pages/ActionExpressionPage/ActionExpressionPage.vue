@@ -582,93 +582,21 @@
       @search-result-confirm="handleSearchResultConfirm"
     />
 
-    <!-- 右键菜单 -->
-    <div
-      v-if="contextMenuVisible"
-      :class="[
-        'template-context-menu',
-        { 'detail-mode': contextMenuItemType === 'template' }
-      ]"
-      :style="{
-        left: contextMenuPosition.x + 'px',
-        top: contextMenuPosition.y + 'px'
-      }"
-      @click.stop
-    >
-      <template v-if="contextMenuItemType === 'preset'">
-        <!-- 删除选项（预设） -->
-        <div class="context-menu-item" @click="handleBatchDeletePresets">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>
-          </svg>
-          <span>删除</span>
-        </div>
-      </template>
-
-      <template v-else-if="contextMenuItemType === 'template' && contextMenuTemplateDetail">
-        <div class="template-detail-popup">
-          <div class="template-detail-header">
-            <div class="template-detail-title">
-              <span class="template-detail-type">{{ templateDetailTypeLabel }}</span>
-              {{ contextMenuTemplateDetail.name }}
-            </div>
-            <button class="template-detail-close" @click="closeContextMenu" aria-label="关闭">
-              ×
-            </button>
-          </div>
-
-          <div class="template-detail-body">
-            <div
-              v-if="templateDetailEntries.length"
-              class="template-detail-groups"
-            >
-              <div
-                v-for="group in templateDetailEntries"
-                :key="group.tabName"
-                class="template-detail-group"
-              >
-                <span class="template-detail-group-name">{{ group.tabName }}</span>
-                <span class="template-detail-group-parts">{{ group.selectedParts.join('、') }}</span>
-              </div>
-            </div>
-            <div v-else class="template-detail-empty">
-              暂无具体配置
-            </div>
-          </div>
-
-          <div class="template-detail-actions">
-            <button
-              class="template-detail-btn primary"
-              :disabled="!contextMenuSingleItemId"
-              @click="handleTemplateDetailApply"
-            >
-              应用
-            </button>
-            <button
-              class="template-detail-btn"
-              :disabled="!contextMenuSingleItemId"
-              @click="handleContextMenuRename"
-            >
-              重命名
-            </button>
-            <button
-              class="template-detail-btn danger"
-              @click="handleBatchDeleteTemplates"
-            >
-              删除
-            </button>
-          </div>
-        </div>
-      </template>
-    </div>
-
-    <!-- 点击遮罩层关闭右键菜单 -->
-    <div
-      v-if="contextMenuVisible"
-      class="context-menu-overlay"
-      @click="handlePageClick"
-      @contextmenu.prevent="handlePageClick"
-    ></div>
+    <TemplateContextMenu
+      :context-menu-visible="contextMenuVisible"
+      :context-menu-position="contextMenuPosition"
+      :context-menu-item-type="contextMenuItemType"
+      :context-menu-template-detail="contextMenuTemplateDetail"
+      :template-detail-entries="templateDetailEntries"
+      :template-detail-type-label="templateDetailTypeLabel"
+      :context-menu-single-item-id="contextMenuSingleItemId"
+      @delete-presets="handleBatchDeletePresets"
+      @close="closeContextMenu"
+      @apply="handleTemplateDetailApply"
+      @rename="handleContextMenuRename"
+      @delete-templates="handleBatchDeleteTemplates"
+      @page-click="handlePageClick"
+    />
 
   </div>
 </template>
@@ -685,6 +613,7 @@ import IntegratedControlsPanel from './components/IntegratedControlsPanel.vue'
 import LayerTreePanel from './components/LayerTreePanel.vue'
 import PartSearchModal from './components/PartSearchModal.vue'
 import TemplateListPanel from './components/TemplateListPanel.vue'
+import TemplateContextMenu from './components/TemplateContextMenu.vue'
 import {
   normalizeString,
   generateId,
