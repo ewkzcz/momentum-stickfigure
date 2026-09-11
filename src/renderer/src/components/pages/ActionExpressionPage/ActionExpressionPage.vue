@@ -613,6 +613,7 @@ import IntegratedControlsPanel from './components/IntegratedControlsPanel.vue'
 import LayerTreePanel from './components/LayerTreePanel.vue'
 import PartSearchModal from './components/PartSearchModal.vue'
 import TemplateListPanel from './components/TemplateListPanel.vue'
+import { useHotkeyLabels } from './composables/useHotkeyLabels.js'
 import TemplateContextMenu from './components/TemplateContextMenu.vue'
 import {
   normalizeString,
@@ -781,69 +782,7 @@ const {
 } = useCanvasPresetHoverPreview({ canvasRef, enableCanvasHover, enablePresetHover })
 
 // ==================== 快捷键信息（用于展示） ====================
-const HOTKEYS_STORAGE_KEY = 'hotkeys-config'
-const HOTKEY_LABEL_DEFAULTS = {
-  toggleCanvasHover: 'Alt+C',
-  togglePartHover: 'Alt+V',
-  openSearch: 'Ctrl+F'
-}
-
-const hotkeyLabels = reactive({
-  toggleCanvasHover: HOTKEY_LABEL_DEFAULTS.toggleCanvasHover,
-  togglePartHover: HOTKEY_LABEL_DEFAULTS.togglePartHover,
-  openSearch: HOTKEY_LABEL_DEFAULTS.openSearch
-})
-
-/**
- * 更新界面中的快捷键名称。
- * 处理流程：
- * 1、优先读取传入配置，否则读取本地配置
- * 2、为缺失配置应用默认值并更新显示状态
- */
-const applyHotkeyLabels = (sourceConfig = null) => {
-  // 1、取得配置，并容忍本地存储内容解析失败
-  let config = sourceConfig
-  if (!config) {
-    try {
-      const stored = localStorage.getItem(HOTKEYS_STORAGE_KEY)
-      config = stored ? JSON.parse(stored) : null
-    } catch (error) {
-      console.warn('⚠️ 解析快捷键配置失败，将使用默认展示值', error)
-    }
-  }
-
-  /**
-   * 获取单个快捷键的显示值。
-   * 处理流程：
-   * 1、缺失或空值回退默认配置，其余保留用户设置
-   */
-  const resolveValue = (key) => {
-    // 1、区分未配置与用户主动清空的快捷键
-    if (!config || config[key] === undefined || config[key] === null) {
-      return HOTKEY_LABEL_DEFAULTS[key]
-    }
-    return config[key]
-  }
-
-  // 2、同步三项快捷键的界面展示
-  hotkeyLabels.toggleCanvasHover = resolveValue('toggleCanvasHover')
-  hotkeyLabels.togglePartHover = resolveValue('togglePartHover')
-  hotkeyLabels.openSearch = resolveValue('openSearch')
-}
-
-applyHotkeyLabels()
-
-/**
- * 接收快捷键配置广播。
- * 处理流程：
- * 1、把事件配置交给统一的显示更新逻辑
- */
-const handleHotkeyLabelUpdate = (event) => {
-  // 1、事件未携带配置时重新读取本地配置
-  applyHotkeyLabels(event?.detail || null)
-}
-
-const toggleHoverHotkeyDisplay = computed(() => hotkeyLabels.toggleCanvasHover || '未设置')
+const { hotkeyLabels, handleHotkeyLabelUpdate, toggleHoverHotkeyDisplay } = useHotkeyLabels()
 const isTemplateGridMode = computed(() => currentTab.value === 'template1' || currentTab.value === 'template2')
 
 // ==================== 键盘快捷键 ====================
