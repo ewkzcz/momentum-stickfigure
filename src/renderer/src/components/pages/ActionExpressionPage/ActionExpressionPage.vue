@@ -614,6 +614,7 @@ import LayerTreePanel from './components/LayerTreePanel.vue'
 import PartSearchModal from './components/PartSearchModal.vue'
 import TemplateListPanel from './components/TemplateListPanel.vue'
 import { useHotkeyLabels } from './composables/useHotkeyLabels.js'
+import { useIntegratedPanelState } from './composables/useIntegratedPanelState.js'
 import TemplateContextMenu from './components/TemplateContextMenu.vue'
 import {
   normalizeString,
@@ -1139,56 +1140,10 @@ const updateCommonControlModel = (key, value) => {
 }
 
 // ==================== 整合面板控制（通用控制 + 图层结构） ====================
-const integratedPanelCollapsed = ref(true) // 整合面板折叠状态，默认折叠
-const integratedPanelTab = ref('commonControls') // 当前选中的标签页：commonControls 或 layerTree
-
-/**
- * 切换整合面板折叠状态。
- * 处理流程：
- * 1、反转当前折叠标记
- */
-const toggleIntegratedPanel = () => {
-  // 1、触发面板展开或折叠
-  integratedPanelCollapsed.value = !integratedPanelCollapsed.value
-}
-
-/**
- * 响应整合面板标题空白处的点击。
- * 处理流程：
- * 1、排除按钮和输入控件的点击
- * 2、切换面板折叠状态
- */
-const handleHeaderClick = (event) => {
-  // 1、如果点击的是按钮、输入框或其内部元素，不触发折叠或展开
-  const target = event.target
-  if (target.closest('.panel-tab-button') ||
-      target.closest('.collapse-icon') ||
-      target.closest('.save-preset-button') ||
-      target.closest('.save-template-button') ||
-      target.closest('.search-preset-button') ||
-      target.closest('.size-control-compact')) {
-    return
-  }
-  // 2、点击空白处触发折叠或展开
-  toggleIntegratedPanel()
-}
-
-/**
- * 切换整合面板标签或收起当前标签。
- * 处理流程：
- * 1、重复点击展开中的标签时折叠，否则选中目标标签并展开
- */
-const switchIntegratedPanelTab = (tab) => {
-  // 1、按当前标签和展开状态决定面板的目标状态
-  if (integratedPanelTab.value === tab && !integratedPanelCollapsed.value) {
-    // 如果点击当前已选中的标签且面板是展开的，则折叠面板
-    integratedPanelCollapsed.value = true
-  } else {
-    // 否则切换到点击的标签并展开面板
-    integratedPanelTab.value = tab
-    integratedPanelCollapsed.value = false
-  }
-}
+const {
+  integratedPanelCollapsed, integratedPanelTab,
+  toggleIntegratedPanel, handleHeaderClick, switchIntegratedPanelTab
+} = useIntegratedPanelState()
 
 // ==================== 图层树交互逻辑 ====================
 // 注意：某些依赖函数需要延迟获取，使用 getter 模式
