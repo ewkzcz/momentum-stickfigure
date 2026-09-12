@@ -9,112 +9,21 @@
     />
 
     <!-- 顶部工具栏 -->
-    <div
-      class="toolbar"
-      @click="toggleCanvasPanel"
-      title="点击空白区域折叠/展开画布"
-    >
-      <div class="toolbar-left">
-        <span class="canvas-toggle-title">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <path d="M21 15l-5-5L5 21"/>
-          </svg>
-          画布
-          <span class="collapse-icon-mini" :class="{ expanded: canvasPanelExpanded }">▼</span>
-        </span>
-      </div>
-      <div class="toolbar-actions" @click.stop>
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-checkbox
-              v-model:checked="enableCanvasHover"
-              size="small"
-              style="margin-right: 8px;"
-            >
-              预览1
-            </n-checkbox>
-          </template>
-          开启鼠标悬浮预览效果（主画布）<br/>快捷键: {{ hotkeyLabels.toggleCanvasHover || '未设置' }}
-        </n-tooltip>
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-checkbox
-              v-model:checked="enablePresetHover"
-              size="small"
-              style="margin-right: 8px;"
-            >
-              预览2
-            </n-checkbox>
-          </template>
-          开启鼠标悬浮预览效果（预设列表、模板列表）<br/>快捷键: {{ hotkeyLabels.togglePartHover || '未设置' }}
-        </n-tooltip>
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button
-              size="small"
-              @click="handleSelectPsdFiles"
-            >
-              上传
-            </n-button>
-          </template>
-          选择PSD文件进行编辑
-        </n-tooltip>
-
-        <n-tooltip placement="bottom">
-          <template #trigger>
-            <n-button
-              size="small"
-              type="primary"
-              @click="openCanvasPreview"
-              :disabled="!currentPsdData"
-            >
-              预览
-            </n-button>
-          </template>
-          在独立窗口中查看预览
-        </n-tooltip>
-
-        <n-dropdown
-          trigger="click"
-          :options="jumpOptions"
-          @select="handleJumpSelect"
-          :disabled="!currentPsdData"
-        >
-          <n-tooltip placement="bottom">
-            <template #trigger>
-              <n-button
-                size="small"
-                type="primary"
-                :disabled="!currentPsdData"
-                :loading="isSendingToGenerate"
-              >
-                跳转
-              </n-button>
-            </template>
-            跳转到其他页面并传递图片
-          </n-tooltip>
-        </n-dropdown>
-
-        <n-dropdown
-          trigger="click"
-          :options="moreOptions"
-          @select="handleMoreSelect"
-        >
-          <n-tooltip placement="bottom">
-            <template #trigger>
-              <n-button size="small">
-                更多
-              </n-button>
-            </template>
-            更多功能选项
-          </n-tooltip>
-        </n-dropdown>
-      </div>
-    </div>
+    <ActionExpressionToolbar
+      :canvas-panel-expanded="canvasPanelExpanded"
+      v-model:enable-canvas-hover="enableCanvasHover"
+      v-model:enable-preset-hover="enablePresetHover"
+      :hotkey-labels="hotkeyLabels"
+      :jump-options="jumpOptions"
+      :more-options="moreOptions"
+      :current-psd-data="currentPsdData"
+      :is-sending-to-generate="isSendingToGenerate"
+      @toggle-canvas="toggleCanvasPanel"
+      @select-psd="handleSelectPsdFiles"
+      @open-preview="openCanvasPreview"
+      @jump-select="handleJumpSelect"
+      @more-select="handleMoreSelect"
+    />
 
     <!-- 主内容区域 -->
     <div class="content-wrapper" ref="contentWrapperRef">
@@ -519,7 +428,8 @@
  */
 import { ref, reactive, computed, onMounted, onUnmounted, onActivated, nextTick, watch, shallowRef } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
-import { NButton, NTooltip, NDropdown, NCheckbox, useMessage, useDialog } from 'naive-ui'
+import { NTooltip, useMessage, useDialog } from 'naive-ui'
+import ActionExpressionToolbar from './components/ActionExpressionToolbar.vue'
 import PsdTabsBar from './components/PsdTabsBar.vue'
 import IntegratedControlsPanel from './components/IntegratedControlsPanel.vue'
 import LayerTreePanel from './components/LayerTreePanel.vue'
