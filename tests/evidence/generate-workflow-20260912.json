@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-12",
+  "change": "生图页面七个任务与服务配置工作流迁移，原状态保留父页",
+  "baseline": { "head": "74aac971fd35cc7bdf21be70af5dfe7991afda9f", "sourceStatus": "", "desktopId": "momentum-generate-workflow-y3OiIC", "command": "node tests/generate-workflow.test.mjs", "passed": true },
+  "baselineReplay": { "desktopId": "momentum-generate-workflow-mpPZxK", "command": "MOMENTUM_GENERATE_WORKFLOW_BEFORE=<baseline-root> node --test tests/generate-workflow.test.mjs", "differentPixels": 0, "passed": true },
+  "candidate": { "baseHead": "74aac971fd35cc7bdf21be70af5dfe7991afda9f", "buildCommand": "npm run lint && npm run build", "desktopId": "momentum-generate-workflow-cRaSjU", "command": "MOMENTUM_GENERATE_WORKFLOW_BEFORE=<baseline-root> node --test tests/generate-workflow.test.mjs", "differentPixels": 0, "passed": true },
+  "mechanicalReview": "七个函数正文及内部注释除前导缩进外逐字一致；共享输入输出、任务状态和设置仅在父页面创建，后声明函数延迟闭包注入",
+  "coverage": ["空提示不建任务，缺密钥生成失败任务", "生图/编辑服务失败、抛异常、恢复", "同模式忙碌禁止重复调用与输入修改", "八个原任务终态经原共享存储真实落盘", "编辑实参、输入顺序与original比例", "输出自动接入输入及真实临时PNG", "保存全部目录选择取消与真实透明PNG导出", "抠图高清服务失败后恢复，共享输入输出及配置字段", "公开状态和三帧稳定截图RGBA前后零差异"],
+  "controlledBoundaries": ["fal-generate-image", "fal-edit-image", "hd:get-initial-data", "hd:run-removebg", "hd:run-highres"],
+  "testDevelopmentFailures": ["加载态按钮的精确可访问名称匹配失败，改为读取原按钮内容定位，没有修改生产代码", "Node24测试子进程先console日志再同步git调用触发反序列化错误；将源码采集放在日志前后正常node --test可运行；未放宽业务断言"],
+  "fullRegression": {"evidenceId":"layer-render-acceptance-z4LIaP","command":"MOMENTUM_GENERATE_WORKFLOW_BEFORE=<baseline-root> node tests/verify-layer-render-completion.mjs all","tests":61,"passed":61,"failed":0,"skipped":0,"durationMs":707832,"referenceFiles":266,"referenceSha256":"9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed","note":"包含本次生图候选及尚未随本项提交的窗口生命周期测试，主进程源码仍为原版"},
+  "failedFullRegression": {"evidenceId":"layer-render-acceptance-bcbewi","tests":60,"passed":59,"failed":1,"reason":"未传已有原版BEFORE，测试正确拒绝将未提交候选作为干净基线；保留失败，不放宽断言"},
+  "limits": ["仅使用隔离假密钥与受控服务，不验证真实AI、网络、Python或安装环境", "原页面无处理取消/停止按钮，仅验收目录选择取消，不虚构任务取消能力", "生图界面其它职责仍待按需要分离，人物页2006行仍超限", "同模式忙碌验证不等同跨模式并发安全证明"]
+}
