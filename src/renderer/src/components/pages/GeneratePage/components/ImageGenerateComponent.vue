@@ -1689,8 +1689,7 @@ onUnmounted(() => {
     dragLeaveTimeout = null
   }
   
-  // 3、移除本组件使用的系统拖拽完成监听
-  window.electronAPI?.removeAllListeners?.('drag-finished')
+  // 3、系统拖拽监听由注册处的取消函数处理，不清空共享通道。
 })
 
 /** 重置图片比例；处理流程：1、恢复默认 16:9，供父组件显式调用。 */

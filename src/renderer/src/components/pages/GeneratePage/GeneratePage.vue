@@ -1950,8 +1950,7 @@ onUnmounted(() => {
   // 清理拖拽状态
   cleanupDrag()
   
-  // 移除所有拖拽相关的监听器
-  window.electronAPI?.removeAllListeners?.('drag-finished')
+  // 本页面只使用自己的取消函数，不清空其他消费者共享的拖拽通道。
 })
 </script>
 
