@@ -1,0 +1,13 @@
+{
+  "date": "2026-09-12",
+  "change": "将本地文件存在性检查和字节读取处理器从主进程入口迁至file-read-handler.js",
+  "baseHead": "140dd5d11d463f181c2ad33d37a012d27691c6e1",
+  "baseline": { "desktopId": "momentum-regression-a9cELc", "head": "e543a796925ee8da59c1af903d0850d3ef92b78d", "mainSourceStatus": "", "passed": true, "note": "主进程源码洁净且实际重建；renderer为随后提交的人物生命周期候选，不称全业务干净基线" },
+  "baselineReplay": { "desktopId": "momentum-regression-CuNER8", "passed": true, "durationMs": 1203.861292 },
+  "candidate": { "desktopId": "momentum-regression-gE7pIL", "passed": true, "mainBundleSha256": "5ace2b93e33569b3b60da92974790cec78a8d3243b51468778417f0462224f96" },
+  "verification": { "command": "npm run lint && node scripts/check-source-size.mjs --strict && npm run build && MOMENTUM_FILE_READ_BEFORE=<a9cELc-root> node --test --test-concurrency=1 tests/file-read.test.mjs tests/file-write.test.mjs tests/psd-upload.test.mjs tests/psd-session.test.mjs", "tests": 4, "passed": 4, "failed": 0, "skipped": 0, "durationMs": 59700.732167, "psdSessionDesktopId": "momentum-regression-562UkT", "psdUploadDesktopId": "momentum-regression-lkp06s" },
+  "coverage": ["中文空格路径、UTF8及二进制原字节、空文件", "缺失、目录、null、number、object、空串、NUL和省略参数", "失败后恢复及源字节不变", "文件写入重启恢复", "两份PSD会话十轮切换28幅RGBA对照", "上传取消、混合有效和失败、损坏输入、真实拖入落盘16幅RGBA对照"],
+  "mechanicalReview": "两函数正文及内部注释逐字一致，仅继承的行尾空白清理；入口其余AST（包括全部既有导入、注册注销顺序）完全一致，只新增本模块导入；无新状态、构建复制规则或IPC契约变化",
+  "references": { "evidenceId": "layer-render-acceptance-ayXaKu", "files": 266, "sha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed" },
+  "limits": ["保持同步读取及原removeAllListeners注销缺陷，未混入性能和生命周期修复", "11种输入不代表完整安全参数或文件授权验收", "本项4项定向通过；最近完整63项回归发生在读取迁移之前", "严格规模已通过，仍有27项全仓lint诊断及其它职责、性能、安全和安装包验收未完成"]
+}
