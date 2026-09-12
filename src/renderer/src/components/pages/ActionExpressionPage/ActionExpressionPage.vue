@@ -460,67 +460,21 @@
             />
 
             <!-- 普通部件列表（使用虚拟滚动） -->
-            <template v-else>
-              <div
-                v-if="currentPartsList.length === 0"
-                class="empty-state"
-              >
-                <p>{{ emptyStateText }}</p>
-              </div>
-              <template v-else>
-                <!-- 虚拟滚动占位容器 -->
-                <div
-                  class="parts-virtual-spacer"
-                  :style="{ height: virtualScroll.totalHeight.value + 'px' }"
-                ></div>
-                <!-- 虚拟滚动可见内容（绝对定位） -->
-                <div
-                  class="parts-virtual-items"
-                  :style="{ transform: `translateY(${virtualScroll.offsetY.value}px)` }"
-                >
-                  <div
-                    v-for="part in visiblePartsList"
-                    :key="part._absoluteIndex"
-                    :class="[
-                      'part-item',
-                      {
-                        active: isPartActive(part),
-                        hidden: part.hidden,
-                        group: part.isGroup,
-                        'search-highlighted': highlightedPartPath === part.path
-                      }
-                    ]"
-                    @click="selectPart(part)"
-                  >
-                    <div class="part-preview">
-                      <img
-                        v-if="part.thumbnail"
-                        :src="part.thumbnail"
-                        :alt="part.name"
-                        loading="lazy"
-                        decoding="async"
-                        draggable="true"
-                        @mouseenter="precacheImageData($event.target, part)"
-                        @dragstart.stop="handlePartDragStart($event, part)"
-                        @dragend.stop="handlePartDragEnd($event)"
-                        @click.stop="handlePartImageClick(part, selectPart)"
-                        @mousedown.stop
-                        style="cursor: grab; user-select: none;"
-                        :title="`拖拽到剪映或其他软件使用（拖拽时自动命名）`"
-                      />
-                      <span v-else class="part-icon">🖼️</span>
-                    </div>
-                    <div class="part-info">
-                      <div class="part-name">
-                        <span v-if="part.isGroup" class="group-indicator">📁</span>
-                        {{ part.displayName || part.name }}
-                        <span v-if="part.isGroup" class="group-text">(图组)</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </template>
+            <PartsVirtualList
+              v-else
+              :empty="currentPartsList.length === 0"
+              :empty-state-text="emptyStateText"
+              :visible-parts-list="visiblePartsList"
+              :total-height="virtualScroll.totalHeight.value"
+              :offset-y="virtualScroll.offsetY.value"
+              :highlighted-part-path="highlightedPartPath"
+              :is-part-active="isPartActive"
+              @select="selectPart"
+              @precache="precacheImageData"
+              @drag-start="handlePartDragStart"
+              @drag-end="handlePartDragEnd"
+              @image-click="part => handlePartImageClick(part, selectPart)"
+            />
           </div>
         </div>
       </div>
@@ -572,6 +526,7 @@ import LayerTreePanel from './components/LayerTreePanel.vue'
 import PartSearchModal from './components/PartSearchModal.vue'
 import TemplateListPanel from './components/TemplateListPanel.vue'
 import PresetListPanel from './components/PresetListPanel.vue'
+import PartsVirtualList from './components/PartsVirtualList.vue'
 import { useHotkeyLabels } from './composables/useHotkeyLabels.js'
 import { useIntegratedPanelState } from './composables/useIntegratedPanelState.js'
 import TemplateContextMenu from './components/TemplateContextMenu.vue'
