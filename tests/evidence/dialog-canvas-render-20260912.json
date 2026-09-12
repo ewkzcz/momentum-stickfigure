@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-12",
+  "change": "DialogFrameCanvas 绘制、蒙版、图片缓存与透明导出职责机械迁移",
+  "baseline": {
+    "head": "7384b0e1ff7f691aa23c7a0c83dc07509c09578f",
+    "sourceStatus": "",
+    "buildCommand": "npm run build",
+    "testCommand": "node --test tests/dialog-canvas.test.mjs",
+    "desktopId": "momentum-regression-xbb6QN",
+    "passed": true
+  },
+  "candidate": {
+    "baseHead": "7384b0e1ff7f691aa23c7a0c83dc07509c09578f",
+    "buildCommand": "npm run lint && npm run build",
+    "testCommand": "MOMENTUM_DIALOG_CANVAS_BEFORE=<baseline-root> node --test tests/dialog-canvas.test.mjs",
+    "desktopId": "momentum-regression-jDeMsO",
+    "scenes": 18,
+    "canvasComparisons": 18,
+    "realExportComparisons": 18,
+    "differentPixels": 0,
+    "passed": true
+  },
+  "coverage": [
+    "真实文件输入导入一幅公开自制对话框及两个非对称人物",
+    "六种嵌入模式，四种渐变模式各测试 default/fast/early 三档",
+    "人物与对话框分别进行工具栏缩放、旋转、翻转、重置",
+    "原目录选择IPC及真实文件写入，1920×1080透明PNG输出",
+    "完整原画布包含原选框，独立比较画布和导出RGBA，零容差",
+    "原十四个迁移函数初始化表达式正文和内部注释逐字一致",
+    "原所有状态及生命周期位置保留，唯一缓存随绘制模块迁入，不新增监听"
+  ],
+  "runtime": { "platform": "darwin", "arch": "arm64", "electron": "35.7.5", "chrome": "134.0.6998.205" },
+  "lint": {
+    "existingProgressiveList": "passed; appended new composable, removed no existing entries",
+    "extraParentScan": "failed: vue/no-dupe-keys activeObjectType",
+    "originalParentStdinScan": "same pre-existing failure at original line 2566",
+    "ruleSuppressed": false
+  },
+  "fullRegression": {
+    "command": "node tests/verify-layer-render-completion.mjs all",
+    "evidenceId": "layer-render-acceptance-8k3LEi",
+    "tests": 58,
+    "passed": 58,
+    "failed": 0,
+    "durationMs": 544371,
+    "referenceFiles": 266,
+    "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed",
+    "scope": "包含新增dialog-canvas测试；运行启动后新建的dialog-interaction及generate-workflow不在本轮范围"
+  },
+  "remainingScope": [
+    "命中、手柄拖拽和生命周期下一项继续分离并建立独立真实行为基线",
+    "本次未验证跨平台或原生外部拖出，不把18场景当作完整交互验收",
+    "原exportPath使用反斜杠拼接的跨平台行为保持原样；测试目录选择提供带平台分隔符的合法目录",
+    "当前人物页2006行、生图页2454行仍超限；全仓lint、性能、安全及安装包均未完成"
+  ]
+}
