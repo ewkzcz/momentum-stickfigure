@@ -193,7 +193,7 @@
 
 <script setup>
 /** 设置页面：管理各工具参数、路径、快捷键及配置备份，按路由显示对应设置页签。 */
-import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useMessage, useDialog } from 'naive-ui'
 import { useRoute } from 'vue-router'
 import { normalizeApiBaseUrl } from '@shared/api-url.js'
@@ -210,10 +210,8 @@ import { useHdToolkitSettings } from './composables/useHdToolkitSettings.js'
 import { useHotkeySettings } from './composables/useHotkeySettings.js'
 import { useGeminiSettings } from './composables/useGeminiSettings.js'
 import { useDialogSettings } from './composables/useDialogSettings.js'
-import {
-  createStickfigureBackupSnapshot,
-  createSettingsArchive
-} from './composables/settingsArchive.js'
+import { useStickfigureSettings } from './composables/useStickfigureSettings.js'
+import { createSettingsArchive } from './composables/settingsArchive.js'
 import SettingsHelpContent from './components/SettingsHelpContent.vue'
 
 const route = useRoute()
@@ -263,8 +261,6 @@ const activeTab = computed(() => {
   return route.meta?.settingsTab || 'stickfigure'
 })
 const stickfigureSubTab = ref('basic') // 人物插件设置子标签页状态
-const isSavingStickfigure = ref(false)
-const isSelectingStickfigureFolder = ref(false)
 
 
 // 配置导出所用的应用版本。
@@ -296,59 +292,6 @@ const isAbsolutePath = (path) => {
   return false
 }
 
-/**
- * 推导默认人物图片导出目录。
- * 处理流程：
- * 1、读取用户目录，缺失时使用相对导出目录。
- * 2、按平台构造系统图片目录下的工具输出路径。
- */
-const getDefaultPicturesPath = () => {
-  // 1、为未保存输出位置的配置提供默认值。
-  const homedir = window.env?.homedir || ''
-  const platform = window.env?.platform || 'win32'
-
-  if (!homedir) {
-    // 如果无法获取homedir，使用当前目录
-    return './简笔画导出'
-  }
-
-  // 2、构造平台对应的图片导出路径。
-  if (platform === 'win32') {
-    // Windows: C:\Users\{username}\Pictures\简笔画导出
-    return `${homedir}\\Pictures\\简笔画导出`
-  } else if (platform === 'darwin') {
-    // MacOS: /Users/{username}/Pictures/简笔画导出
-    return `${homedir}/Pictures/简笔画导出`
-  } else {
-    // Linux: /home/{username}/Pictures/简笔画导出
-    return `${homedir}/Pictures/简笔画导出`
-  }
-}
-
-// 导出文件名规则选项
-const fileNamingRuleOptions = [
-  { label: '时间戳+压缩语义信息（如：20251028142530双手惊恐.png）', value: 'timestamp-semantic' },
-  { label: 'Hash+压缩语义信息（如：a3f9b2k5双手惊恐.png）', value: 'hash-semantic' },
-  { label: '仅时间戳（如：20251028142530.png）', value: 'timestamp-only' },
-  { label: '仅Hash（如：a3f9b2k5m7p4q8.png）', value: 'hash-only' }
-]
-
-// 前手分组配置默认值常量
-const DEFAULT_FRONT_HAND_BOTH_NAMES = '交叉、合十、抱拳、结印、托脸、戳手指、双手抱臂、敲手'
-const DEFAULT_FRONT_HAND_RIGHT_NAMES = '伏案右、伏案右边、拍胸、拍胸右、拍胸右边、拍胸口、拍胸口右、拍胸口右边、端起、端起右、端起右边、捂嘴右、捂嘴右边、拎东西、扶着头、摸头右、摸头右（2）、举手右、托腮（2）、擦汗、拳胸、吃东西动作、后手举起、单手结印、擦泪、比枪'
-
-// 图组名称配置默认值常量（包含常见变体）
-const DEFAULT_GROUP_NAMES = {
-  frontHand: '前手、紧袖口1、古代长袖1、现代长袖1、长紧袖口1、上手、上手 副本、后手前置',
-  backHand: '后手、前层后手、紧袖口2、古代长袖2、现代长袖2、长紧袖口2、下手、下手 副本、后手后置',
-  bothHands: '双手、前手（双手）、前手(双手)',
-  upperBody: '上身、上半身',
-  lowerBody: '下身、下半身',
-  action: '动作、手部',
-  // 表情图组统一配置（包含所有表情变体）
-  expression: '表情、表情(合并)、表情（合并）、表情1、表情2、专属表情、专属表情1、专属表情2、专属表情3、专属表情【灰豆绿色】、专属表情【粉色】、辅助表情、豆豆眼、豆豆眼1、豆豆眼2、豆豆眼表情、豆豆眼表情1、豆豆眼表情2、表情豆豆眼、帅哥眼睛、眼睛女、眼睛男、眉毛、眼睛、嘴、新表情、新新表情、脸 副本、眉毛 副本、嘴 副本、眼睛 副本、定制表情、定制表情1、定制表情2'
-}
-
 // 生图域在原配置初始化位置创建；跨域恢复、导入和备份共用同一配置对象。
 const {
   geminiConfig,
@@ -360,69 +303,24 @@ const {
   resetProjectRootToDefault
 } = useGeminiSettings({ message, showSaveRestartTip, appVersion, isAbsolutePath })
 
-/**
- * 初始化人物插件配置。
- * 处理流程：
- * 1、读取本地配置，逐字段补齐导出规则、匹配和图组名称。
- * 2、无保存值或解析失败时返回完整默认配置。
- */
-const loadInitialStickfigureConfig = () => {
-  // 1、布尔字段显式判断 undefined，保留用户保存的关闭状态。
-  try {
-    const savedConfig = localStorage.getItem('stickfigure-config')
-    if (savedConfig) {
-      const parsed = JSON.parse(savedConfig)
-      console.log('📖 初始化加载简笔画配置:', parsed)
-      console.log('📋 图组名称配置:', parsed.groupNames)
-
-      // 确保必要字段存在
-      return {
-        outputRoot: parsed.outputRoot || getDefaultPicturesPath(),
-        overwriteMode: parsed.overwriteMode || 'rename', // 保留字段以兼容旧版本
-        fileNamingRule: parsed.fileNamingRule || 'timestamp-semantic', // 新的文件名规则
-        duplicateFileHandling: parsed.duplicateFileHandling || 'addIndex', // 同名文件处理方式
-        createPsdFolder: parsed.createPsdFolder !== undefined ? parsed.createPsdFolder : true,
-        enableFuzzyMatch: parsed.enableFuzzyMatch !== undefined ? parsed.enableFuzzyMatch : true, // 默认启用模糊匹配
-        frontHandBothNames: parsed.frontHandBothNames || DEFAULT_FRONT_HAND_BOTH_NAMES,
-        frontHandRightNames: parsed.frontHandRightNames || DEFAULT_FRONT_HAND_RIGHT_NAMES,
-        groupNames: {
-          frontHand: parsed.groupNames?.frontHand || DEFAULT_GROUP_NAMES.frontHand,
-          backHand: parsed.groupNames?.backHand || DEFAULT_GROUP_NAMES.backHand,
-          bothHands: parsed.groupNames?.bothHands || DEFAULT_GROUP_NAMES.bothHands,
-          upperBody: parsed.groupNames?.upperBody || DEFAULT_GROUP_NAMES.upperBody,
-          lowerBody: parsed.groupNames?.lowerBody || DEFAULT_GROUP_NAMES.lowerBody,
-          action: parsed.groupNames?.action || DEFAULT_GROUP_NAMES.action,
-          expression: parsed.groupNames?.expression || DEFAULT_GROUP_NAMES.expression
-        }
-      }
-    }
-  } catch (error) {
-    console.error('初始化加载配置失败:', error)
-  }
-
-  // 2、默认配置包含完整图组结构，保证表单可直接绑定嵌套字段。
-  return {
-    outputRoot: getDefaultPicturesPath(),
-    overwriteMode: 'rename', // 保留字段以兼容旧版本
-    fileNamingRule: 'timestamp-semantic', // 新的文件名规则，默认为时间戳+语义信息
-    duplicateFileHandling: 'addIndex', // 同名文件处理方式，默认添加序号
-    createPsdFolder: true,
-    enableFuzzyMatch: true, // 默认启用模糊匹配
-    frontHandBothNames: DEFAULT_FRONT_HAND_BOTH_NAMES,
-    frontHandRightNames: DEFAULT_FRONT_HAND_RIGHT_NAMES,
-    groupNames: {
-      frontHand: DEFAULT_GROUP_NAMES.frontHand,
-      backHand: DEFAULT_GROUP_NAMES.backHand,
-      bothHands: DEFAULT_GROUP_NAMES.bothHands,
-      upperBody: DEFAULT_GROUP_NAMES.upperBody,
-      lowerBody: DEFAULT_GROUP_NAMES.lowerBody,
-      action: DEFAULT_GROUP_NAMES.action,
-      expression: DEFAULT_GROUP_NAMES.expression
-    }
-  }
-}
-
-const stickfigureConfig = reactive(loadInitialStickfigureConfig())
+// 人物域在原配置初始化位置创建；本地配置读取仍在生图域之后、两项悬浮预览设置之前。
+// 状态与默认常量随工厂分配，无外部副作用；跨域恢复和导入继续共用同一配置对象。
+const {
+  stickfigureConfig,
+  isSavingStickfigure,
+  isSelectingStickfigureFolder,
+  fileNamingRuleOptions,
+  DEFAULT_FRONT_HAND_BOTH_NAMES,
+  DEFAULT_FRONT_HAND_RIGHT_NAMES,
+  DEFAULT_GROUP_NAMES,
+  getDefaultPicturesPath,
+  saveStickfigureConfig,
+  selectStickfigureOutputFolder,
+  resetStickfigureOutputToDefault,
+  resetFrontHandBothNames,
+  resetFrontHandRightNames,
+  resetGroupName
+} = useStickfigureSettings({ message, showSaveRestartTip, appVersion, geminiConfig, isAbsolutePath })
 
 // 悬浮预览设置（使用 composable 实现同步和持久化，v-model 会自动保存和广播）
 // 主画布悬浮预览
@@ -641,216 +539,6 @@ const loadConfig = async () => {
     }
   } catch (error) {
     console.error('加载配置失败:', error)
-  }
-}
-
-// ==================== 简笔画人物插件配置管理 ====================
-
-/**
- * 保存人物导出和图层匹配设置。
- * 处理流程：
- * 1、校验绝对输出目录，规范空名称并组装保存对象。
- * 2、写入配置并回读，更新表单中被默认值补齐的字段。
- * 3、尝试备份全部配置，反馈保存结果并恢复按钮状态。
- */
-const saveStickfigureConfig = async () => {
-  try {
-    isSavingStickfigure.value = true
-
-    // 1、保存根目录必须非空且为绝对路径。
-    if (!stickfigureConfig.outputRoot.trim()) {
-      message.error('请选择图片保存根目录', {
-        duration: 4000,
-        keepAliveOnHover: true
-      })
-      return
-    }
-
-    if (!isAbsolutePath(stickfigureConfig.outputRoot)) {
-      message.error('图片保存根目录必须是绝对路径', {
-        duration: 4000,
-        keepAliveOnHover: true
-      })
-      return
-    }
-
-    // 2、提取普通字段并为留空名称恢复默认值。
-    // 如果某个图组名称为空，使用默认值
-    const configToSave = {
-      outputRoot: stickfigureConfig.outputRoot,
-      overwriteMode: stickfigureConfig.overwriteMode,
-      fileNamingRule: stickfigureConfig.fileNamingRule || 'timestamp-semantic', // 新增：文件名规则
-      duplicateFileHandling: stickfigureConfig.duplicateFileHandling || 'addIndex', // 新增：同名文件处理方式
-      createPsdFolder: stickfigureConfig.createPsdFolder,
-      enableFuzzyMatch: stickfigureConfig.enableFuzzyMatch !== undefined ? stickfigureConfig.enableFuzzyMatch : true,
-      frontHandBothNames: stickfigureConfig.frontHandBothNames.trim() || DEFAULT_FRONT_HAND_BOTH_NAMES,
-      frontHandRightNames: stickfigureConfig.frontHandRightNames.trim() || DEFAULT_FRONT_HAND_RIGHT_NAMES,
-      groupNames: {
-        frontHand: stickfigureConfig.groupNames.frontHand.trim() || DEFAULT_GROUP_NAMES.frontHand,
-        backHand: stickfigureConfig.groupNames.backHand.trim() || DEFAULT_GROUP_NAMES.backHand,
-        bothHands: stickfigureConfig.groupNames.bothHands.trim() || DEFAULT_GROUP_NAMES.bothHands,
-        upperBody: stickfigureConfig.groupNames.upperBody.trim() || DEFAULT_GROUP_NAMES.upperBody,
-        lowerBody: stickfigureConfig.groupNames.lowerBody.trim() || DEFAULT_GROUP_NAMES.lowerBody,
-        action: stickfigureConfig.groupNames.action.trim() || DEFAULT_GROUP_NAMES.action,
-        expression: stickfigureConfig.groupNames.expression.trim() || DEFAULT_GROUP_NAMES.expression
-      }
-    }
-
-    console.log('💾 保存简笔画配置:', configToSave)
-    console.log('📋 保存的图组名称:', configToSave.groupNames)
-
-    // 保存前检查是否有空值被替换为默认值
-    const emptyFields = []
-    if (!stickfigureConfig.frontHandBothNames.trim()) emptyFields.push('前手-双手名称')
-    if (!stickfigureConfig.frontHandRightNames.trim()) emptyFields.push('前手-右手名称')
-    if (!stickfigureConfig.groupNames.frontHand.trim()) emptyFields.push('前手图组名称')
-    if (!stickfigureConfig.groupNames.backHand.trim()) emptyFields.push('后手图组名称')
-    if (!stickfigureConfig.groupNames.bothHands.trim()) emptyFields.push('双手图组名称')
-    if (!stickfigureConfig.groupNames.upperBody.trim()) emptyFields.push('上身图组名称')
-    if (!stickfigureConfig.groupNames.lowerBody.trim()) emptyFields.push('下身图组名称')
-    if (!stickfigureConfig.groupNames.action.trim()) emptyFields.push('动作图组名称')
-    if (!stickfigureConfig.groupNames.expression.trim()) emptyFields.push('表情图组名称')
-
-    if (emptyFields.length > 0) {
-      console.log('⚠️ 以下字段为空，已自动填充默认值:', emptyFields.join('、'))
-    }
-
-    localStorage.setItem('stickfigure-config', JSON.stringify(configToSave))
-
-    // 3、回读已保存内容，记录实际写入结果。
-    const savedCheck = localStorage.getItem('stickfigure-config')
-    const parsedCheck = JSON.parse(savedCheck)
-    console.log('✅ 验证保存成功，读取到的配置:', parsedCheck.groupNames)
-
-    // 4、将补齐后的名称同步回表单，避免显示与保存值不一致。
-    stickfigureConfig.createPsdFolder = configToSave.createPsdFolder
-    stickfigureConfig.enableFuzzyMatch = configToSave.enableFuzzyMatch
-    stickfigureConfig.frontHandBothNames = configToSave.frontHandBothNames
-    stickfigureConfig.frontHandRightNames = configToSave.frontHandRightNames
-    stickfigureConfig.groupNames.frontHand = configToSave.groupNames.frontHand
-    stickfigureConfig.groupNames.backHand = configToSave.groupNames.backHand
-    stickfigureConfig.groupNames.bothHands = configToSave.groupNames.bothHands
-    stickfigureConfig.groupNames.upperBody = configToSave.groupNames.upperBody
-    stickfigureConfig.groupNames.lowerBody = configToSave.groupNames.lowerBody
-    stickfigureConfig.groupNames.action = configToSave.groupNames.action
-    stickfigureConfig.groupNames.expression = configToSave.groupNames.expression
-
-    // 5、备份失败不回滚已经保存的人物配置。
-    try {
-      const allSettings = createStickfigureBackupSnapshot({ localStorage, appVersion, geminiConfig, configToSave })
-      await window.electronAPI.settings.autoBackupSettings(allSettings)
-      console.log('💾 配置已自动备份到用户文档目录')
-    } catch (backupError) {
-      console.warn('⚠️ 自动备份失败（不影响保存）:', backupError)
-    }
-
-    showSaveRestartTip('简笔画人物插件配置保存成功！')
-  } catch (error) {
-    console.error('保存简笔画配置失败:', error)
-    message.error('保存失败: ' + error.message, {
-      duration: 5000,
-      keepAliveOnHover: true
-    })
-  } finally {
-    isSavingStickfigure.value = false
-  }
-}
-
-/**
- * 选择人物图片输出目录。
- * 处理流程：
- * 1、成功选择时更新表单并提示，取消时保持原值。
- * 2、无论成功或失败都结束选择状态。
- */
-const selectStickfigureOutputFolder = async () => {
-  // 1、目录合法性由保存流程再次校验。
-  try {
-    isSelectingStickfigureFolder.value = true
-
-    const result = await window.fileSystem.selectFolder()
-
-    if (result.success && result.path) {
-      stickfigureConfig.outputRoot = result.path
-      message.success('图片保存根目录已设置: ' + result.path, {
-        duration: 3000,
-        keepAliveOnHover: true
-      })
-    } else if (result.canceled) {
-      console.log('用户取消了文件夹选择')
-    } else {
-      message.error('选择文件夹失败: ' + (result.error || '未知错误'), {
-        duration: 5000,
-        keepAliveOnHover: true
-      })
-    }
-  } catch (error) {
-    console.error('选择文件夹失败:', error)
-    message.error('选择文件夹失败: ' + error.message, {
-      duration: 5000,
-      keepAliveOnHover: true
-    })
-  } finally {
-    isSelectingStickfigureFolder.value = false
-  }
-}
-
-/** 重置人物输出路径；处理流程：1、推导默认图片目录，更新表单并提示。 */
-const resetStickfigureOutputToDefault = () => {
-  // 1、重置操作尚未写入持久化配置。
-  const defaultPath = getDefaultPicturesPath()
-  stickfigureConfig.outputRoot = defaultPath
-  message.success('已重置为默认路径: ' + defaultPath, {
-    duration: 3000,
-    keepAliveOnHover: true
-  })
-  console.log('重置简笔画输出路径为:', defaultPath)
-}
-
-/** 重置前手双手名称；处理流程：1、用默认匹配名称覆盖表单字段并提示。 */
-const resetFrontHandBothNames = () => {
-  // 1、恢复内置名称集合，等待用户保存。
-  stickfigureConfig.frontHandBothNames = DEFAULT_FRONT_HAND_BOTH_NAMES
-  message.success('已重置前手-双手名称为默认值', {
-    duration: 3000,
-    keepAliveOnHover: true
-  })
-  console.log('重置前手-双手名称为:', DEFAULT_FRONT_HAND_BOTH_NAMES)
-}
-
-/** 重置前手右手名称；处理流程：1、用默认匹配名称覆盖表单字段并提示。 */
-const resetFrontHandRightNames = () => {
-  // 1、恢复内置右手名称集合。
-  stickfigureConfig.frontHandRightNames = DEFAULT_FRONT_HAND_RIGHT_NAMES
-  message.success('已重置前手-右手名称为默认值', {
-    duration: 3000,
-    keepAliveOnHover: true
-  })
-  console.log('重置前手-右手名称为:', DEFAULT_FRONT_HAND_RIGHT_NAMES)
-}
-
-/**
- * 重置指定图组的匹配名称。
- * 处理流程：
- * 1、确认图组键有默认配置，写回名称并显示对应中文提示。
- */
-const resetGroupName = (groupKey) => {
-  // 1、未知图组键不修改现有配置。
-  if (DEFAULT_GROUP_NAMES[groupKey]) {
-    stickfigureConfig.groupNames[groupKey] = DEFAULT_GROUP_NAMES[groupKey]
-    const groupNameMap = {
-      frontHand: '前手',
-      backHand: '后手',
-      bothHands: '双手',
-      upperBody: '上身',
-      lowerBody: '下身',
-      action: '动作',
-      expression: '表情'
-    }
-    message.success(`已重置${groupNameMap[groupKey]}图组名称为默认值`, {
-      duration: 3000,
-      keepAliveOnHover: true
-    })
-    console.log(`重置${groupNameMap[groupKey]}图组名称为:`, DEFAULT_GROUP_NAMES[groupKey])
   }
 }
 
