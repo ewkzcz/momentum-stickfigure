@@ -413,69 +413,27 @@
             @dragleave="handleTemplateListDragLeave"
           >
             <!-- 预设卡片展示（预设不使用虚拟滚动，因为数量较少） -->
-            <template v-if="currentTab === 'presets'">
-              <div v-if="presets.length === 0" class="empty-state">
-                <p>暂无预设，点击"预设"按钮创建预设</p>
-              </div>
-              <div
-                v-for="preset in presets"
-                :key="preset.id"
-                :class="[
-                  'part-item',
-                  'preset-item',
-                  {
-                    active: selectedPresetId === preset.id,
-                    'multi-selected': isPresetMultiSelected(preset.id)
-                  }
-                ]"
-                @click="handlePresetCardClick($event, preset.id)"
-                @contextmenu="handlePresetContextMenu($event, preset.id)"
-                @dblclick.stop="deselectAllPresets"
-              >
-                <div
-                  class="part-preview"
-                  @mouseenter="handlePresetHoverEnter($event, preset)"
-                  @mousemove="handlePresetHoverMove"
-                  @mouseleave="handlePresetHoverLeave"
-                >
-                  <img
-                    v-if="preset.base64Image"
-                    :src="preset.base64Image"
-                    :alt="preset.name"
-                    loading="lazy"
-                    draggable="true"
-                    @mouseenter="precacheImageData($event.target, { name: preset.name, displayName: preset.name })"
-                    @dragstart.stop="handlePartDragStart($event, { name: preset.name, displayName: preset.name })"
-                    @dragend.stop="handlePartDragEnd($event)"
-                    @click.stop="handlePresetImageClick(preset.id)"
-                    @mousedown.stop
-                    style="cursor: grab; user-select: none;"
-                    :title="`拖拽到剪映或其他软件使用（拖拽时自动命名）`"
-                  />
-                  <span v-else class="part-icon">🖼️</span>
-                </div>
-                <div class="part-info">
-                  <div class="part-name">
-                    <input
-                      v-if="editingPresetId === preset.id"
-                      type="text"
-                      class="preset-name-input"
-                      :value="preset.name"
-                      @click.stop
-                      @blur="handlePresetNameBlur(preset.id, $event)"
-                      @keyup.enter="handlePresetNameBlur(preset.id, $event)"
-                    />
-                    <span
-                      v-else
-                      @dblclick.stop="startEditPresetName(preset.id)"
-                      :title="getPresetFullDescription(preset)"
-                    >
-                      {{ getPresetDisplayName(preset) }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </template>
+            <PresetListPanel
+              v-if="currentTab === 'presets'"
+              :presets="presets"
+              :selected-preset-id="selectedPresetId"
+              :editing-preset-id="editingPresetId"
+              :is-preset-multi-selected="isPresetMultiSelected"
+              :get-preset-full-description="getPresetFullDescription"
+              :get-preset-display-name="getPresetDisplayName"
+              @card-click="handlePresetCardClick"
+              @context-menu="handlePresetContextMenu"
+              @deselect="deselectAllPresets"
+              @hover-enter="handlePresetHoverEnter"
+              @hover-move="handlePresetHoverMove"
+              @hover-leave="handlePresetHoverLeave"
+              @precache="precacheImageData"
+              @drag-start="handlePartDragStart"
+              @drag-end="handlePartDragEnd"
+              @image-click="handlePresetImageClick"
+              @name-blur="handlePresetNameBlur"
+              @rename="startEditPresetName"
+            />
 
             <!-- 模板卡片展示（模板不使用虚拟滚动，因为数量较少） -->
             <TemplateListPanel
@@ -613,6 +571,7 @@ import IntegratedControlsPanel from './components/IntegratedControlsPanel.vue'
 import LayerTreePanel from './components/LayerTreePanel.vue'
 import PartSearchModal from './components/PartSearchModal.vue'
 import TemplateListPanel from './components/TemplateListPanel.vue'
+import PresetListPanel from './components/PresetListPanel.vue'
 import { useHotkeyLabels } from './composables/useHotkeyLabels.js'
 import { useIntegratedPanelState } from './composables/useIntegratedPanelState.js'
 import TemplateContextMenu from './components/TemplateContextMenu.vue'
