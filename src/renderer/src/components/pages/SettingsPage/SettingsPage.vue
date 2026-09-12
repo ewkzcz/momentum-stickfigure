@@ -207,6 +207,13 @@ import GeminiSettings from './components/GeminiSettings.vue'
 import HdToolkitSettings from './components/HdToolkitSettings.vue'
 import DialogSettings from './components/DialogSettings.vue'
 import { useHdToolkitSettings } from './composables/useHdToolkitSettings.js'
+import {
+  createGeminiBackupSnapshot,
+  createStickfigureBackupSnapshot,
+  createHotkeysBackupSnapshot,
+  createDialogBackupSnapshot,
+  createSettingsArchive
+} from './composables/settingsArchive.js'
 import SettingsHelpContent from './components/SettingsHelpContent.vue'
 
 const route = useRoute()
@@ -783,17 +790,7 @@ const saveGeminiConfig = async () => {
 
     // 4、备份当前各工具配置，备份失败不影响本地保存。
     try {
-      const stickfigureConfigData = localStorage.getItem('stickfigure-config')
-      const hotkeysConfigData = localStorage.getItem('hotkeys-config')
-      const hdToolkitConfigData = localStorage.getItem('hd-toolkit-config')
-      const allSettings = {
-        version: appVersion.value,
-        exportTime: new Date().toISOString(),
-        stickfigureConfig: stickfigureConfigData ? JSON.parse(stickfigureConfigData) : null,
-        geminiConfig: JSON.parse(JSON.stringify(geminiConfig)),
-        hotkeysConfig: hotkeysConfigData ? JSON.parse(hotkeysConfigData) : null,
-        hdToolkitConfig: hdToolkitConfigData ? JSON.parse(hdToolkitConfigData) : null
-      }
+      const allSettings = createGeminiBackupSnapshot({ localStorage, appVersion, geminiConfig })
       await window.electronAPI.settings.autoBackupSettings(allSettings)
       console.log('💾 配置已自动备份到用户文档目录')
     } catch (backupError) {
@@ -977,16 +974,7 @@ const saveStickfigureConfig = async () => {
 
     // 5、备份失败不回滚已经保存的人物配置。
     try {
-      const hotkeysConfigData = localStorage.getItem('hotkeys-config')
-      const hdToolkitConfigData = localStorage.getItem('hd-toolkit-config')
-      const allSettings = {
-        version: appVersion.value,
-        exportTime: new Date().toISOString(),
-        stickfigureConfig: configToSave,
-        geminiConfig: JSON.parse(JSON.stringify(geminiConfig)),
-        hotkeysConfig: hotkeysConfigData ? JSON.parse(hotkeysConfigData) : null,
-        hdToolkitConfig: hdToolkitConfigData ? JSON.parse(hdToolkitConfigData) : null
-      }
+      const allSettings = createStickfigureBackupSnapshot({ localStorage, appVersion, geminiConfig, configToSave })
       await window.electronAPI.settings.autoBackupSettings(allSettings)
       console.log('💾 配置已自动备份到用户文档目录')
     } catch (backupError) {
@@ -1241,16 +1229,7 @@ const saveHotkeysConfig = async () => {
     
     // 自动备份配置到用户文档目录
     try {
-      const stickfigureConfigData = localStorage.getItem('stickfigure-config')
-      const hdToolkitConfigData = localStorage.getItem('hd-toolkit-config')
-      const allSettings = {
-        version: appVersion.value,
-        exportTime: new Date().toISOString(),
-        stickfigureConfig: stickfigureConfigData ? JSON.parse(stickfigureConfigData) : null,
-        geminiConfig: JSON.parse(JSON.stringify(geminiConfig)),
-        hotkeysConfig: configToSave,
-        hdToolkitConfig: hdToolkitConfigData ? JSON.parse(hdToolkitConfigData) : null
-      }
+      const allSettings = createHotkeysBackupSnapshot({ localStorage, appVersion, geminiConfig, configToSave })
       await window.electronAPI.settings.autoBackupSettings(allSettings)
       console.log('💾 配置已自动备份到用户文档目录')
     } catch (backupError) {
@@ -1335,18 +1314,7 @@ const saveDialogConfig = async () => {
     
     // 自动备份配置到用户文档目录
     try {
-      const stickfigureConfigData = localStorage.getItem('stickfigure-config')
-      const hotkeysConfigData = localStorage.getItem('hotkeys-config')
-      const hdToolkitConfigData = localStorage.getItem('hd-toolkit-config')
-      const allSettings = {
-        version: appVersion.value,
-        exportTime: new Date().toISOString(),
-        stickfigureConfig: stickfigureConfigData ? JSON.parse(stickfigureConfigData) : null,
-        geminiConfig: JSON.parse(JSON.stringify(geminiConfig)),
-        hotkeysConfig: hotkeysConfigData ? JSON.parse(hotkeysConfigData) : null,
-        hdToolkitConfig: hdToolkitConfigData ? JSON.parse(hdToolkitConfigData) : null,
-        dialogConfig: configToSave
-      }
+      const allSettings = createDialogBackupSnapshot({ localStorage, appVersion, geminiConfig, configToSave })
       await window.electronAPI.settings.autoBackupSettings(allSettings)
       console.log('💾 配置已自动备份到用户文档目录')
     } catch (backupError) {
@@ -1364,59 +1332,17 @@ const saveDialogConfig = async () => {
 
 // ==================== 配置导入导出功能 ====================
 
-/**
- * 导出所有配置到JSON文件
- * 处理流程：
- * 1、收集人物、生图、快捷键和抠图高清配置，并附版本与导出时间。
- * 2、请求主进程选择保存位置并导出，成功后另外写入自动备份。
- * 3、区分取消与失败，结束时恢复导出按钮状态。
- */
-const handleExportSettings = async () => {
-  // 1、当前导出集合明确列出下方四类配置，包含用户填写的 API 密钥。
-  try {
-    isExportingSettings.value = true
-    
-    console.log('[设置页] 开始导出配置...')
-    
-    // 收集所有配置
-    const allSettings = {
-      version: appVersion.value, // 记录配置版本
-      exportTime: new Date().toISOString(), // 导出时间
-      stickfigureConfig: JSON.parse(JSON.stringify(stickfigureConfig)), // 简笔画配置
-      geminiConfig: JSON.parse(JSON.stringify(geminiConfig)), // 纳米香蕉配置（包含API密钥）
-      hotkeysConfig: JSON.parse(JSON.stringify(hotkeysConfig)), // 快捷键配置
-      hdToolkitConfig: JSON.parse(JSON.stringify(hdToolkitConfig)), // 抠图高清配置
-    }
-    
-    console.log('[设置页] 配置已收集:', allSettings)
-    
-    // 2、文件选择和磁盘写入由主进程完成。
-    const result = await window.electronAPI.settings.exportSettings(allSettings)
-    
-    if (result.success) {
-      message.success(`配置已导出到: ${result.filePath}`, {
-        duration: 5000,
-        keepAliveOnHover: true
-      })
-      
-      // 同时保存一份到用户文档目录作为自动备份
-      await window.electronAPI.settings.autoBackupSettings(allSettings)
-    } else if (result.canceled) {
-      console.log('[设置页] 用户取消导出')
-    } else {
-      message.error('导出失败: ' + (result.error || '未知错误'), {
-        duration: 5000
-      })
-    }
-  } catch (error) {
-    console.error('[设置页] 导出配置失败:', error)
-    message.error('导出配置失败: ' + error.message, {
-      duration: 5000
-    })
-  } finally {
-    isExportingSettings.value = false
-  }
-}
+// 四域草稿已初始化；工厂仅创建导出操作，导出状态仍由页面原位持有。
+const { handleExportSettings } = createSettingsArchive({
+  window,
+  message,
+  appVersion,
+  isExportingSettings,
+  stickfigureConfig,
+  geminiConfig,
+  hotkeysConfig,
+  hdToolkitConfig
+})
 
 /**
  * 从JSON文件导入配置
