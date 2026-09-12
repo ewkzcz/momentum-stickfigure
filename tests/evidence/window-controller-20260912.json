@@ -1,0 +1,52 @@
+{
+  "date": "2026-09-12",
+  "change": "将主窗口、独立画布预览及其窗口控制和全局快捷键处理器迁入唯一窗口控制器",
+  "baseHead": "75d8b97bcfd7c0d25a07c265895ce34646b6f3b8",
+  "baseline": {
+    "desktopId": "momentum-regression-6u3GAk",
+    "mainSourceStatus": "",
+    "note": "主进程源码干净；当时渲染进程为随后验收提交的生图候选，不能称全业务干净基线",
+    "passed": true
+  },
+  "originalBundleReplay": {
+    "desktopId": "momentum-regression-AHlu5E",
+    "mainBundleSha256": "1c670804088797462b86dc211316c795ec8b38d891d322891b3ba37a7972d9ab",
+    "note": "运行仍为原版构建，期间窗口候选新文件已创建；本记录仅为原产物重复回放，不用作源码洁净基线",
+    "passed": true
+  },
+  "candidate": {
+    "desktopId": "momentum-regression-MtHB2d",
+    "mainBundleSha256": "e0992bb1434345aceedc15ae32a6f4fea39d8de439e95e9b2a6ec90f5e51fccc",
+    "command": "npm run build && MOMENTUM_WINDOW_BEFORE=<6u3GAk-root> node --test --test-concurrency=1 tests/window-lifecycle.test.mjs tests/preview-payload.test.mjs tests/canvas-output.test.mjs tests/settings-hotkeys.test.mjs",
+    "tests": 4,
+    "passed": 4,
+    "failed": 0,
+    "durationMs": 46251.747708
+  },
+  "afterWhitespaceCleanup": {"desktopId":"momentum-regression-Lxfqmz","tests":4,"passed":4,"failed":0,"durationMs":46014.37325,"otherEvidence":["momentum-output-uglRJJ","momentum-regression-s8JveP","momentum-regression-93XGeV"]},
+  "coverage": [
+    "真实预览窗口十轮新建、复用、关闭与重复关闭，原生窗口编号及数量核对",
+    "真实PNG画布像素、缩放后下次图像更新重置、明暗主题与文件名IPC成功返回",
+    "无预览窗口的四个更新通道均保持原错误结构",
+    "主窗关闭联动预览关闭，macOS activate重建主窗",
+    "已有画布输出十轮预览与两条生图菜单输入路径",
+    "预览ArrayBuffer、带偏移视图及旧dataURL传输",
+    "快捷键设置页面输入、拒绝、重置、保存重启及布局"
+  ],
+  "otherEvidence": ["momentum-output-utvHlk", "momentum-regression-wQrug1", "momentum-regression-wA5EQK"],
+  "mechanicalReview": "六函数正文和内部注释除行首缩进、原有行尾空白及__dirname替换mainDirectory外逐字一致；暂存检查发现迁移继承61处行尾空白，清理后重新构建复测；入口注册顺序与退出编排保持原样；窗口引用只在控制器内创建，不增加getter/setter",
+  "references": {"evidenceId": "layer-render-acceptance-UVaemD", "count": 266, "sha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed"},
+  "preservedDefects": [
+    "原注销函数removeAllListeners不清除handle注册，未混入修复",
+    "原createWindow每次追加web-contents-created监听，未混入清理",
+    "主窗口closed未清除引用，原两套预览创建分支差异及100/50ms延迟保留"
+  ],
+  "limits": [
+    "原测试后台保护阻止显示、聚焦、置顶及开发者工具，不等同原生显示验收",
+    "globalShortcut.register为原测试helper固定false，不证明系统快捷键回调或原生窗口最大化",
+    "文件名没有公开展示，仅验证IPC成功，不读取Vue私有状态",
+    "本轮仅四项定向回归，最近61项完整回归发生在本次窗口迁移之前",
+    "严格规模扫描仍因人物页2006行失败；全仓lint遗留错误尚未修复",
+    "BrowserView、拖拽剪贴板及其它入口职责尚未拆分，性能和安全阶段未完成"
+  ]
+}
