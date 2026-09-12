@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-12",
+  "change": "对话画布命中、选框与变换交互机械迁移",
+  "baseline": { "head": "801e43a9238812526a86bc872ade37433a21b296", "sourceStatus": "", "desktopId": "momentum-regression-qZKByY", "command": "node --test tests/dialog-interaction.test.mjs", "passed": true },
+  "candidate": { "baseHead": "801e43a9238812526a86bc872ade37433a21b296", "buildCommand": "npm run build", "desktopId": "momentum-regression-mHydik", "command": "MOMENTUM_DIALOG_INTERACTION_BEFORE=<baseline-root> node --test tests/dialog-interaction.test.mjs", "scenes": 10, "differentPixels": 0, "passed": true },
+  "renderAndExportRecheck": { "baselineDesktopId": "momentum-regression-xbb6QN", "candidateDesktopId": "momentum-regression-x5bsBR", "scenes": 18, "canvasComparisons": 18, "realExportComparisons": 18, "differentPixels": 0, "passed": true },
+  "mechanicalReview": "二十四个迁移函数初始化表达式正文和内部注释与801e43a逐字一致；原手柄状态只有新模块一份，普通拖拽、布局和生命周期继续父组件唯一持有",
+  "checks": { "progressiveLint": "passed, only append coverage", "build": "passed", "referenceEvidenceId": "layer-render-acceptance-KyDaFg", "referenceFiles": 266, "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed" },
+  "coverage": ["双对象角手柄縮放、旋转", "实际人物像素命中与平移", "人物删除", "真实reload后空画布", "六种嵌入方式与三种渐变及双对象工具栏变换、透明导出复核"],
+  "limits": ["没有把单次reload当成20轮生命周期与监听泄漏验收", "手柄移动中的原isDragging语义保持不变", "父文件原vue/no-dupe-keys诊断仍待独立清理", "原有58项完整回归在上项绘制提交之前通过；本项执行28场景定向及参考冻结检查，未声称再次完成全量" ]
+}
