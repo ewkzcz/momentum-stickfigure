@@ -1,0 +1,25 @@
+{
+  "baselineCommit": "e9be21b85c29bbd8ff828b923f0d9cc7c4e4a5d4",
+  "scope": "抠图高清设置域持有唯一配置reactive和五个忙碌ref，迁移八函数；跨域恢复/导入仍读写原引用，挂载两个异步加载的原顺序不变。",
+  "lines": { "pageBefore": 1955, "pageAfter": 1695, "module": 309 },
+  "mechanicalCheck": "temp/verify-hd-settings-extraction.mjs；8函数AST及正文注释、6状态初始化、模板样式、剩余脚本/挂载顺序通过，显式注入message/showSaveRestartTip/appVersion/geminiConfig。",
+  "baseline": {
+    "provenance": "temp/settings-domain-baseline-1789250766433",
+    "result": "干净源码重建产物，14/14通过，运行前后完整src/out/HEAD不变。",
+    "roots": ["s8tcFg", "fAZBvk", "R0jm2U", "l1q0uh", "RjfCgL", "9zOtyO", "dmHRCd"]
+  },
+  "candidate": {
+    "provenance": "temp/settings-domain-candidate-1789251382295",
+    "result": "外部重新build，14/14通过，运行前后完整src/out/HEAD不变。六个页面原版计算样式及截图零差异，文件契约、保存/取消/磁盘备份/重启通过。",
+    "roots": ["FpGzWH", "Gk9Eir", "ShsWVx", "BJwr9r", "p6JoTz", "awuZqg", "PVSbym"]
+  },
+  "checks": ["build passed", "npm run lint passed（仅追加新模块）", "strict source size passed", "git diff --check passed"],
+  "limits": [
+    "页面仍拥有跨域loadConfig与handleImportSettings，不声称配置职责全部完成。",
+    "保留高清备份恢复与后端加载并发、旧字段和默认值差异；未以重构改变现有语义。",
+    "既有文件测试的成功导入不经过页面字段应用；页面完整成功导入、版本确认关闭路径和故障中途部分写入尚待补测。",
+    "getDefaultHdToolkitPath依赖当前preload未暴露的appPath，原空串回退保留。",
+    "无真实AI/Python调用或环境修改；本项仅定向14项而非全量验收。",
+    "预览间歇空白全量失败仍记录；后续十轮原剪切组重复全部通过也不能代替根因修复。"
+  ]
+}
