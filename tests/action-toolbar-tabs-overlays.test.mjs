@@ -215,6 +215,19 @@ test('工具栏标签与悬浮预览：上传后控件、开关、标签点击�
     await page.mouse.move(1, 1)
     await page.locator('.image-hover-preview').waitFor({ state: 'detached' })
 
+    // 1、仅在显式验收跟随节点时追加十轮按下/松开，不越过窗口边界或触发系统拖出。
+    if (process.env.MOMENTUM_CHECK_DRAG_OVERLAY) {
+      await page.getByRole('checkbox', { name: '预览1', exact: true }).setChecked(false)
+      for (let round = 0; round < 10; round++) {
+        await page.mouse.move(point.x, point.y)
+        await page.mouse.down()
+        const follow = await stableCanvas(page, '.drag-follow-preview canvas')
+        await writeFile(path.join(desktop.root, `drag-${round}-canvas.png`), Buffer.from(follow.png, 'base64'), { flag: 'wx' })
+        await capture(desktop, `drag-${round}`, result, { toolbar: false, tabs: false, overlay: '.drag-follow-preview' })
+        await page.mouse.up()
+        await page.locator('.drag-follow-preview').waitFor({ state: 'detached' })
+      }
+    }
     assert.deepEqual(desktop.errors, [])
     assert.deepEqual(desktop.logs.filter((line) => /\[renderer:error\].*VueError:/.test(line)), [])
     result.passed = true

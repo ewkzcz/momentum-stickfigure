@@ -95,73 +95,18 @@
         </transition>
       </div>
 
-      <!-- 拖拽预览（传送到body，避免父级transform影响） -->
-      <teleport to="body">
-        <div
-          v-if="isDragging"
-          class="drag-follow-preview"
-          ref="dragFollowPreview"
-          :style="{
-            left: Math.max(0, dragMouseX - dragCalibration.dx) + 'px',
-            top: Math.max(0, dragMouseY - dragCalibration.dy) + 'px'
-          }"
-        >
-          <canvas
-            ref="dragFollowCanvas"
-            width="170"
-            height="150"
-            style="pointer-events:none; width: 150px; height: 120px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);"
-          ></canvas>
-        </div>
-      </teleport>
-
-      <!-- 悬浮放大预览（传送到body，避免父级transform影响） -->
-      <teleport to="body">
-        <div
-          v-if="hoverPreview.visible"
-          class="image-hover-preview"
-          :style="{
-            left: hoverPreview.x + 'px',
-            top: hoverPreview.y + 'px',
-            width: hoverPreview.width + 'px',
-            height: hoverPreview.height + 'px'
-          }"
-        >
-          <img :src="hoverPreview.src" alt="preview" />
-        </div>
-      </teleport>
-
-      <!-- 预设悬浮预览 -->
-      <teleport to="body">
-        <div
-          v-if="presetHoverPreview.visible"
-          class="preset-hover-preview"
-          :style="{
-            left: presetHoverPreview.x + 'px',
-            top: presetHoverPreview.y + 'px',
-            width: presetHoverPreview.width + 'px',
-            height: presetHoverPreview.height + 'px'
-          }"
-        >
-          <img :src="presetHoverPreview.src" alt="preset preview" />
-        </div>
-      </teleport>
-
-      <!-- 模板悬浮预览 -->
-      <teleport to="body">
-        <div
-          v-if="templateHoverPreview.visible"
-          class="template-hover-preview"
-          :style="{
-            left: templateHoverPreview.x + 'px',
-            top: templateHoverPreview.y + 'px',
-            width: templateHoverPreview.width + 'px',
-            height: templateHoverPreview.height + 'px'
-          }"
-        >
-          <img :src="templateHoverPreview.src" alt="template preview" />
-        </div>
-      </teleport>
+      <!-- 拖拽跟随及三类悬浮预览（传送到body，避免父级transform影响） -->
+      <HoverPreviewOverlays
+        :is-dragging="isDragging"
+        :drag-mouse-x="dragMouseX"
+        :drag-mouse-y="dragMouseY"
+        :drag-calibration="dragCalibration"
+        :hover-preview="hoverPreview"
+        :preset-hover-preview="presetHoverPreview"
+        :template-hover-preview="templateHoverPreview"
+        @preview-ref="node => dragFollowPreview = node"
+        @canvas-ref="node => dragFollowCanvas = node"
+      />
 
       <!-- 通用控制和图层结构整合面板 -->
       <IntegratedControlsPanel
@@ -365,6 +310,7 @@ import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { NTooltip, useMessage, useDialog } from 'naive-ui'
 import ActionExpressionToolbar from './components/ActionExpressionToolbar.vue'
 import PartsTabsBar from './components/PartsTabsBar.vue'
+import HoverPreviewOverlays from './components/HoverPreviewOverlays.vue'
 import PsdTabsBar from './components/PsdTabsBar.vue'
 import IntegratedControlsPanel from './components/IntegratedControlsPanel.vue'
 import LayerTreePanel from './components/LayerTreePanel.vue'
