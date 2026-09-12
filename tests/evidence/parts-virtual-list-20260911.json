@@ -1,0 +1,22 @@
+{
+  "item": "parts-virtual-list-split",
+  "head": "2d36c8733fd04d3e73ed4f8054f7e66bb8712627",
+  "before": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-qL6811",
+  "after": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-zVsR05",
+  "beforePassed": true,
+  "afterPassed": true,
+  "scenes": [
+    "empty",
+    "ordinary-1024",
+    "selected-1024",
+    "size-200",
+    "selected-800",
+    "selected-600",
+    "selected-400",
+    "scrolled"
+  ],
+  "pageLinesBefore": 2260,
+  "pageLinesAfter": 2215,
+  "componentLines": 287,
+  "notes": "原版与迁移后公开DOM/计算样式/截图像素零差异；虚拟滚动与选择业务仍在父页"
+}
