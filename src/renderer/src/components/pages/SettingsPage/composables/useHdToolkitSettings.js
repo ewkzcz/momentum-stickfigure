@@ -1,5 +1,6 @@
 /** 抠图高清设置：管理高清表单状态、路径选择和持久化；跨域恢复与导入仍由设置页面协调。 */
 import { reactive, ref } from 'vue'
+import { createHdToolkitBackupSnapshot } from './settingsArchive.js'
 
 /**
  * 创建抠图高清设置状态与操作。
@@ -220,16 +221,7 @@ export function useHdToolkitSettings({ message, showSaveRestartTip, appVersion, 
 
       // 自动备份配置到用户文档目录
       try {
-        const stickfigureConfigData = localStorage.getItem('stickfigure-config')
-        const hotkeysConfigData = localStorage.getItem('hotkeys-config')
-        const allSettings = {
-          version: appVersion.value,
-          exportTime: new Date().toISOString(),
-          stickfigureConfig: stickfigureConfigData ? JSON.parse(stickfigureConfigData) : null,
-          geminiConfig: JSON.parse(JSON.stringify(geminiConfig)),
-          hotkeysConfig: hotkeysConfigData ? JSON.parse(hotkeysConfigData) : null,
-          hdToolkitConfig: configToSave
-        }
+        const allSettings = createHdToolkitBackupSnapshot({ localStorage, appVersion, geminiConfig, configToSave })
         await window.electronAPI.settings.autoBackupSettings(allSettings)
         console.log('💾 配置已自动备份到用户文档目录')
       } catch (backupError) {
