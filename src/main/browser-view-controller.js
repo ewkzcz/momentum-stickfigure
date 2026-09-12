@@ -312,7 +312,8 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         const existing = globalBrowserViews.get(key)
         if (existing) {
           try { removeView(window, existing.view) } catch (_) {}
-          try { existing.view.destroy() } catch (_) {}
+          // BrowserView 本身没有 destroy；关闭其网页内容才会实际释放渲染资源。
+          try { existing.view.webContents.close() } catch (_) {}
           globalBrowserViews.delete(key)
         }
 
@@ -386,7 +387,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         if (record) {
           // 2、释放窗口挂载和视图引用。
           try { removeView(record.window, record.view) } catch (_) {}
-          try { record.view.destroy() } catch (_) {}
+          try { record.view.webContents.close() } catch (_) {}
           globalBrowserViews.delete(key)
         }
         return { success: true }
@@ -623,7 +624,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
     // 2、清理所有残留视图并释放缓存引用。
     for (const { view, window } of globalBrowserViews.values()) {
       try { removeView(window, view) } catch (_) {}
-      try { view?.destroy() } catch (_) {}
+      try { view?.webContents.close() } catch (_) {}
     }
     globalBrowserViews.clear()
     console.log('✓ BrowserView 处理器已移除')

@@ -1,0 +1,74 @@
+{
+  "baselineCommit": "5d8fc03882dbaee67d1e93ade20454c4ab92302c",
+  "cause": "Electron35的BrowserView无destroy方法；调用异常被吞，解除挂载后webContents仍存活。使用webContents.close()实际关闭网页内容。",
+  "changes": "只替换同键视图替换、显式关闭、注销三个原destroy调用；原IPC及其他生命周期逻辑未调整。",
+  "runs": [
+    {
+      "directory": "temp/browser-disposal-baseline-1789247877873",
+      "mode": "baseline",
+      "files": [
+        "tests/browser-view-disposal.test.mjs"
+      ],
+      "code": 1,
+      "roots": [
+        "momentum-regression-pDtoPf"
+      ],
+      "sourceAndBuildStable": true,
+      "head": "5d8fc03882dbaee67d1e93ade20454c4ab92302c",
+      "status": "",
+      "mainBundleSha256": "a0f3fed87405a21f1614ce51829ede6f00c827f41d1d10cd7e3710ac5951cf14"
+    },
+    {
+      "directory": "temp/browser-disposal-candidate-1789247922916",
+      "mode": "candidate",
+      "files": [
+        "tests/browser-view-disposal.test.mjs"
+      ],
+      "code": 0,
+      "roots": [
+        "momentum-regression-obu7Ch"
+      ],
+      "sourceAndBuildStable": true,
+      "head": "5d8fc03882dbaee67d1e93ade20454c4ab92302c",
+      "status": " M src/main/browser-view-controller.js\n",
+      "mainBundleSha256": "10b000b97c7f0e62ab7c9ec698cde7474415fe6eed9aad0f840e25b3d99b843d"
+    },
+    {
+      "directory": "temp/browser-disposal-functional-1789247978467",
+      "mode": "candidate",
+      "files": [
+        "temp/browser-view-probe.mjs",
+        "temp/web-drag-probe.mjs",
+        "tests/window-lifecycle.test.mjs",
+        "tests/preview-payload.test.mjs"
+      ],
+      "code": 0,
+      "roots": [
+        "momentum-regression-xVu797",
+        "momentum-regression-X4VOUn",
+        "momentum-regression-TrhVLJ",
+        "momentum-regression-vY241n"
+      ],
+      "sourceAndBuildStable": true,
+      "head": "5d8fc03882dbaee67d1e93ade20454c4ab92302c",
+      "status": " M src/main/browser-view-controller.js\n",
+      "mainBundleSha256": "10b000b97c7f0e62ab7c9ec698cde7474415fe6eed9aad0f840e25b3d99b843d"
+    }
+  ],
+  "before": "干净5d8fc03源码、当前构建；首轮同键替换后attached=1/live=2，预期1/1，5秒后失败；未完成20轮。",
+  "after": "同一正式失败测试不改断言，20轮完成；每轮替换1/1、分区共存2/2、关闭回0/0。",
+  "functionalComparison": "十轮边界、主题DOM、实际刷新、独立分区、重复关闭、缺失视图三通道与pSJ5as原版一致；仅显式允许并强制验证已复现的存活资源数由每轮累计3个降为0；不修改冻结图像或业务参考。",
+  "checks": [
+    "build passed",
+    "npm run lint passed（渐进范围，非全仓）",
+    "git diff --check passed"
+  ],
+  "limits": [
+    "不声称全面内存无泄漏或性能提升；没有GC/长期内存趋势分析",
+    "带beforeunload拦截的页面、加载失败清理、并发打开、宿主直接销毁及will-quit独立资源断言尚未覆盖",
+    "原有主题定时器、resize兼容分支、未完整移除IPC等未混修",
+    "四项关联回归通过；尚未执行该候选全量回归",
+    "真实第三方登录和原生系统拖拽未验证",
+    "此前agxZE2带退出弹窗测试产生Playwright协议错误，未将该失败算作已覆盖"
+  ]
+}
