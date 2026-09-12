@@ -208,8 +208,8 @@ import HdToolkitSettings from './components/HdToolkitSettings.vue'
 import DialogSettings from './components/DialogSettings.vue'
 import { useHdToolkitSettings } from './composables/useHdToolkitSettings.js'
 import { useHotkeySettings } from './composables/useHotkeySettings.js'
+import { useGeminiSettings } from './composables/useGeminiSettings.js'
 import {
-  createGeminiBackupSnapshot,
   createStickfigureBackupSnapshot,
   createDialogBackupSnapshot,
   createSettingsArchive
@@ -263,8 +263,6 @@ const activeTab = computed(() => {
   return route.meta?.settingsTab || 'stickfigure'
 })
 const stickfigureSubTab = ref('basic') // 人物插件设置子标签页状态
-const isSavingGemini = ref(false)
-const isSelectingFolder = ref(false)
 const isSavingStickfigure = ref(false)
 const isSelectingStickfigureFolder = ref(false)
 
@@ -280,32 +278,25 @@ const isExportingSettings = ref(false)
 const isImportingSettings = ref(false)
 
 /**
- * 推导默认生图项目路径。
+ * 判断路径是否为绝对路径。
  * 处理流程：
- * 1、读取用户目录和系统平台。
- * 2、构造图片目录中的项目路径，缺少用户目录时使用相对路径。
+ * 1、拒绝空值，依次识别 Windows 盘符、UNC 和 POSIX 根路径。
  */
-const getDefaultProjectRoot = () => {
-  // 1、桌面环境信息由预加载提供。
-  const homedir = window.env?.homedir || ''
-  const platform = window.env?.platform || 'win32'
-  
-  if (!homedir) {
-    // 如果无法获取homedir，使用相对路径
-    return './gemini-image'
+const isAbsolutePath = (path) => {
+  // 1、仅检查格式，不检测磁盘路径是否存在。
+  if (!path) return false
+
+  // Windows 绝对路径模式: C:\ 或 \\server\share
+  if (/^[A-Za-z]:\\/.test(path) || /^\\\\/.test(path)) {
+    return true
   }
-  
-  // 2、按平台使用对应路径分隔符。
-  if (platform === 'win32') {
-    // Windows: C:\Users\{username}\Pictures\GeminiImage
-    return `${homedir}\\Pictures\\GeminiImage`
-  } else if (platform === 'darwin') {
-    // MacOS: /Users/{username}/Pictures/GeminiImage
-    return `${homedir}/Pictures/GeminiImage`
-  } else {
-    // Linux: /home/{username}/Pictures/GeminiImage
-    return `${homedir}/Pictures/GeminiImage`
+
+  // Unix/Linux/Mac 绝对路径模式: /path
+  if (path.startsWith('/')) {
+    return true
   }
+
+  return false
 }
 
 /**
@@ -318,12 +309,12 @@ const getDefaultPicturesPath = () => {
   // 1、为未保存输出位置的配置提供默认值。
   const homedir = window.env?.homedir || ''
   const platform = window.env?.platform || 'win32'
-  
+
   if (!homedir) {
     // 如果无法获取homedir，使用当前目录
     return './简笔画导出'
   }
-  
+
   // 2、构造平台对应的图片导出路径。
   if (platform === 'win32') {
     // Windows: C:\Users\{username}\Pictures\简笔画导出
@@ -361,15 +352,16 @@ const DEFAULT_GROUP_NAMES = {
   expression: '表情、表情(合并)、表情（合并）、表情1、表情2、专属表情、专属表情1、专属表情2、专属表情3、专属表情【灰豆绿色】、专属表情【粉色】、辅助表情、豆豆眼、豆豆眼1、豆豆眼2、豆豆眼表情、豆豆眼表情1、豆豆眼表情2、表情豆豆眼、帅哥眼睛、眼睛女、眼睛男、眉毛、眼睛、嘴、新表情、新新表情、脸 副本、眉毛 副本、嘴 副本、眼睛 副本、定制表情、定制表情1、定制表情2'
 }
 
-// API 配置（纳米香蕉生图）
-const geminiConfig = reactive({
-  apiKey: '',
-  baseUrl: '',
-  projectRoot: getDefaultProjectRoot(), // 提供默认的绝对路径
-  outputDir: 'output',
-  editOutputDir: 'output',
-  logDir: 'logs'
-})
+// 生图域在原配置初始化位置创建；跨域恢复、导入和备份共用同一配置对象。
+const {
+  geminiConfig,
+  isSavingGemini,
+  isSelectingFolder,
+  getDefaultProjectRoot,
+  saveGeminiConfig,
+  selectProjectRootFolder,
+  resetProjectRootToDefault
+} = useGeminiSettings({ message, showSaveRestartTip, appVersion, isAbsolutePath })
 
 /**
  * 初始化人物插件配置。
@@ -385,7 +377,7 @@ const loadInitialStickfigureConfig = () => {
       const parsed = JSON.parse(savedConfig)
       console.log('📖 初始化加载简笔画配置:', parsed)
       console.log('📋 图组名称配置:', parsed.groupNames)
-      
+
       // 确保必要字段存在
       return {
         outputRoot: parsed.outputRoot || getDefaultPicturesPath(),
@@ -410,7 +402,7 @@ const loadInitialStickfigureConfig = () => {
   } catch (error) {
     console.error('初始化加载配置失败:', error)
   }
-  
+
   // 2、默认配置包含完整图组结构，保证表单可直接绑定嵌套字段。
   return {
     outputRoot: getDefaultPicturesPath(),
@@ -493,7 +485,7 @@ function loadInitialDialogConfig() {
   } catch (error) {
     console.warn('加载对话插件配置失败:', error)
   }
-  
+
   // 2、默认输出目录由用户后续选择。
   return {
     outputRoot: '',
@@ -524,13 +516,13 @@ const loadConfig = async () => {
       const restoreResult = await window.electronAPI.settings.restoreSettings()
       if (restoreResult.success && restoreResult.settings) {
         console.log('📁 从用户文档目录找到配置备份，正在恢复...')
-        
+
         // 恢复简笔画配置
         if (restoreResult.settings.stickfigureConfig) {
           localStorage.setItem('stickfigure-config', JSON.stringify(restoreResult.settings.stickfigureConfig))
           console.log('✅ 简笔画配置已从备份恢复')
         }
-        
+
         // 恢复纳米香蕉配置
         const restoredGeminiConfig = restoreResult.settings.geminiConfig || restoreResult.settings.falConfig
         if (restoredGeminiConfig) {
@@ -540,7 +532,7 @@ const loadConfig = async () => {
           }
           console.log('✅ 纳米香蕉配置已从备份恢复')
         }
-        
+
         // 恢复快捷键配置
         if (restoreResult.settings.hotkeysConfig) {
           hotkeysConfig.toggleMainWindow = restoreResult.settings.hotkeysConfig.toggleMainWindow || DEFAULT_HOTKEYS.toggleMainWindow
@@ -550,12 +542,12 @@ const loadConfig = async () => {
           persistHotkeysConfig(hotkeysConfig)
           console.log('✅ 快捷键配置已从备份恢复')
         }
-        
+
         // 恢复抠图高清配置
         if (restoreResult.settings.hdToolkitConfig) {
           localStorage.setItem('hd-toolkit-config', JSON.stringify(restoreResult.settings.hdToolkitConfig))
           console.log('✅ 抠图高清配置已从备份恢复')
-          
+
           // 更新到 reactive 对象，兼容旧字段名
           const cfg = restoreResult.settings.hdToolkitConfig
           hdToolkitConfig.pythonHome = cfg.pythonHome || cfg.pythonPath || ''
@@ -569,7 +561,7 @@ const loadConfig = async () => {
     } catch (restoreError) {
       console.log('⚠️ 恢复配置备份失败，使用localStorage中的配置:', restoreError)
     }
-    
+
     // 2、从恢复后的本地存储重新读取人物配置并更新表单。
     console.log('🔄 重新加载简笔画配置...')
     const savedStickfigureConfig = localStorage.getItem('stickfigure-config')
@@ -577,7 +569,7 @@ const loadConfig = async () => {
       const parsed = JSON.parse(savedStickfigureConfig)
       console.log('📖 从localStorage加载简笔画配置:', parsed)
       console.log('📋 图组名称配置:', parsed.groupNames)
-      
+
       // 更新 reactive 对象的每个属性
       stickfigureConfig.outputRoot = parsed.outputRoot || getDefaultPicturesPath()
       stickfigureConfig.overwriteMode = parsed.overwriteMode || 'rename'
@@ -585,7 +577,7 @@ const loadConfig = async () => {
       stickfigureConfig.enableFuzzyMatch = parsed.enableFuzzyMatch !== undefined ? parsed.enableFuzzyMatch : true
       stickfigureConfig.frontHandBothNames = parsed.frontHandBothNames || DEFAULT_FRONT_HAND_BOTH_NAMES
       stickfigureConfig.frontHandRightNames = parsed.frontHandRightNames || DEFAULT_FRONT_HAND_RIGHT_NAMES
-      
+
       // 更新图组名称配置
       if (parsed.groupNames) {
         stickfigureConfig.groupNames.frontHand = parsed.groupNames.frontHand || DEFAULT_GROUP_NAMES.frontHand
@@ -596,7 +588,7 @@ const loadConfig = async () => {
         stickfigureConfig.groupNames.action = parsed.groupNames.action || DEFAULT_GROUP_NAMES.action
         stickfigureConfig.groupNames.expression = parsed.groupNames.expression || DEFAULT_GROUP_NAMES.expression
       }
-      
+
       console.log('✅ 简笔画配置已更新到组件')
     } else {
       console.log('⚠️ localStorage中没有找到简笔画配置，使用默认值')
@@ -607,25 +599,25 @@ const loadConfig = async () => {
     if (savedHdToolkitConfig) {
       const parsed = JSON.parse(savedHdToolkitConfig)
       console.log('📖 从localStorage加载抠图高清配置:', parsed)
-      
+
       // 兼容旧字段名
       hdToolkitConfig.pythonHome = parsed.pythonHome || parsed.pythonPath || ''
       hdToolkitConfig.removebgWeightsDir = parsed.removebgWeightsDir || parsed.removebgWeightsPath || ''
       hdToolkitConfig.highresWeightsDir = parsed.highresWeightsDir || parsed.highresWeightsPath || ''
       hdToolkitConfig.outputDir = parsed.outputDir || parsed.outputPath || ''
-      
+
       console.log('✅ 抠图高清配置已更新到组件')
     } else {
       console.log('⚠️ localStorage中没有找到抠图高清配置，使用默认值')
     }
-    
+
     // 4、生图配置优先使用当前存储键，缺失时读取旧键。
     const savedGeminiConfig = localStorage.getItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY) || localStorage.getItem('fal-config')
     let needsSave = false
-    
+
     if (savedGeminiConfig) {
       const parsed = JSON.parse(savedGeminiConfig)
-      
+
       // 检查保存的projectRoot是否包含旧的硬编码用户名或不存在的路径
       if (parsed.projectRoot && 
           (parsed.projectRoot.includes('Administrator\\Pictures\\fal-project') ||
@@ -635,18 +627,18 @@ const loadConfig = async () => {
         parsed.projectRoot = getDefaultProjectRoot()
         needsSave = true
       }
-      
+
       Object.assign(geminiConfig, parsed)
-      
+
       // 如果projectRoot为空或无效，设置为默认值
       if (!geminiConfig.projectRoot || geminiConfig.projectRoot.trim() === '') {
         geminiConfig.projectRoot = getDefaultProjectRoot()
         needsSave = true
       }
-      
+
       // 确保编辑图片路径与生成图片路径一致
       geminiConfig.editOutputDir = geminiConfig.outputDir
-      
+
       // 如果检测到需要更新路径，立即保存到localStorage
       if (needsSave) {
         console.log('自动保存更新后的配置到localStorage:', geminiConfig.projectRoot)
@@ -671,154 +663,6 @@ const loadConfig = async () => {
   } catch (error) {
     console.error('加载配置失败:', error)
   }
-}
-
-/**
- * 保存生图服务配置。
- * 处理流程：
- * 1、校验密钥、中转站地址和绝对项目路径。
- * 2、统一输出目录，保存当前键并移除旧存储键。
- * 3、尝试创建目录和自动备份，再提示保存结果并解除忙碌状态。
- */
-const saveGeminiConfig = async () => {
-  try {
-    isSavingGemini.value = true
-
-    // 1、校验服务连接信息和项目路径后才写入配置。
-    if (!geminiConfig.apiKey.trim()) {
-      message.error('请输入纳米香蕉生图API密钥', {
-        duration: 4000,
-        keepAliveOnHover: true
-      })
-      return
-    }
-
-    geminiConfig.baseUrl = normalizeApiBaseUrl(geminiConfig.baseUrl)
-
-    // 验证项目根路径
-    if (!geminiConfig.projectRoot.trim()) {
-      message.error('请选择项目根路径', {
-        duration: 4000,
-        keepAliveOnHover: true
-      })
-      return
-    }
-
-    if (!isAbsolutePath(geminiConfig.projectRoot)) {
-      message.error('项目根路径必须是绝对路径', {
-        duration: 4000,
-        keepAliveOnHover: true
-      })
-      return
-    }
-
-    // 2、保存时统一编辑与生成结果的输出位置。
-    geminiConfig.editOutputDir = geminiConfig.outputDir
-
-    // 保存配置到本地存储（包括用户选择的baseUrl）
-    localStorage.setItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY, JSON.stringify(geminiConfig))
-    if (localStorage.getItem('fal-config')) {
-      localStorage.removeItem('fal-config')
-    }
-
-    // 3、目录创建失败只记录警告，不撤销已保存配置。
-    try {
-      await window.falApi?.createDirectories?.(JSON.parse(JSON.stringify(geminiConfig)))
-    } catch (dirError) {
-      console.warn('创建目录失败:', dirError)
-    }
-
-    // 4、备份当前各工具配置，备份失败不影响本地保存。
-    try {
-      const allSettings = createGeminiBackupSnapshot({ localStorage, appVersion, geminiConfig })
-      await window.electronAPI.settings.autoBackupSettings(allSettings)
-      console.log('💾 配置已自动备份到用户文档目录')
-    } catch (backupError) {
-      console.warn('⚠️ 自动备份失败（不影响保存）:', backupError)
-    }
-
-    showSaveRestartTip('纳米香蕉生图配置保存成功！')
-  } catch (error) {
-    console.error('保存纳米香蕉配置失败:', error)
-    message.error('保存失败: ' + error.message, {
-      duration: 5000,
-      keepAliveOnHover: true
-    })
-  } finally {
-    isSavingGemini.value = false
-  }
-}
-
-/**
- * 选择生图项目根目录。
- * 处理流程：
- * 1、打开系统目录选择器，成功时更新表单，取消时保留原值。
- * 2、反馈选择失败并在结束时恢复选择按钮状态。
- */
-const selectProjectRootFolder = async () => {
-  // 1、目录选择仅更新表单，持久化由保存按钮执行。
-  try {
-    isSelectingFolder.value = true
-
-    const result = await window.fileSystem.selectFolder()
-
-    if (result.success && result.path) {
-      geminiConfig.projectRoot = result.path
-      message.success('项目根路径已设置: ' + result.path, {
-        duration: 3000,
-        keepAliveOnHover: true
-      })
-    } else if (result.canceled) {
-      console.log('用户取消了文件夹选择')
-    } else {
-      message.error('选择文件夹失败: ' + (result.error || '未知错误'), {
-        duration: 5000,
-        keepAliveOnHover: true
-      })
-    }
-  } catch (error) {
-    console.error('选择文件夹失败:', error)
-    message.error('选择文件夹失败: ' + error.message, {
-      duration: 5000,
-      keepAliveOnHover: true
-    })
-  } finally {
-    isSelectingFolder.value = false
-  }
-}
-
-/** 重置生图项目路径；处理流程：1、重新推导当前系统默认路径并更新表单提示。 */
-const resetProjectRootToDefault = () => {
-  // 1、仅重置表单字段，用户保存后才持久化。
-  const defaultPath = getDefaultProjectRoot()
-  geminiConfig.projectRoot = defaultPath
-  message.success('已重置为默认路径: ' + defaultPath, {
-    duration: 3000,
-    keepAliveOnHover: true
-  })
-  console.log('重置项目根路径为:', defaultPath)
-}
-
-/**
- * 判断路径是否为绝对路径。
- * 处理流程：
- * 1、拒绝空值，依次识别 Windows 盘符、UNC 和 POSIX 根路径。
- */
-const isAbsolutePath = (path) => {
-  // 1、仅检查格式，不检测磁盘路径是否存在。
-  if (!path) return false
-  
-  // Windows 绝对路径模式: C:\ 或 \\server\share
-  if (/^[A-Za-z]:\\/.test(path) || /^\\\\/.test(path)) {
-    return true
-  }
-  
-  // Unix/Linux/Mac 绝对路径模式: /path
-  if (path.startsWith('/')) {
-    return true
-  }
-  
-  return false
 }
 
 // ==================== 简笔画人物插件配置管理 ====================
@@ -872,10 +716,10 @@ const saveStickfigureConfig = async () => {
         expression: stickfigureConfig.groupNames.expression.trim() || DEFAULT_GROUP_NAMES.expression
       }
     }
-    
+
     console.log('💾 保存简笔画配置:', configToSave)
     console.log('📋 保存的图组名称:', configToSave.groupNames)
-    
+
     // 保存前检查是否有空值被替换为默认值
     const emptyFields = []
     if (!stickfigureConfig.frontHandBothNames.trim()) emptyFields.push('前手-双手名称')
@@ -887,18 +731,18 @@ const saveStickfigureConfig = async () => {
     if (!stickfigureConfig.groupNames.lowerBody.trim()) emptyFields.push('下身图组名称')
     if (!stickfigureConfig.groupNames.action.trim()) emptyFields.push('动作图组名称')
     if (!stickfigureConfig.groupNames.expression.trim()) emptyFields.push('表情图组名称')
-    
+
     if (emptyFields.length > 0) {
       console.log('⚠️ 以下字段为空，已自动填充默认值:', emptyFields.join('、'))
     }
-    
+
     localStorage.setItem('stickfigure-config', JSON.stringify(configToSave))
-    
+
     // 3、回读已保存内容，记录实际写入结果。
     const savedCheck = localStorage.getItem('stickfigure-config')
     const parsedCheck = JSON.parse(savedCheck)
     console.log('✅ 验证保存成功，读取到的配置:', parsedCheck.groupNames)
-    
+
     // 4、将补齐后的名称同步回表单，避免显示与保存值不一致。
     stickfigureConfig.createPsdFolder = configToSave.createPsdFolder
     stickfigureConfig.enableFuzzyMatch = configToSave.enableFuzzyMatch
@@ -1044,7 +888,7 @@ const selectDialogOutputFolder = async () => {
   try {
     isSelectingDialogFolder.value = true
     const result = await window.fileSystem.selectFolder()
-    
+
     if (result.success && result.path) {
       dialogConfig.outputRoot = result.path
       message.success('输出文件夹已设置', { duration: 2000 })
@@ -1067,21 +911,21 @@ const saveDialogConfig = async () => {
   // 1、空目录不保存，其他路径规则由实际输出流程处理。
   try {
     isSavingDialog.value = true
-    
+
     // 验证必填项
     if (!dialogConfig.outputRoot || !dialogConfig.outputRoot.trim()) {
       message.error('请选择图片保存目录')
       return
     }
-    
+
     const configToSave = {
       outputRoot: dialogConfig.outputRoot,
       createDateFolder: dialogConfig.createDateFolder
     }
-    
+
     // 2、先写入对话工具独立配置，再尝试整体备份。
     localStorage.setItem('dialog-config', JSON.stringify(configToSave))
-    
+
     // 自动备份配置到用户文档目录
     try {
       const allSettings = createDialogBackupSnapshot({ localStorage, appVersion, geminiConfig, configToSave })
@@ -1090,7 +934,7 @@ const saveDialogConfig = async () => {
     } catch (backupError) {
       console.warn('⚠️ 自动备份失败（不影响保存）:', backupError)
     }
-    
+
     showSaveRestartTip('对话插件配置保存成功！')
   } catch (error) {
     console.error('保存对话插件配置失败:', error)
@@ -1125,17 +969,17 @@ const handleImportSettings = async () => {
   // 1、先完成文件读取和版本确认，再修改任何配置。
   try {
     isImportingSettings.value = true
-    
+
     console.log('[设置页] 开始导入配置...')
-    
+
     // 调用文件系统API选择文件
     const result = await window.electronAPI.settings.importSettings()
-    
+
     if (result.success && result.settings) {
       const importedSettings = result.settings
-      
+
       console.log('[设置页] 配置已读取:', importedSettings)
-      
+
       // 2、版本号用于配置兼容提示，不涉及软件更新或授权校验。
       if (importedSettings.version && importedSettings.version !== appVersion.value) {
         const confirmResult = await new Promise((resolve) => {
@@ -1152,17 +996,17 @@ const handleImportSettings = async () => {
             }
           })
         })
-        
+
         if (!confirmResult) {
           console.log('[设置页] 用户取消导入')
           return
         }
       }
-      
+
       // 3、先更新人物表单，再持久化导入的人物配置。
       if (importedSettings.stickfigureConfig) {
         const imported = importedSettings.stickfigureConfig
-        
+
         // 更新基础配置
         stickfigureConfig.outputRoot = imported.outputRoot || getDefaultPicturesPath()
         stickfigureConfig.overwriteMode = imported.overwriteMode || 'rename'
@@ -1172,7 +1016,7 @@ const handleImportSettings = async () => {
         stickfigureConfig.enableFuzzyMatch = imported.enableFuzzyMatch !== undefined ? imported.enableFuzzyMatch : true
         stickfigureConfig.frontHandBothNames = imported.frontHandBothNames || DEFAULT_FRONT_HAND_BOTH_NAMES
         stickfigureConfig.frontHandRightNames = imported.frontHandRightNames || DEFAULT_FRONT_HAND_RIGHT_NAMES
-        
+
         // 更新图组名称配置
         if (imported.groupNames) {
           stickfigureConfig.groupNames.frontHand = imported.groupNames.frontHand || DEFAULT_GROUP_NAMES.frontHand
@@ -1183,17 +1027,17 @@ const handleImportSettings = async () => {
           stickfigureConfig.groupNames.action = imported.groupNames.action || DEFAULT_GROUP_NAMES.action
           stickfigureConfig.groupNames.expression = imported.groupNames.expression || DEFAULT_GROUP_NAMES.expression
         }
-        
+
         // 保存到 localStorage
         localStorage.setItem('stickfigure-config', JSON.stringify(imported))
         console.log('[设置页] 简笔画配置已导入并更新到界面')
       }
-      
+
       // 4、接受当前生图配置名和旧版配置名，统一写入当前存储键。
       const importedGeminiConfig = importedSettings.geminiConfig || importedSettings.falConfig
       if (importedGeminiConfig) {
         const imported = importedGeminiConfig
-        
+
         // 更新所有属性
         geminiConfig.apiKey = imported.apiKey || ''
         geminiConfig.baseUrl = imported.baseUrl || ''
@@ -1201,7 +1045,7 @@ const handleImportSettings = async () => {
         geminiConfig.outputDir = imported.outputDir || 'output'
         geminiConfig.editOutputDir = imported.editOutputDir || imported.outputDir || 'output'
         geminiConfig.logDir = imported.logDir || 'logs'
-        
+
         // 保存到 localStorage
         localStorage.setItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY, JSON.stringify(geminiConfig))
         if (localStorage.getItem('fal-config')) {
@@ -1209,20 +1053,20 @@ const handleImportSettings = async () => {
         }
         console.log('[设置页] 纳米香蕉配置已导入并更新到界面')
       }
-      
+
       // 5、保存并广播快捷键，同时尝试更新系统注册。
       if (importedSettings.hotkeysConfig) {
         const imported = importedSettings.hotkeysConfig
-        
+
         // 更新快捷键配置
         hotkeysConfig.toggleMainWindow = imported.toggleMainWindow || DEFAULT_HOTKEYS.toggleMainWindow
         hotkeysConfig.togglePreviewWindow = imported.togglePreviewWindow || DEFAULT_HOTKEYS.togglePreviewWindow
         hotkeysConfig.openSearch = imported.openSearch || DEFAULT_HOTKEYS.openSearch
         hotkeysConfig.toggleCanvasHover = imported.toggleCanvasHover || DEFAULT_HOTKEYS.toggleCanvasHover
-        
+
         // 保存到 localStorage
         persistHotkeysConfig(hotkeysConfig)
-        
+
         // 通知主进程更新全局快捷键
         if (window.electronAPI?.hotkeys?.updateHotkeys) {
           try {
@@ -1232,14 +1076,14 @@ const handleImportSettings = async () => {
             console.warn('[设置页] 更新主进程快捷键失败:', err)
           }
         }
-        
+
         console.log('[设置页] 快捷键配置已导入并更新到界面')
       }
 
       // 6、统一环境路径字段，再同步本地和主进程配置。
       if (importedSettings.hdToolkitConfig) {
         const imported = importedSettings.hdToolkitConfig
-        
+
         // 统一为规范键名
         hdToolkitConfig.pythonHome = imported.pythonHome || imported.pythonPath || getDefaultHdToolkitPath('python-env\\python3\\python.exe')
         hdToolkitConfig.removebgWeightsDir = imported.removebgWeightsDir || imported.removebgWeightsPath || getDefaultHdToolkitPath('python-env\\weights\\removebg')
@@ -1271,7 +1115,7 @@ const handleImportSettings = async () => {
 
         console.log('[设置页] 抠图高清配置已导入并更新到界面')
       }
-      
+
       message.success('配置导入成功！所有设置已更新', {
         duration: 3000,
         keepAliveOnHover: true
@@ -1297,7 +1141,7 @@ const handleImportSettings = async () => {
 onMounted(() => {
   loadConfig()
   loadHdToolkitConfigFromBackend()
-  
+
   // 将配置暴露到全局，方便调试
   if (window) {
     window.DEBUG_SETTINGS = {
