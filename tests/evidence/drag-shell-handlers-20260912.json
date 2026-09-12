@@ -1,0 +1,71 @@
+{
+  "baselineCommit": "52dd9896675506fef8294ac50154115343a11e0d",
+  "scope": "仅迁移五个函数至拖拽剪贴板与系统链接模块，入口615至223行；原注册与注销顺序、错误及共享目录规则不变",
+  "baseline": {
+    "provenance": "temp/drag-shell-baseline-1789247634103",
+    "cleanSourceAndConfig": true,
+    "run": {
+      "mode": "baseline",
+      "files": [
+        "temp/drag-files-probe.mjs",
+        "temp/shell-probe.mjs",
+        "temp/web-drag-probe.mjs"
+      ],
+      "code": 0,
+      "roots": [
+        "momentum-regression-GOt5hP",
+        "momentum-regression-QSpMP4",
+        "momentum-regression-exI6F2"
+      ],
+      "sourceAndBuildStable": true
+    },
+    "mainBuildSha256": "127726a4f845cbeb7e0cd18a7faf9a6bcb78e9bc3aac44ce13f9e1afc61d9dcf"
+  },
+  "candidate": {
+    "provenance": "temp/drag-shell-candidate-1789247686592",
+    "status": " M package.json\n M src/main/index.js\n?? src/main/drag-clipboard-handler.js\n?? src/main/shell-handler.js\n",
+    "run": {
+      "mode": "candidate",
+      "files": [
+        "temp/drag-files-probe.mjs",
+        "temp/shell-probe.mjs",
+        "temp/web-drag-probe.mjs",
+        "tests/file-write.test.mjs",
+        "tests/preview-payload.test.mjs",
+        "tests/window-lifecycle.test.mjs"
+      ],
+      "code": 0,
+      "roots": [
+        "momentum-regression-DXqlyM",
+        "momentum-regression-vHJNPj",
+        "momentum-regression-xufrul",
+        "momentum-regression-3GNx8I",
+        "momentum-regression-jvwSXq"
+      ],
+      "sourceAndBuildStable": true
+    },
+    "mainBuildSha256": "a0f3fed87405a21f1614ce51829ede6f00c827f41d1d10cd7e3710ac5951cf14"
+  },
+  "assertions": {
+    "functionAstAndCommentsPreserved": true,
+    "templateRawSegmentsByteIdentical": 45,
+    "sharedPicturesDirectorySingleBinding": true,
+    "dragResultsExact": true,
+    "unchangedBuildFiles": 50,
+    "changedBuildFiles": [
+      "main/index.js"
+    ],
+    "lint": "npm run lint passed（追加新模块，未缩小范围）",
+    "size": "strict passed, 0 oversized",
+    "diffCheck": "passed"
+  },
+  "limits": [
+    "仅六项定向通过，未将历史63项全量结果算作本次结果",
+    "保留独立browser-view-disposal.test.mjs失败测试，不属于本次迁移提交",
+    "原生拖入外部软件、focus拖拽结束、真实系统剪贴板和浏览器打开未实测；使用既有隔离helper",
+    "网页同步拖拽通过原ipcMain.emit和真实sender，非renderer同步入口；未等待2000ms复位",
+    "原有注销removeAllListeners与handle不对应等缺陷未混修",
+    "完整eslint src仍有历史错误，本次渐进lint通过不等于全仓lint通过",
+    "stash恢复原版出现原有行尾空白警告，候选最终diff检查独立通过"
+  ]
+}
