@@ -2,7 +2,7 @@
  * 系统拖拽完成事件订阅：集中管理 Electron 事件监听及对应清理。
  *
  * 页面仍在原生命周期位置显式调用 register，避免改变监听注册顺序；
- * 订阅取消函数和 Electron 兜底移除均由本模块持有，页面不再保存资源副本。
+ * 订阅取消函数由本模块持有，卸载只释放自身订阅，不清空共享通道。
  */
 export function useDragFinishedSubscription(options = {}) {
   const { electronApi = () => globalThis.window?.electronAPI } = options
@@ -29,15 +29,13 @@ export function useDragFinishedSubscription(options = {}) {
    * 清理系统拖拽完成监听。
    * 处理流程：
    * 1、先执行订阅方提供的取消函数。
-   * 2、按原行为调用 Electron 兜底移除，随后释放本地引用。
+   * 2、释放本地引用，不影响共享通道上的其他消费者。
    */
-  // 页面卸载只发生一次；保留原有取消顺序，释放局部引用避免重复清理。
+  // 取消函数由预加载返回；仅清理本模块拥有的监听。
   const cleanupDragFinished = () => {
-    const api = electronApi()
     if (unsubscribe) {
       unsubscribe()
     }
-    api?.removeAllListeners?.('drag-finished')
     unsubscribe = null
   }
 

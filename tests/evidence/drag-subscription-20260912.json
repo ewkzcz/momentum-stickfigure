@@ -1,0 +1,29 @@
+{
+  "baselineCommit": "ca98ac96a3173aecb52e3fc0a67f462e345c91cc",
+  "scope": "人物页卸载只执行自身订阅的取消函数，移除会清空共享drag-finished通道的兜底调用；不改preload契约。",
+  "baseline": {
+    "provenance": "temp/drag-consumer-baseline-1789249491185",
+    "desktop": "momentum-regression-yGcdGW",
+    "result": "真实人物页完成注册后进入布局外/login，独立订阅只收到卸载前序号0，收不到卸载后序号1；首轮正确断言失败。"
+  },
+  "candidate": {
+    "provenance": "temp/drag-consumer-candidate-1789249562199",
+    "desktop": "momentum-regression-OPVa5b",
+    "result": "同一探针20轮真实挂载/卸载通过，独立消费者完整收到40次事件；最终独立取消和重复取消通过。",
+    "preload": "momentum-regression-oBdUOX；四类通道各20轮独立取消及重复取消通过。",
+    "unit": "tests/drag-subscription.test.mjs；真实模块20轮清理后仅保留独立消费者。"
+  },
+  "regression": {
+    "provenance": "temp/drag-consumer-psd-1789249581450",
+    "result": "9/9通过，包括两份指定PSD、三份自制PSD、预设和磁盘配置；RGBA零差异。",
+    "references": "layer-render-acceptance-29BGT0；266份摘要9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed不变。",
+    "checks": ["build passed", "npm run lint passed（现有渐进范围）", "strict source size passed", "git diff --check passed"]
+  },
+  "remaining": [
+    "GeneratePage和旧ImageGenerateComponent的同通道removeAllListeners尚未修复，本项不声称全部消费者已收敛。",
+    "重复register而不cleanup、异步挂载在卸载后完成、视频OCR异常清理另列未覆盖。",
+    "此前ca98ac9完整回归layer-render-acceptance-0mPJGN为62通过2失败：synthetic-clipping-group预览隐藏超时及父测试组失败，不能标记全量通过。",
+    "未改源码原样重跑tests/regression.test.mjs为9/9通过（preview-failure-replay-1789249332727）；预览间歇超时原因尚未确认，重跑通过不等于修复。",
+    "真实外部系统拖入及跨平台未验证；测试沿用原隔离后台helper。"
+  ]
+}
