@@ -1,0 +1,11 @@
+{
+  "baselineCommit": "faa49be7888de35d9f2ec352ad55ff244496ff66",
+  "scope": "生图设置域持有唯一geminiConfig和两个忙碌ref，迁移默认项目路径、保存、选择、重置四函数；父跨域加载/导入/备份继续操作同一对象。",
+  "baseline": {"provenance": "temp/gemini-domain-baseline-1789254692703", "archive": "LOGR6i", "gemini": "osJhrD", "passed": 2, "durationMs": 78715},
+  "candidate": {"provenance": "temp/gemini-domain-candidate-1789255320354", "archive": "u3WKnM", "basic": "uRa8Jj", "gemini": "Le2gz5", "passed": 3, "durationMs": 92092, "sourceAndBuildStable": true},
+  "checks": ["temp/verify-gemini-settings-extraction.mjs通过：四函数及共享路径函数正文注释、状态初值、默认路径求值原位置、父页剩余全部脚本、模板样式一致", "npm run lint通过，仅追加新域", "严格规模扫描超限0", "重新生产build通过", "git diff --check通过"],
+  "initialization": "isAbsolutePath无副作用定义移至原getDefaultProjectRoot位置，工厂初始化前注入，人物保存仍用同一函数；默认路径仍在原geminiConfig位置求值；两个ref仅延后分配初值。",
+  "coverage": ["生图及人物设置原版计算样式和截图零差异", "输入、路径选择取消重置、保存校验及URL规范化、真实磁盘备份和完整重启", "跨域未保存草稿备份、四域导出及取消、旧字段falConfig/false导入、独立高清与共享磁盘及重启严格对照"],
+  "whitespace": "新模块及父脚本非模板空白行行尾空格清理，行数、模板和所有原代码注释保留；机械核查明确忽略行边缘空白，不更改模板字符串内容。",
+  "limits": ["保留现有密钥日志及导出语义，真实AI/Python未调用", "父跨域loadConfig/import仍待按域收敛", "全仓eslint在faa49be实跑仍26 errors，只有新快捷键模块准确声明CustomEvent使旧27减一，不声称全仓通过", "此候选只有定向3项，没有完整全量结果", "预览间歇空白未定位；只读核查确认挂载订阅前没有await，不可无证据归因为Vue异步挂载"]
+}
