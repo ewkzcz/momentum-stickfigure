@@ -222,92 +222,26 @@
         <!-- 部件选择区域 -->
         <div class="parts-section">
           <!-- 切换按钮 - 拆分为2行 -->
-          <div class="parts-tabs-container">
-            <!-- 第1行：动作表情相关标签 -->
-            <div
-              class="parts-tabs parts-tabs-row-1"
-              ref="partsTabsRow1Ref"
-              @wheel="handleTabsWheel"
-              @dragover="handleContainerDragOver($event, 'row1')"
-              @drop="handleContainerDrop($event, 'row1')"
-            >
-              <button
-                v-for="tab in categorizedTabs.row1Tabs"
-                :key="tab.key"
-                :class="[
-                  'part-tab',
-                  {
-                    active: currentTab === tab.key,
-                    'has-rendered': hasRenderedContent[tab.key],
-                    'drag-over-before': dragOverTabKey === tab.key && dropPosition === 'before',
-                    'drag-over-after': dragOverTabKey === tab.key && dropPosition === 'after'
-                  }
-                ]"
-                draggable="true"
-                @click="handleTabClick(tab.key)"
-                @dragstart="handleTabDragStart($event, tab.key)"
-                @dragend="handleTabDragEnd"
-                @dragover="handleTabDragOver($event, tab.key)"
-                @dragleave="handleTabDragLeave"
-                @drop="handleTabDrop($event, tab.key)"
-                :title="`双击可便捷取消分组内所有图层显示\n拖拽可调整顺序`"
-              >
-                {{ tab.label }}
-              </button>
-            </div>
-
-            <!-- 第2行：模板、预设、上身下身 + 工具栏 -->
-            <div
-              class="parts-tabs parts-tabs-row-2"
-              ref="partsTabsRow2Ref"
-              @wheel="handleTabsWheel"
-              @dragover="handleContainerDragOver($event, 'row2')"
-              @drop="handleContainerDrop($event, 'row2')"
-            >
-              <button
-                v-for="tab in categorizedTabs.row2Tabs"
-                :key="tab.key"
-                :class="[
-                  'part-tab',
-                  {
-                    active: currentTab === tab.key,
-                    'has-rendered': hasRenderedContent[tab.key],
-                    'drag-over-before': dragOverTabKey === tab.key && dropPosition === 'before',
-                    'drag-over-after': dragOverTabKey === tab.key && dropPosition === 'after'
-                  }
-                ]"
-                draggable="true"
-                @click="handleTabClick(tab.key)"
-                @dragstart="handleTabDragStart($event, tab.key)"
-                @dragend="handleTabDragEnd"
-                @dragover="handleTabDragOver($event, tab.key)"
-                @dragleave="handleTabDragLeave"
-                @drop="handleTabDrop($event, tab.key)"
-                :title="`双击可便捷取消分组内所有图层显示\n拖拽可调整顺序`"
-              >
-                {{ tab.label }}
-              </button>
-
-              <!-- 工具栏（重置和提示）放在第2行末尾 -->
-              <div class="tab-management-toolbar-inline">
-                <n-tooltip placement="bottom">
-                  <template #trigger>
-                    <button class="tab-reset-btn" @click="resetTabConfig" title="重置标签排序">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                        <path d="M21 3v5h-5"/>
-                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-                        <path d="M3 21v-5h5"/>
-                      </svg>
-                    </button>
-                  </template>
-                  重置标签排序
-                </n-tooltip>
-
-                <span class="tab-hint">提示：拖拽标签可排序</span>
-              </div>
-            </div>
-          </div>
+          <PartsTabsBar
+            :row1-tabs="categorizedTabs.row1Tabs"
+            :row2-tabs="categorizedTabs.row2Tabs"
+            :current-tab="currentTab"
+            :has-rendered-content="hasRenderedContent"
+            :drag-over-tab-key="dragOverTabKey"
+            :drop-position="dropPosition"
+            @row1-ref="node => partsTabsRow1Ref = node"
+            @row2-ref="node => partsTabsRow2Ref = node"
+            @wheel="handleTabsWheel"
+            @container-dragover="handleContainerDragOver"
+            @container-drop="handleContainerDrop"
+            @tab-click="handleTabClick"
+            @tab-dragstart="handleTabDragStart"
+            @tab-dragend="handleTabDragEnd"
+            @tab-dragover="handleTabDragOver"
+            @tab-dragleave="handleTabDragLeave"
+            @tab-drop="handleTabDrop"
+            @reset="resetTabConfig"
+          />
 
           <!-- 部件列表（含预设） - 使用虚拟滚动优化 -->
           <div
@@ -430,6 +364,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, onActivated, nextTick,
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { NTooltip, useMessage, useDialog } from 'naive-ui'
 import ActionExpressionToolbar from './components/ActionExpressionToolbar.vue'
+import PartsTabsBar from './components/PartsTabsBar.vue'
 import PsdTabsBar from './components/PsdTabsBar.vue'
 import IntegratedControlsPanel from './components/IntegratedControlsPanel.vue'
 import LayerTreePanel from './components/LayerTreePanel.vue'
