@@ -1,0 +1,27 @@
+{
+  "item": "parts-virtual-list-split-provenance-recheck",
+  "date": "2026-09-12",
+  "beforeHead": "ce41a7cff2e54598da7981cda6dcd8cd982524b7",
+  "afterHead": "22fdbc2",
+  "beforeDesktopId": "momentum-regression-8OdOfO",
+  "afterDesktopId": "momentum-regression-bRmKtt",
+  "provenance": "工作区干净时切换到拆分前提交，重新构建全部生产产物；仅从dev恢复测试文件运行基线，随后回到dev重建并指定该目录对照。",
+  "beforePassed": true,
+  "afterPassed": true,
+  "scenes": ["empty", "ordinary-1024", "selected-1024", "size-200", "selected-800", "selected-600", "selected-400", "scrolled"],
+  "differentRgbaPixels": 0,
+  "limitation": "原测试滚动条件允许内容不足一屏，不将本次结果作为极长列表滚动性能验收。此前ZEegWh/Ieg9Y0属于候选重复执行，不构成迁移前后证据；此次重新构建原提交后补齐来源。",
+  "relatedAcceptance": {
+    "toolbarBeforeDesktopId": "momentum-regression-55cqYL",
+    "toolbarAfterDesktopId": "momentum-regression-I4rFpC",
+    "tabsAfterDesktopId": "momentum-regression-9u1uZn",
+    "dragOverlayBeforeDesktopId": "momentum-regression-JpZlmJ",
+    "dragOverlayAfterDesktopId": "momentum-regression-fltAO9",
+    "dragOverlayRounds": 10,
+    "fullSuiteId": "layer-render-acceptance-6CZGan",
+    "passed": 57,
+    "failed": 0,
+    "referenceFiles": 266,
+    "referenceDigest": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed"
+  }
+}
