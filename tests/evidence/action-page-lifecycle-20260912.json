@@ -1,0 +1,21 @@
+{
+  "date": "2026-09-12",
+  "change": "人物页生命周期职责迁移，保留原挂载与卸载顺序",
+  "status": "accepted",
+  "baseHead": "e543a796925ee8da59c1af903d0850d3ef92b78d",
+  "baseline": { "desktopId": "momentum-regression-w9vAnp", "passed": true, "durationMs": 328632.38475, "sourceClean": true },
+  "baselineReplay": { "desktopId": "momentum-regression-cMn37R", "passed": true, "durationMs": 328366.073792 },
+  "candidate": { "desktopId": "momentum-regression-dBIJCM", "passed": true, "durationMs": 328552.043875 },
+  "failedCandidate": { "desktopId": "momentum-regression-3pr6Zw", "passed": false, "reason": "遗漏父页早期快捷键订阅仍使用onMounted/onUnmounted，删除导入导致真实界面启动失败；恢复原导入，未改早期钩子或测试期望，重新构建复测" },
+  "commands": ["npm run lint", "node scripts/check-source-size.mjs --strict", "npm run build", "MOMENTUM_ACTION_LIFECYCLE_BEFORE=<w9vAnp-root> node --test tests/action-page-lifecycle.test.mjs", "MOMENTUM_ACTION_LIFECYCLE_BEFORE=<w9vAnp-root> MOMENTUM_GENERATE_WORKFLOW_BEFORE=<y3OiIC-root> node tests/verify-layer-render-completion.mjs all"],
+  "mechanicalReview": "父页面其余脚本（含早期快捷键两钩子）、模板及样式AST/原文复核一致；四生命周期钩子和尺寸回调保留原正文及内部注释；后初始化的initPSDService、renderAllLayers、autoSavePsdHistory通过延迟闭包读取，图层树清理使用getter读取最终ref；原生命周期调用位置和顺序不变",
+  "scope": { "pageLines": 1899, "moduleLines": 139, "strictSourceSizePassed": true },
+  "coverage": ["20轮KeepAlive缓存离开与激活，同一个真实canvas节点复用", "缩放和区域模式激活分支，公开DOM及原始RGBA对照", "每轮清空历史再离开，确认离开守卫写入真实PSD路径并关闭预览", "2轮经欢迎路由销毁主布局，resize配对释放、重新挂载与显式加载路径历史", "主进程及renderer内存样本记录"],
+  "testDevelopmentFailures": [
+    { "desktopId": "momentum-regression-x4QQNm", "reason": "原版首次导入174px与激活适配186px布局不同；错误要求不同操作阶段完全相同。生产不变，按各自原版场景比较，像素仍零容差" },
+    { "reason": "原版菜单成对添加与移除resize，使累计计数变化；改为存活配对无累积、重复和未匹配移除为零，累计计数仍完整记录" },
+    { "desktopId": "momentum-regression-epBFKK", "reason": "同原版严格回放末尾卸载恢复阶段累计订阅比基线多一组已配对add/remove，存活数和全部DOM/RGBA相同；只将该阶段非确定总计保留为数据，跨运行仍比较存活数、错误配对和原版图像" }
+  ],
+  "fullRegression": { "evidenceId": "layer-render-acceptance-SV7BS1", "tests": 63, "passed": 63, "failed": 0, "skipped": 0, "durationMs": 1038119, "lifecycleDesktopId": "momentum-regression-oG2aMA", "referenceFiles": 266, "referenceSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed", "note": "包含独立下一项尚未随本次提交的file-read测试；本次源码只修改人物页生命周期" },
+  "limits": ["20轮缓存停用不等于20轮卸载，本轮仅2轮真实卸载", "内存无强制GC或稳定性统计，不声称性能改善或全面无泄漏", "不改变原全局虚拟列表cleanup和异步挂载缺少取消的旧行为", "沿用测试后台保护，不验证原生显示或系统快捷键", "2026-09-12复核全仓lint仍有27个既有诊断，职责拆分和整体优化未完成"]
+}
