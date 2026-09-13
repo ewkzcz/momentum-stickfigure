@@ -45,6 +45,7 @@ test('窗口生命周期：十轮预览复用、主题和视图同步、关闭�
     const png = canvas.toBuffer('image/png')
     const dataUrl = `data:image/png;base64,${png.toString('base64')}`
     const first = await windows(application)
+    const initialWebContentsListeners = await application.evaluate(({ app }) => app.listenerCount('web-contents-created'))
     assert.equal(first.length, 1)
     const mainId = first[0].id
     let previousId
@@ -103,11 +104,26 @@ test('窗口生命周期：十轮预览复用、主题和视图同步、关闭�
     assert.equal((await windows(application)).length, 0)
     // macOS保留无窗口进程；其它平台由独立进程验收退出，不改变平台规则。
     if (process.platform === 'darwin') {
-      const reopened = application.waitForEvent('window')
-      await application.evaluate(({ app }) => { app.emit('activate') })
-      const next = await reopened
-      await next.waitForFunction(() => document.querySelector('#app')?.children.length > 0)
-      assert.equal((await windows(application)).length, 1)
+      // 4、重复真实主窗口重建，应用级监听应始终等于启动后基线，包含原隔离辅助自己的监听。
+      evidence.mainRecreationCycles = []
+      let next
+      for (let cycle = 0; cycle < 20; cycle++) {
+        const reopened = application.waitForEvent('window')
+        await application.evaluate(({ app }) => { app.emit('activate') })
+        next = await reopened
+        await next.waitForFunction(() => document.querySelector('#app')?.children.length > 0)
+        const current = await windows(application)
+        assert.equal(current.length, 1)
+        const listeners = await application.evaluate(({ app }) => app.listenerCount('web-contents-created'))
+        assert.equal(listeners, initialWebContentsListeners, '主窗口重建不得累计应用级webview监听')
+        evidence.mainRecreationCycles.push({ cycle, listeners })
+        if (cycle < 19) {
+          const closed = next.waitForEvent('close')
+          await application.evaluate(({ BrowserWindow }, id) => { BrowserWindow.fromId(id).close() }, current[0].id)
+          await closed
+          assert.equal((await windows(application)).length, 0)
+        }
+      }
       evidence.macActivateRecreated = true
     }
     assert.deepEqual(desktop.errors, [])

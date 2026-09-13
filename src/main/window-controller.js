@@ -17,6 +17,8 @@ import { getHotkeysConfig, saveHotkeysConfig } from './hotkeys-storage.js'
 export function createWindowController({ mainDirectory }) {
   // 全局窗口引用
   let mainWindow = null
+  // 应用级监听由唯一控制器持有，主窗口重建时复用，退出时按同一引用解除。
+  let webContentsCreatedHandler = null
 
   /**
    * 创建并初始化应用主窗口。
@@ -174,24 +176,27 @@ export function createWindowController({ mainDirectory }) {
     })
 
     // 监听 webview 附加事件，为每个 webview 设置权限
-    app.on('web-contents-created', (event, contents) => {
-      if (contents.getType() === 'webview') {
-        console.log('[Webview] 新的 webview 已创建')
+    if (!webContentsCreatedHandler) {
+      webContentsCreatedHandler = (event, contents) => {
+        if (contents.getType() === 'webview') {
+          console.log('[Webview] 新的 webview 已创建')
 
-        // 允许 webview 导航
-        contents.setWindowOpenHandler((details) => {
-          shell.openExternal(details.url)
-          return { action: 'deny' }
-        })
+          // 允许 webview 导航
+          contents.setWindowOpenHandler((details) => {
+            shell.openExternal(details.url)
+            return { action: 'deny' }
+          })
 
-        // 设置 webview 权限
-        contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
-          const allowedPermissions = ['media', 'notifications', 'geolocation', 'fullscreen']
-          callback(allowedPermissions.includes(permission))
-        })
+          // 设置 webview 权限
+          contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+            const allowedPermissions = ['media', 'notifications', 'geolocation', 'fullscreen']
+            callback(allowedPermissions.includes(permission))
+          })
 
+        }
       }
-    })
+      app.on('web-contents-created', webContentsCreatedHandler)
+    }
 
     // 4、开发环境加载开发服务，打包环境加载本地入口。
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -535,6 +540,10 @@ export function createWindowController({ mainDirectory }) {
     }
 
     // 2、移除预览同步与窗口控制监听。
+    if (webContentsCreatedHandler) {
+      app.removeListener('web-contents-created', webContentsCreatedHandler)
+      webContentsCreatedHandler = null
+    }
     ipcMain.removeAllListeners('canvas-preview-create')
     ipcMain.removeAllListeners('canvas-preview-close')
     ipcMain.removeAllListeners('canvas-preview-update')
