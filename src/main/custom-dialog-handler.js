@@ -98,6 +98,10 @@ export function registerCustomDialogHandlers() {
   ipcMain.handle('delete-custom-dialog', async (event, fileName) => {
     try {
       const filePath = path.join(customDialogDir, fileName)
+      // 删除接口只接收目录内的直接文件名，拒绝两类平台分隔符及路径跳转。
+      if (!fileName || fileName === '.' || fileName === '..' || /[\\/]/.test(fileName) || path.isAbsolute(fileName)) {
+        return { success: false, error: '文件名不能包含路径' }
+      }
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath)
         console.log('删除自定义对话框:', filePath)
