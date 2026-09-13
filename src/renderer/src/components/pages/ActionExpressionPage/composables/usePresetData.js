@@ -4,6 +4,8 @@
  */
 
 import { ref, computed } from 'vue'
+import { getCanvasRenderCoordinator } from './useCanvasRenderCoordinator.js'
+import { loadRenderImage } from '../utils/renderImageTask.js'
 import { useMessage, useDialog } from 'naive-ui'
 import { calculatePsdHash } from '../utils/hashUtils'
 import { getCanvasBase64 } from '../utils/canvasUtils'
@@ -210,12 +212,14 @@ export function usePresetData({
   canvasWidth,
   canvasHeight,
   isRendering,
+  renderCoordinator: injectedRenderCoordinator,
   renderAllLayers,
   syncCanvasToPreview // 传入的画布-预览同步函数，确保预设切换能更新独立预览窗口
 }) {
   // 1、初始化页面消息服务及预设交互状态。
   const message = useMessage()
   const dialog = useDialog()
+  const renderCoordinator = getCanvasRenderCoordinator({ canvasRef, isRendering, renderCoordinator: injectedRenderCoordinator })
 
   // ========== 状态定义 ==========
   const presets = ref([]) // 预设列表 [{ id, name, base64Image, timestamp }]
@@ -726,18 +730,10 @@ export function usePresetData({
     
     console.log(`🎬 开始渲染预设 #${currentSequence}:`, preset.name)
     
+    const request = renderCoordinator.begin()
     let renderSucceeded = false
     try {
-      isRendering.value = true
-      const ctx = canvas.getContext('2d')
-      
-      // 加载预设图片（异步操作，期间可能被新的选择中断）
-      const img = new Image()
-      await new Promise((resolve, reject) => {
-        img.onload = resolve
-        img.onerror = reject
-        img.src = preset.base64Image
-      })
+      const img = await loadRenderImage(preset.base64Image, { signal: request.signal, timeout: 10000 })
       
       // 2、检查序列号与选中预设，避免旧图片覆盖新的选择。
       if (currentSequence !== renderSequence) {
@@ -752,10 +748,7 @@ export function usePresetData({
       }
       
       // 使用双缓冲技术：先在离屏canvas绘制，然后一次性更新到主canvas
-      const offscreenCanvas = document.createElement('canvas')
-      offscreenCanvas.width = canvas.width
-      offscreenCanvas.height = canvas.height
-      const offscreenCtx = offscreenCanvas.getContext('2d')
+      const { canvas: offscreenCanvas, ctx: offscreenCtx } = renderCoordinator.createBuffer(request)
       
       // 在离屏canvas上绘制预设图片
       offscreenCtx.drawImage(img, 0, 0)
@@ -767,19 +760,15 @@ export function usePresetData({
       }
       
       // 一次性更新到主canvas（避免闪烁）
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.drawImage(offscreenCanvas, 0, 0)
-      
+      renderSucceeded = renderCoordinator.commit(request, offscreenCanvas)
       console.log(`✅ 渲染预设完成 #${currentSequence}:`, preset.name)
-      renderSucceeded = true
     } catch (error) {
-      console.error(`❌ 渲染预设失败 #${currentSequence}:`, error)
-      message.error('渲染预设失败')
-    } finally {
-      // 只有当前序列是最新时才释放锁
-      if (currentSequence === renderSequence) {
-        isRendering.value = false
+      if (!request.signal.aborted) {
+        console.error(`❌ 渲染预设失败 #${currentSequence}:`, error)
+        message.error('渲染预设失败')
       }
+    } finally {
+      renderCoordinator.finish(request, 'failed')
     }
     
     // 3、仅把成功绘制的预设同步到独立预览窗口。

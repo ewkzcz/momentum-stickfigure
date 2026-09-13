@@ -411,6 +411,7 @@ import { usePsdSession } from './composables/usePsdSession.js'
 import { useCanvasState } from './composables/useCanvasState.js'
 import { useKeyboard } from './composables/useKeyboard.js'
 import { useMoreMenu } from './composables/useMoreMenu.js'
+import { createCanvasRenderCoordinator } from './composables/useCanvasRenderCoordinator.js'
 import { useCanvasRender } from './composables/useCanvasRender.js'
 import { usePartTabLayout } from './composables/usePartTabLayout.js'
 import { usePartSearch } from './composables/usePartSearch.js'
@@ -1163,6 +1164,7 @@ let importPsdHistory = () => {}
 // ==================== Canvas渲染核心逻辑临时占位变量 ====================
 // 注意：必须在 usePresetData 之前定义，因为 usePresetData 依赖这些变量
 const isRendering = ref(false) // 预设、画布渲染和预览订阅始终共用此引用
+const renderCoordinator = createCanvasRenderCoordinator({ canvasRef, isRendering })
 /**
  * 画布刷新的异步初始化占位。
  * 处理流程：
@@ -1254,6 +1256,7 @@ const {
   canvasWidth,
   canvasHeight,
   isRendering,
+  renderCoordinator,
   renderAllLayers: () => renderAllLayers(), // 使用箭头函数包装，避免undefined问题
   syncCanvasToPreview // 将画布同步方法下发给预设逻辑，保障预设切换后预览窗口立即刷新
 })
@@ -1519,6 +1522,7 @@ const initCanvasRender = () => {
   const renderComposable = useCanvasRender({
     // Canvas基础状态
     isRendering,
+    renderCoordinator,
     canvasRef,
     canvasStyle,
     scrollMode,
@@ -1639,6 +1643,8 @@ commonControlsDeps.renderAllLayers = () => queueRenderAllLayers()
 
 // 初始化图层树 composable（在依赖函数定义之后）
 const layerTreeComposable = initLayerTree({
+  renderCoordinator,
+  isRendering,
   layerTreeData,
   layerTreeOperations,
   selectedLayersMap,

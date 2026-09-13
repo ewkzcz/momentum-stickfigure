@@ -4,6 +4,8 @@
  */
 
 import { ref } from 'vue'
+import { getCanvasRenderCoordinator } from './useCanvasRenderCoordinator.js'
+import { loadRenderImage, bindRenderSignal, getRenderSignal, assertRenderActive } from '../utils/renderImageTask.js'
 import { createPerformanceLogger } from '@renderer/utils/performanceLogger.js'
 
 const isProduction = import.meta?.env?.MODE === 'production'
@@ -80,6 +82,7 @@ export function useLayerTree(deps) {
 
   // ==================== 状态 ====================
   
+  const renderCoordinator = getCanvasRenderCoordinator(deps)
   const layerTreeData = deps.layerTreeData ?? ref([]) // 图层树数据
   const layerTreeOperations = deps.layerTreeOperations ?? ref({}) // 记录用户通过图层树的操作：{ '图层路径': { name: '图层名', visible: true/false, changed: true } }
   const selectedLayersMap = deps.selectedLayersMap ?? ref({}) // 选中的图层映射 { layerName: true/false }
@@ -1025,22 +1028,13 @@ export function useLayerTree(deps) {
    * @param {number} canvasHeight - 画布高度
    */
   const renderLayerToContext = async (ctx, layer, canvasWidth, canvasHeight) => {
-    // 1、单层图片加载失败时结束当前层，允许整帧继续。
-    return new Promise((resolve, reject) => {
-      try {
-        const imageSource = layer.imageData || (layer.canvas ? layer.canvas.toDataURL?.() : null)
-        
-        if (!imageSource) {
-          debugWarn(`⚠️ 图层 ${layer.name} 没有图像源`)
-          resolve()
-          return
-        }
-        
-        const img = new Image()
-        
-        img.onload = async () => {
-          clearTimeout(timeout)
-          try {
+    assertRenderActive(ctx)
+    const imageSource = layer.imageData || (layer.canvas ? layer.canvas.toDataURL?.() : null)
+    if (!imageSource) return
+    let saved = false
+    try {
+      const img = await loadRenderImage(imageSource, { signal: getRenderSignal(ctx) })
+      assertRenderActive(ctx)
             // 2、保持原始坐标精度，设置图层透明度和混合模式。
             let x = layer.left || 0
             let y = layer.top || 0
@@ -1048,6 +1042,7 @@ export function useLayerTree(deps) {
             let height = layer.height || img.height
             
             ctx.save()
+            saved = true
             
             // 设置高质量渲染
             ctx.imageSmoothingEnabled = true
@@ -1091,6 +1086,7 @@ export function useLayerTree(deps) {
                 willReadFrequently: false
               })
 
+              bindRenderSignal(tempCtx, getRenderSignal(ctx))
               // 先保存透明度和混合模式设置
               const savedAlpha = ctx.globalAlpha
               const savedComposite = ctx.globalCompositeOperation
@@ -1103,6 +1099,7 @@ export function useLayerTree(deps) {
 
               // 通用：按PSD规则应用图层蒙版（灰度->alpha、考虑defaultColor/invert、整画布套用）
               await applyLayerMask(tempCtx, layer, x, y, width, height, canvasWidth, canvasHeight)
+              assertRenderActive(ctx)
 
               // 输出到主画布（使用原始设置）
               ctx.globalAlpha = savedAlpha
@@ -1116,35 +1113,12 @@ export function useLayerTree(deps) {
               ctx.drawImage(img, 0, 0, img.width, img.height, x, y, width, height)
             }
             
-            ctx.restore()
-            
-            resolve()
-          } catch (error) {
-            console.error(`❌ 渲染图层 ${layer.name} 到上下文失败:`, error)
-            ctx.restore()
-            resolve()
-          }
-        }
-        
-        // 添加加载超时保护
-        const timeout = setTimeout(() => {
-          console.error(`⏱️ 图层 ${layer.name} 加载超时`)
-          resolve()
-        }, 5000)
-        
-        img.onerror = (error) => {
-          clearTimeout(timeout)
-          console.error(`❌ 图层 ${layer.name} 图像加载失败:`, error)
-          resolve()
-        }
-        
-        img.src = imageSource
-        
-      } catch (error) {
-        console.error(`❌ 处理图层 ${layer.name} 失败:`, error)
-        resolve()
-      }
-    })
+    } catch (error) {
+      if (getRenderSignal(ctx)?.aborted) throw error
+      console.error(`❌ 渲染图层 ${layer.name} 到上下文失败:`, error)
+    } finally {
+      if (saved) ctx.restore()
+    }
   }
   
   /**
@@ -1154,7 +1128,7 @@ export function useLayerTree(deps) {
    * 2、按树可见性、头部模式和底图控制收集可绘制图层。
    * 3、按 PSD 顺序绘制普通层或剪切组，并返回统计信息。
    */
-  const renderByLayerTree = async () => {
+  const renderByLayerTree = async (parentRequest) => {
     // 1、缺少画布或 PSD 时返回空统计结果。
     const canvas = canvasRef.value
     if (!canvas) {
@@ -1168,17 +1142,15 @@ export function useLayerTree(deps) {
       return { layersRendered: 0, nodesVisited: 0 }
     }
 
+    const request = parentRequest || renderCoordinator.begin()
     const measurement = perfLogger.start('render:layerTree', { threshold: 15 })
     const startTime = Date.now()
     debugLog('🌳 使用图层树模式渲染')
     
     try {
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        throw new Error('无法获取Canvas 2D上下文')
-      }
+      const { canvas: buffer, ctx } = renderCoordinator.createBuffer(request)
       
-      // 清空画布
+      // 每次请求独立绘制，完成前不触碰主画布。
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       
       // 遍历 PSD 数据，渲染所有可见的图层
@@ -1371,6 +1343,7 @@ export function useLayerTree(deps) {
           canvasSize: `${canvas.width}x${canvas.height}`,
           note: 'no-layers'
         })
+        renderCoordinator.commit(request, buffer)
         return { layersRendered: 0, nodesVisited }
       }
       
@@ -1379,6 +1352,7 @@ export function useLayerTree(deps) {
       
       // 3、按照 PSD 顺序渲染，剪切层随基础层合成并标记已处理。
       for (let i = 0; i < layersToRender.length; i++) {
+        assertRenderActive(ctx)
         // 如果当前图层已经作为剪切蒙版被处理过，跳过
         if (processedClippingIndices.has(i)) {
           continue
@@ -1411,17 +1385,22 @@ export function useLayerTree(deps) {
         nodesVisited,
         canvasSize: `${canvas.width}x${canvas.height}`
       })
+      renderCoordinator.commit(request, buffer)
       return { layersRendered: layersToRender.length, nodesVisited }
       
     } catch (error) {
-      console.error('❌ 图层树渲染失败:', error)
-      message.error(`渲染失败: ${error.message}`)
+      if (!request.signal.aborted) {
+        console.error('❌ 图层树渲染失败:', error)
+        message.error(`渲染失败: ${error.message}`)
+      }
       measurement.end({
         layersRendered: 0,
         nodesVisited: 0,
         error: error?.message
       })
       return { layersRendered: 0, nodesVisited: 0 }
+    } finally {
+      renderCoordinator.finish(request, 'failed')
     }
   }
   

@@ -1,7 +1,8 @@
 /**
  * 画布渲染组合逻辑：协调预设、图层树和部件选择，处理剪切组与图层蒙版。
  */
-import { ref } from 'vue'
+import { getCanvasRenderCoordinator } from './useCanvasRenderCoordinator.js'
+import { loadRenderImage, bindRenderSignal, getRenderSignal, assertRenderActive } from '../utils/renderImageTask.js'
 import { useMessage } from 'naive-ui'
 import { createPerformanceLogger } from '@renderer/utils/performanceLogger.js'
 import {
@@ -87,7 +88,8 @@ export function useCanvasRender(deps) {
   /**
    * 渲染进行中标志
    */
-  const isRendering = deps.isRendering ?? ref(false)
+  const renderCoordinator = getCanvasRenderCoordinator(deps)
+  const isRendering = deps.isRendering ?? renderCoordinator.isRendering
 
   // 2、提供不同粒度的画布渲染流程。
   // ==================== 刷新画布 ====================
@@ -138,26 +140,19 @@ export function useCanvasRender(deps) {
     // 2、更新选中图层映射，用于图层树高亮并驱动整帧渲染。
     updateSelectedLayersMap()
     
-    isRendering.value = true
+    const request = renderCoordinator.begin()
     const measurement = perfLogger.start('render:allLayers', { threshold: 18 })
     let renderStats = null
 
-    let watchdogTimer = null
     try {
-      // 渲染超时保护：超时后释放渲染状态，计时器不取消原任务。
-      watchdogTimer = setTimeout(() => {
-        console.error('⏱️ 渲染超时，强制释放渲染锁并请求重绘')
-        isRendering.value = false
-      }, 10000)
-      // 统一使用图层树渲染模式（从layerTreeData.visible读取，结合通用控制）
-      renderStats = await renderByLayerTree()
+      renderStats = await renderByLayerTree(request)
     } catch (error) {
-      console.error('❌ 渲染失败:', error)
-      message.error('渲染失败: ' + error.message)
+      if (!request.signal.aborted) {
+        console.error('❌ 渲染失败:', error)
+        message.error('渲染失败: ' + error.message)
+      }
     } finally {
-      // 3、结束本次渲染状态并记录图层数与画布尺寸。
-      if (watchdogTimer) clearTimeout(watchdogTimer)
-      isRendering.value = false
+      renderCoordinator.finish(request, 'completed')
       measurement.end({
         canvasScale: canvasScale.value,
         layersRendered: renderStats?.layersRendered ?? 0,
@@ -189,18 +184,13 @@ export function useCanvasRender(deps) {
       return
     }
     
-    isRendering.value = true
+    const request = renderCoordinator.begin()
     const measurement = perfLogger.start('render:part', { threshold: 18 })
 
     // 每次调用独立持有统计容器，异常收尾也可访问。
     const allGroupPaths = new Set()
     const selectedPathsMap = new Map()
-    let watchdogTimer = null
     try {
-      watchdogTimer = setTimeout(() => {
-        console.error('⏱️ 部件渲染超时，强制释放渲染锁')
-        isRendering.value = false
-      }, 10000)
       const ctx = canvas.getContext('2d')
       
       if (!ctx) {
@@ -209,14 +199,7 @@ export function useCanvasRender(deps) {
       
       // 2、使用双缓冲技术：创建离屏画布完成分组过滤与图层渲染。
       // 这样可以避免渲染过程中的闪烁，让切换更加平滑
-      const offscreenCanvas = document.createElement('canvas')
-      offscreenCanvas.width = canvas.width
-      offscreenCanvas.height = canvas.height
-      const offscreenCtx = offscreenCanvas.getContext('2d')
-      
-      if (!offscreenCtx) {
-        throw new Error('无法创建离屏Canvas上下文')
-      }
+      const { canvas: offscreenCanvas, ctx: offscreenCtx } = renderCoordinator.createBuffer(request)
       
       // 在离屏canvas上清空（主canvas暂时保持当前内容）
       offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height)
@@ -251,15 +234,15 @@ export function useCanvasRender(deps) {
       
       // 3、渲染完成后，一次性将离屏画布内容绘制到主画布。
       // 双缓冲技术避免了渲染过程中的闪烁和逐层显示，切换更加流畅自然
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.drawImage(offscreenCanvas, 0, 0)
+      renderCoordinator.commit(request, offscreenCanvas)
       
     } catch (error) {
-      console.error('❌ 渲染失败:', error)
-      message.error('渲染失败: ' + error.message)
+      if (!request.signal.aborted) {
+        console.error('❌ 渲染失败:', error)
+        message.error('渲染失败: ' + error.message)
+      }
     } finally {
-      if (watchdogTimer) clearTimeout(watchdogTimer)
-      isRendering.value = false
+      renderCoordinator.finish(request, 'failed')
       measurement.end({
         partPath: part.path || part.name || 'unknown',
         groupsConsidered: allGroupPaths.size,
@@ -585,6 +568,7 @@ export function useCanvasRender(deps) {
     const processedClippingIndices = new Set()
     
     for (let i = 0; i < layers.length; i++) {
+      assertRenderActive(ctx)
       // 如果当前图层已经作为剪切蒙版被处理过，跳过
       if (processedClippingIndices.has(i)) {
         continue
@@ -989,7 +973,7 @@ export function useCanvasRender(deps) {
     const groupCanvas = document.createElement('canvas')
     groupCanvas.width = canvasWidth
     groupCanvas.height = canvasHeight
-    const groupCtx = groupCanvas.getContext('2d', { willReadFrequently: true })
+    const groupCtx = bindRenderSignal(groupCanvas.getContext('2d', { willReadFrequently: true }), getRenderSignal(ctx))
     
     // 递归渲染组内所有子图层
     await renderLayersWithAllGroupFilters(
@@ -1018,7 +1002,7 @@ export function useCanvasRender(deps) {
     const maskCanvas = document.createElement('canvas')
     maskCanvas.width = canvasWidth
     maskCanvas.height = canvasHeight
-    const maskCtx = maskCanvas.getContext('2d')
+    const maskCtx = bindRenderSignal(maskCanvas.getContext('2d'), getRenderSignal(ctx))
     await renderLayersWithAllGroupFilters(
       maskCtx,
       groupLayer.children || [],
@@ -1030,6 +1014,7 @@ export function useCanvasRender(deps) {
       new Map()
     )
 
+    assertRenderActive(ctx)
     // 应用 destination-in 遮罩
     groupCtx.globalCompositeOperation = 'destination-in'
     groupCtx.drawImage(maskCanvas, 0, 0)
@@ -1047,34 +1032,13 @@ export function useCanvasRender(deps) {
    * 3、按需处理蒙版并绘制，恢复上下文状态。
    */
   const renderLayer = async (ctx, layer, canvasWidth, canvasHeight) => {
-    // 1、将图片加载过程包装为可等待任务。
-    return new Promise((resolve, reject) => {
-      try {
-        // 优先使用imageData（base64），其次使用canvas
-        const imageSource = layer.imageData || (layer.canvas ? layer.canvas.toDataURL?.() : null)
-        
-        if (!imageSource) {
-          debugWarn(`⚠️ 图层 ${layer.name} 没有图像源`)
-          resolve()
-          return
-        }
-        
-        debugLog(`🔄 加载图层图像: ${layer.name}`)
-        debugLog(`📏 图像数据长度: ${imageSource.length} 字符`)
-        debugLog(`🔍 图像数据格式:`, imageSource.substring(0, 50))
-        
-        const img = new Image()
-        
-        // 设置超时保护
-        const timeout = setTimeout(() => {
-          console.error(`⏱️ 图层 ${layer.name} 加载超时`) 
-          // 超时不阻塞整帧，记录并继续
-          resolve()
-        }, 5000)
-        
-        img.onload = async () => {
-          clearTimeout(timeout)
-          try {
+    assertRenderActive(ctx)
+    const imageSource = layer.imageData || (layer.canvas ? layer.canvas.toDataURL?.() : null)
+    if (!imageSource) return
+    let saved = false
+    try {
+      const img = await loadRenderImage(imageSource, { signal: getRenderSignal(ctx) })
+      assertRenderActive(ctx)
             debugLog(`✓ 图片加载完成: ${layer.name}, 尺寸: ${img.width}x${img.height}`)
             
             // 保持原始坐标精度，避免与蒙版位置不匹配
@@ -1098,12 +1062,12 @@ export function useCanvasRender(deps) {
             // 2、验证绘制参数并配置当前图层的透明度与混合模式。
             if (width <= 0 || height <= 0) {
               debugWarn(`⚠️ 图层 ${layer.name} 尺寸无效: ${width}x${height}`)
-              resolve()
               return
             }
             
             // 保存当前状态
             ctx.save()
+            saved = true
             
             // 设置高质量渲染
             ctx.imageSmoothingEnabled = true
@@ -1152,6 +1116,7 @@ export function useCanvasRender(deps) {
                 willReadFrequently: false
               })
               
+              bindRenderSignal(tempCtx, getRenderSignal(ctx))
               // 在临时canvas上绘制图层内容（使用高质量设置）
               tempCtx.imageSmoothingEnabled = true
               tempCtx.imageSmoothingQuality = 'high'
@@ -1160,6 +1125,7 @@ export function useCanvasRender(deps) {
               
               // 通用：按PSD规则应用图层蒙版
               await applyLayerMask(tempCtx, layer, x, y, width, height, canvasWidth, canvasHeight)
+              assertRenderActive(ctx)
               
               // 将应用了蒙版的内容绘制到主canvas（保持原有透明度）
               const hasVisible = regionHasVisiblePixel(tempCtx, { x, y, w: width, h: height })
@@ -1174,35 +1140,13 @@ export function useCanvasRender(deps) {
               ctx.drawImage(img, 0, 0, img.width, img.height, x, y, width, height)
             }
             
-            // 恢复状态
-            ctx.restore()
-            
-            resolve()
-          } catch (error) {
-            console.error(`❌ 绘制图层 ${layer.name} 失败:`, error)
-            console.error('错误堆栈:', error.stack)
-            ctx.restore()
-            // 单层失败不中断整帧
-            resolve()
-          }
-        }
-        
-        img.onerror = (error) => {
-          console.error(`❌ 图层 ${layer.name} 图像加载失败:`, error)
-          console.error(`图像源前100字符:`, imageSource.substring(0, 100))
-          // 单层失败不中断整帧
-          resolve()
-        }
-        
-        // 设置图像源
-        img.src = imageSource
-        
-      } catch (error) {
-        console.error(`❌ 处理图层 ${layer.name} 失败:`, error)
-        console.error('错误堆栈:', error.stack)
-        reject(error)
-      }
-    })
+    } catch (error) {
+      if (getRenderSignal(ctx)?.aborted) throw error
+      // 保持单层加载失败跳过的兼容行为，回调与计时器已由加载器清理。
+      console.error(`❌ 绘制图层 ${layer.name} 失败:`, error)
+    } finally {
+      if (saved) ctx.restore()
+    }
   }
 
   // 3、返回渲染状态与各级渲染入口。

@@ -1,3 +1,5 @@
+import { assertRenderActive, bindRenderSignal, getRenderSignal, loadRenderImage } from './renderImageTask.js'
+
 /**
  * 图层渲染工具函数集
  * 提供图层渲染相关的纯函数工具方法
@@ -207,32 +209,39 @@ export const findClippingGroup = (layers, startIndex) => {
  * @param {Function} renderLayerToContext - 渲染图层到上下文的函数
  */
 export const renderClippingGroup = async (ctx, baseLayer, clippingLayers, canvasWidth, canvasHeight, renderLayerToContext) => {
+  assertRenderActive(ctx)
   // 1、首先正常渲染基础图层到主画布。
   await renderLayerToContext(ctx, baseLayer, canvasWidth, canvasHeight)
+  assertRenderActive(ctx)
 
   // 2、创建临时画布用于渲染剪切蒙版图层。
   const clippingCanvas = document.createElement('canvas')
   clippingCanvas.width = canvasWidth
   clippingCanvas.height = canvasHeight
-  const clippingCtx = clippingCanvas.getContext('2d')
+  const clippingCtx = bindRenderSignal(clippingCanvas.getContext('2d'), getRenderSignal(ctx))
 
   // 3、渲染所有剪切蒙版图层到临时画布。
   for (const clippingLayer of clippingLayers) {
     await renderLayerToContext(clippingCtx, clippingLayer, canvasWidth, canvasHeight)
+    assertRenderActive(ctx)
   }
 
   // 4、创建遮罩画布，以基础图层的透明度作为遮罩。
   const maskCanvas = document.createElement('canvas')
   maskCanvas.width = canvasWidth
   maskCanvas.height = canvasHeight
-  const maskCtx = maskCanvas.getContext('2d')
+  const maskCtx = bindRenderSignal(maskCanvas.getContext('2d'), getRenderSignal(ctx))
   await renderLayerToContext(maskCtx, baseLayer, canvasWidth, canvasHeight)
+  assertRenderActive(ctx)
 
   // 5、使用 destination-in 混合模式将遮罩应用到剪切图层。
   // 这样剪切图层只在基础图层的不透明区域显示，同时保持原有颜色（包括白色）
   clippingCtx.globalCompositeOperation = 'destination-in'
-  clippingCtx.drawImage(maskCanvas, 0, 0)
-  clippingCtx.globalCompositeOperation = 'source-over'
+  try {
+    clippingCtx.drawImage(maskCanvas, 0, 0)
+  } finally {
+    clippingCtx.globalCompositeOperation = 'source-over'
+  }
 
   // 6、将裁剪后的剪切图层绘制到主画布。
   ctx.drawImage(clippingCanvas, 0, 0)
@@ -281,18 +290,15 @@ const writeGrayToAlpha = (data, invert = true) => {
  */
 export const applyLayerMask = async (tempCtx, layer, x, y, width, height, canvasWidth, canvasHeight) => {
   // 1、无蒙版直接完成，其余等待蒙版图像加载。
-  return new Promise((resolve, reject) => {
-    try {
-      const mask = layer.mask
-      if (!mask || !mask.imageData) {
-        resolve()
-        return
-      }
-
-      const maskImg = new Image()
-      maskImg.onload = () => {
-        try {
-          // 计算蒙版位置和尺寸（使用??运算符正确处理0值）
+  assertRenderActive(tempCtx)
+  const mask = layer.mask
+  if (!mask || !mask.imageData) return
+  const maskImg = await loadRenderImage(mask.imageData, { signal: getRenderSignal(tempCtx) }).catch(error => {
+    if (error.name === 'ImageLoadError') throw new Error('蒙版图像加载失败')
+    throw error
+  })
+  assertRenderActive(tempCtx)
+  // 计算蒙版位置和尺寸（使用??运算符正确处理0值）
           const maskX = mask.left ?? 0
           const maskY = mask.top ?? 0
           const maskRight = mask.right ?? (maskX + maskImg.width)
@@ -306,10 +312,10 @@ export const applyLayerMask = async (tempCtx, layer, x, y, width, height, canvas
           const procCanvas = document.createElement('canvas')
           procCanvas.width = srcW
           procCanvas.height = srcH
-          const procCtx = procCanvas.getContext('2d', { 
+          const procCtx = bindRenderSignal(procCanvas.getContext('2d', {
             willReadFrequently: true,
             alpha: true
-          })
+          }), getRenderSignal(tempCtx))
           
           procCtx.imageSmoothingEnabled = false
           procCtx.drawImage(maskImg, 0, 0)
@@ -359,10 +365,10 @@ export const applyLayerMask = async (tempCtx, layer, x, y, width, height, canvas
           const fullMaskCanvas = document.createElement('canvas')
           fullMaskCanvas.width = canvasWidth
           fullMaskCanvas.height = canvasHeight
-          const fullMaskCtx = fullMaskCanvas.getContext('2d', { 
+          const fullMaskCtx = bindRenderSignal(fullMaskCanvas.getContext('2d', {
             willReadFrequently: true,
             alpha: true
-          })
+          }), getRenderSignal(tempCtx))
           
           // 计算 defaultAlpha（用于后续判断）
           const defaultAlpha = (mask.defaultColor !== undefined ? mask.defaultColor : 255) / 255
@@ -392,8 +398,11 @@ export const applyLayerMask = async (tempCtx, layer, x, y, width, height, canvas
             const prevDrawOp = fullMaskCtx.globalCompositeOperation
             fullMaskCtx.imageSmoothingEnabled = false
             fullMaskCtx.globalCompositeOperation = 'copy'
-            fullMaskCtx.drawImage(procCanvas, 0, 0, srcW, srcH, maskX, maskY, destW, destH)
-            fullMaskCtx.globalCompositeOperation = prevDrawOp
+            try {
+              fullMaskCtx.drawImage(procCanvas, 0, 0, srcW, srcH, maskX, maskY, destW, destH)
+            } finally {
+              fullMaskCtx.globalCompositeOperation = prevDrawOp
+            }
           }
 
           // 4、套用蒙版：以 destination-in 方式与临时绘制内容相交。
@@ -403,21 +412,12 @@ export const applyLayerMask = async (tempCtx, layer, x, y, width, height, canvas
             tempCtx.imageSmoothingEnabled = false
             const prevOp = tempCtx.globalCompositeOperation
             tempCtx.globalCompositeOperation = 'destination-in'
-            tempCtx.drawImage(fullMaskCanvas, 0, 0, canvasWidth, canvasHeight)
-            tempCtx.globalCompositeOperation = prevOp
+            try {
+              tempCtx.drawImage(fullMaskCanvas, 0, 0, canvasWidth, canvasHeight)
+            } finally {
+              tempCtx.globalCompositeOperation = prevOp
+            }
           }
-
-          resolve()
-        } catch (err) {
-          reject(err)
-        }
-      }
-      maskImg.onerror = () => reject(new Error('蒙版图像加载失败'))
-      maskImg.src = mask.imageData
-    } catch (error) {
-      reject(error)
-    }
-  })
 }
 
 /**
@@ -433,20 +433,20 @@ export const applyLayerMask = async (tempCtx, layer, x, y, width, height, canvas
  */
 export const renderLayerToContext = async (ctx, layer, canvasWidth, canvasHeight) => {
   // 1、读取图层图像或画布编码，等待图像加载完成。
-  return new Promise((resolve, reject) => {
-    try {
+  assertRenderActive(ctx)
+  try {
       const imageSource = layer.imageData || (layer.canvas ? layer.canvas.toDataURL?.() : null)
       
       if (!imageSource) {
         console.warn(`⚠️ 图层 ${layer.name} 没有图像源`)
-        resolve()
         return
       }
       
-      const img = new Image()
-      
-      img.onload = async () => {
-        try {
+      const img = await loadRenderImage(imageSource, { signal: getRenderSignal(ctx) }).catch(error => {
+        if (error.name === 'ImageLoadError') throw new Error(`图层图像加载失败: ${layer.name}`)
+        throw error
+      })
+      assertRenderActive(ctx)
           // 2、保持原始坐标精度，避免与蒙版位置不匹配，并设置图层绘制属性。
           let x = layer.left || 0
           let y = layer.top || 0
@@ -454,7 +454,7 @@ export const renderLayerToContext = async (ctx, layer, canvasWidth, canvasHeight
           let height = layer.height || img.height
           
           ctx.save()
-          
+          try {
           // 设置高质量渲染
           ctx.imageSmoothingEnabled = true
           ctx.imageSmoothingQuality = 'high'
@@ -492,10 +492,10 @@ export const renderLayerToContext = async (ctx, layer, canvasWidth, canvasHeight
             const tempCanvas = document.createElement('canvas')
             tempCanvas.width = canvasWidth
             tempCanvas.height = canvasHeight
-            const tempCtx = tempCanvas.getContext('2d', { 
+            const tempCtx = bindRenderSignal(tempCanvas.getContext('2d', {
               alpha: true,
               willReadFrequently: false
-            })
+            }), getRenderSignal(ctx))
 
             // 先保存透明度和混合模式设置
             const savedAlpha = ctx.globalAlpha
@@ -509,6 +509,7 @@ export const renderLayerToContext = async (ctx, layer, canvasWidth, canvasHeight
 
             // 通用：按PSD规则应用图层蒙版（灰度->alpha、考虑defaultColor/invert、整画布套用）
             await applyLayerMask(tempCtx, layer, x, y, width, height, canvasWidth, canvasHeight)
+            assertRenderActive(ctx)
 
             // 输出到主画布（使用原始设置）
             ctx.globalAlpha = savedAlpha
@@ -520,28 +521,13 @@ export const renderLayerToContext = async (ctx, layer, canvasWidth, canvasHeight
             ctx.drawImage(img, 0, 0, img.width, img.height, x, y, width, height)
           }
           
-          ctx.restore()
-          
-          resolve()
-        } catch (error) {
-          console.error(`❌ 渲染图层 ${layer.name} 到上下文失败:`, error)
-          ctx.restore()
-          reject(error)
-        }
-      }
-      
-      img.onerror = (error) => {
-        console.error(`❌ 图层 ${layer.name} 图像加载失败:`, error)
-        reject(new Error(`图层图像加载失败: ${layer.name}`))
-      }
-      
-      img.src = imageSource
-      
+          } finally {
+            ctx.restore()
+          }
     } catch (error) {
       console.error(`❌ 处理图层 ${layer.name} 失败:`, error)
-      reject(error)
+      throw error
     }
-  })
 }
 
 /**
@@ -560,12 +546,14 @@ export const drawLayerImage = async (ctx, layer) => {
   }
   
   try {
-    const img = new Image()
-    
-    await new Promise((resolve, reject) => {
-      img.onload = async () => {
-        ctx.save()
-        
+    assertRenderActive(ctx)
+    const img = await loadRenderImage(layer.imageData, { signal: getRenderSignal(ctx) }).catch(error => {
+      if (error.name === 'ImageLoadError') throw new Error(`图像加载失败: ${layer.name}`)
+      throw error
+    })
+    assertRenderActive(ctx)
+    ctx.save()
+    try {
         // 2、保持原始坐标精度，避免与蒙版位置不匹配，并设置绘制属性。
         const x = layer.left || 0
         const y = layer.top || 0
@@ -611,10 +599,10 @@ export const drawLayerImage = async (ctx, layer) => {
           const tempCanvas = document.createElement('canvas')
           tempCanvas.width = canvasWidth
           tempCanvas.height = canvasHeight
-          const tempCtx = tempCanvas.getContext('2d', {
+          const tempCtx = bindRenderSignal(tempCanvas.getContext('2d', {
             alpha: true,
             willReadFrequently: false
-          })
+          }), getRenderSignal(ctx))
 
           // 在临时canvas上绘制图层内容（使用高质量设置）
           tempCtx.imageSmoothingEnabled = true
@@ -624,6 +612,7 @@ export const drawLayerImage = async (ctx, layer) => {
 
           // 按PSD规则应用图层蒙版
           await applyLayerMask(tempCtx, layer, x, y, width, height, canvasWidth, canvasHeight)
+          assertRenderActive(ctx)
 
           // 将应用了蒙版的内容绘制到主canvas
           ctx.imageSmoothingEnabled = false  // 临时canvas到主canvas不需要平滑
@@ -633,17 +622,9 @@ export const drawLayerImage = async (ctx, layer) => {
           ctx.drawImage(img, 0, 0, img.width, img.height, x, y, width, height)
         }
 
-        ctx.restore()
-        resolve()
-      }
-      
-      img.onerror = () => {
-        console.error(`❌ 图层 ${layer.name} 图像加载失败`)
-        reject(new Error(`图像加载失败: ${layer.name}`))
-      }
-      
-      img.src = layer.imageData
-    })
+    } finally {
+      ctx.restore()
+    }
   } catch (error) {
     console.error(`❌ 绘制图层 ${layer.name} 失败:`, error)
   }
