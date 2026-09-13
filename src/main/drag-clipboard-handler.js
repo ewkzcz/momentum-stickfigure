@@ -320,10 +320,16 @@ function registerDragToJianyingHandlers() {
       }
       window.once('focus', handleFocus)
 
-      window.webContents.startDrag({
-        file: finalFilePath,
-        icon: dragIcon || undefined
-      })
+      try {
+        window.webContents.startDrag({
+          file: finalFilePath,
+          icon: dragIcon || undefined
+        })
+      } catch (error) {
+        // 启动失败不会产生本次拖拽的回焦事件，立即移除仅属于本次请求的监听。
+        window.removeListener('focus', handleFocus)
+        throw error
+      }
 
       return { success: true, filePath: finalFilePath }
     } catch (error) {
