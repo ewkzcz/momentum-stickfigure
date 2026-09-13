@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-13",
+  "subject": "共享存储完整快照替换及退出异步顺序保护",
+  "baselineHead": "ba17d12c5ab69a6315db3bcde07d60070472bf3e",
+  "trigger": {"fullRegression": "layer-render-acceptance-4PBAYZ", "head": "1856bc9db1a0d53a05a2ad437d52db36371bff16", "passed": 82, "failed": 1, "failure": "settings-basic waitForDisk JSON Unexpected end", "sameSourceRerun": "momentum-regression-999Vf1", "rerunPassed": true},
+  "baseline": [
+    {"provenance": "temp/storage-atomicity-1789294194129", "root": "momentum-regression-UkhofO", "rounds": 5, "publicStringRepeats": 100000, "passed": true, "durationMs": 51495.112459},
+    {"provenance": "temp/storage-atomicity-large-1789294277967", "root": "momentum-regression-AQJ8uS", "rounds": 3, "publicStringRepeats": 1000000, "passed": false, "observed": "外部真实读者读到0字节目标文件并JSON解析失败", "durationMs": 32034.613}
+  ],
+  "change": ["保持5秒防抖及10秒最大等待和原配置格式", "同父目录创建随机独立目录，异步完整写入后同步rename替换目标", "flushSync也采用完整临时文件后替换，写入版本使旧异步回调不能覆盖最新同步快照", "失败保留旧文件，清理本次文件和空目录，不递归删除共享目录"],
+  "candidate": {
+    "initialProvenance": "temp/storage-atomicity-candidate-1789294492732", "initialRoots": ["momentum-regression-EVznem", "momentum-regression-h8Qjt2"], "initialPassed": 2,
+    "formalProvenance": "temp/storage-atomicity-formal-1789294622433", "formalRoots": ["momentum-regression-rCVgDQ", "momentum-regression-g8gKVN"], "formalPassed": 2, "formalDurationMs": 43895.70275,
+    "oldStorageRegression": {"root": "momentum-regression-ljaFQN", "passed": true, "durationMs": 21848.183083, "command": "node --test --test-concurrency=1 --test-name-pattern=配置持久化 tests/regression.test.mjs"},
+    "renameFailure": {"provenance": "temp/storage-rename-failure-1789294766080", "root": "momentum-regression-NZrcAD", "passed": true, "durationMs": 31145.580583},
+    "coverage": ["公开18MB字符串三轮真实磁盘读取全部完整JSON", "退出时先同步最新值再释放旧异步回调，实际文件保持latest-sync", "原写入失败注入仍触发并保持恢复契约", "rename EACCES受控失败后目标文件逐字保持旧内容、临时目录清理且后续恢复成功", "基础设置保存及重启通过，未放宽JSON断言"]
+  },
+  "checks": {"build": true, "progressiveLint": true, "strictSize": true, "diffCheck": true},
+  "limitations": ["只验证当前macOS文件系统，Windows覆盖rename及多进程竞争待验收", "未做fsync，不声称断电持久性保证", "多实例仍是最后完整快照覆盖，不新增合并语义", "进程崩溃可遗留独立临时目录，未自动清理其他进程目录", "原实时文件监听默认关闭，本项未改变", "旧目标符号链接或特殊权限继承未专项覆盖", "0字节探针复现同类读写窗口，不断定全量单次失败的唯一原因", "原helper及冻结参考未修改，本候选尚未完整全量"]
+}

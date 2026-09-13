@@ -8,6 +8,7 @@ import fs from 'fs'
 import path from 'path'
 import { app } from 'electron'
 import os from 'os'
+import { randomUUID } from 'node:crypto'
 
 const ENABLE_REALTIME_MULTI_INSTANCE_SYNC = false
 
@@ -51,6 +52,8 @@ class StorageManager {
 
     // 标记是否正在写入（避免监听到自己的写入）
     this.isWriting = false
+    // 每次持久化递增版本，退出同步写入后不允许旧异步回调覆盖最新快照。
+    this.writeVersion = 0
     this.lastWriteTime = 0
     this.writeProtectionTime = 8000 // 8秒写入保护期 - 防止多实例循环触发
 
@@ -121,19 +124,28 @@ class StorageManager {
         // 将Map转换为普通对象
         const storageData = Object.fromEntries(this.storage)
 
-        // 异步写入文件
-        fs.writeFile(
-          this.storageFilePath,
-          JSON.stringify(storageData, null, 2),
-          'utf-8',
-          (err) => {
-            this.isWriting = false
-            if (err) {
-              console.error('[StorageManager] 保存storage失败:', err)
-            }
-            // 成功保存时不输出日志，避免日志过多
+        // 在同目录独立写入完整JSON后再替换，读者不会看到目标文件被截断。
+        const version = ++this.writeVersion
+        const temporaryDirectory = this.createTemporaryStorage()
+        const temporaryFile = path.join(temporaryDirectory, path.basename(this.storageFilePath))
+        const finish = (err) => {
+          try {
+            // 异步写入完成时校验版本，同步退出保存或更新写入优先。
+            if (!err && version === this.writeVersion) fs.renameSync(temporaryFile, this.storageFilePath)
+            if (err) console.error('[StorageManager] 保存storage失败:', err)
+          } catch (error) {
+            console.error('[StorageManager] 保存storage失败:', error)
+          } finally {
+            if (version === this.writeVersion) this.isWriting = false
+            this.removeTemporaryStorage(temporaryDirectory)
           }
-        )
+          // 成功保存时不输出日志，避免日志过多
+        }
+        try {
+          fs.writeFile(temporaryFile, JSON.stringify(storageData, null, 2), 'utf-8', finish)
+        } catch (error) {
+          finish(error)
+        }
       } catch (error) {
         this.isWriting = false
         console.error('[StorageManager] 保存storage异常:', error)
@@ -142,6 +154,34 @@ class StorageManager {
     this.saveTimer = setTimeout(persist, this.saveDelay)
     if (!this.maxSaveTimer) {
       this.maxSaveTimer = setTimeout(persist, this.maxSaveDelay)
+    }
+  }
+
+  /**
+   * 在共享文件同目录创建本次写入专用目录。
+   * 处理流程：
+   * 1、使用随机标识避免多进程名称冲突，并要求目录原先不存在。
+   */
+  createTemporaryStorage() {
+    // 1、非递归创建，已有同名目录直接失败而非复用不明内容。
+    const directory = path.join(path.dirname(this.storageFilePath), `.storage-write-${randomUUID()}`)
+    fs.mkdirSync(directory, { mode: 0o700 })
+    return directory
+  }
+
+  /**
+   * 清理本次持久化使用的独立临时目录。
+   * 处理流程：
+   * 1、仅删除本次创建的文件和空目录，失败只记录诊断。
+   */
+  removeTemporaryStorage(directory) {
+    // 1、不递归清理共享目录，避免影响其他进程或其他写入任务。
+    try {
+      const file = path.join(directory, path.basename(this.storageFilePath))
+      if (fs.existsSync(file)) fs.unlinkSync(file)
+      fs.rmdirSync(directory)
+    } catch (error) {
+      console.warn('[StorageManager] 清理临时存储失败:', error)
     }
   }
 
@@ -436,20 +476,23 @@ class StorageManager {
     // 1、取消两个保存计时器，避免退出时仍有延迟写入。
     this.cancelPendingSave()
 
+    let temporaryDirectory = null
+    // 使所有尚未结算的异步快照失效，即使本次写入失败也不能晚到覆盖。
+    this.writeVersion++
     try {
       this.isWriting = true
-      // 2、同步落盘，退出前无需等待异步回调。
+      // 2、同步写入同目录临时文件，再一次替换为当前完整缓存。
       const storageData = Object.fromEntries(this.storage)
-      fs.writeFileSync(
-        this.storageFilePath,
-        JSON.stringify(storageData, null, 2),
-        'utf-8'
-      )
-      this.isWriting = false
+      temporaryDirectory = this.createTemporaryStorage()
+      const temporaryFile = path.join(temporaryDirectory, path.basename(this.storageFilePath))
+      fs.writeFileSync(temporaryFile, JSON.stringify(storageData, null, 2), 'utf-8')
+      fs.renameSync(temporaryFile, this.storageFilePath)
       console.log('[StorageManager] 已同步保存所有数据到共享文件')
     } catch (error) {
-      this.isWriting = false
       console.error('[StorageManager] 同步保存失败:', error)
+    } finally {
+      this.isWriting = false
+      if (temporaryDirectory) this.removeTemporaryStorage(temporaryDirectory)
     }
   }
 
