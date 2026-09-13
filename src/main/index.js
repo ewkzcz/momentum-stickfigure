@@ -29,6 +29,7 @@ if (process.platform === 'win32') {
 // 导入 gemini 服务
 import { registerFalApiHandlers, unregisterFalApiHandlers } from './gemini-image-api/gemini-image-ipc.js'
 // 导入 PSD 服务
+import { stopPSDWorkers } from './psd-worker-queue.mjs'
 import { registerPSDApiHandlers, unregisterPSDApiHandlers } from './psd-service.js'
 // 导入Storage服务
 import { registerStorageHandlers, unregisterStorageHandlers } from './storage-handler.js'
@@ -158,14 +159,30 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
+/** PSD退出屏障：只允许确认全部解析线程退出后继续原退出流程。 */
+let psdShutdownStarted = false
+let psdShutdownComplete = false
+
 /**
  * 应用即将退出时清理业务入口。
  * 处理流程：
  * 1、在窗口完成卸载后调用各模块清理方法。
  * 2、清理窗口、快捷键、网页视图和配置交互监听。
  */
-app.on('will-quit', () => {
-  // 1、窗口已完成卸载，先清理数据存储与业务处理入口。
+app.on('will-quit', (event) => {
+  // 1、窗口已同意关闭后才永久停止队列，避免beforeunload取消退出却无法再解析。
+  if (!psdShutdownComplete) {
+    event.preventDefault()
+    if (!psdShutdownStarted) {
+      psdShutdownStarted = true
+      void stopPSDWorkers().then(() => {
+        psdShutdownComplete = true
+        setImmediate(() => app.quit())
+      }).catch(error => console.error('等待PSD工作线程退出失败:', error))
+    }
+    return
+  }
+  // 2、窗口已完成卸载，先清理数据存储与业务处理入口。
   unregisterStorageHandlers()
   unregisterFolderSelectHandler()
   unregisterFileWriteHandler()

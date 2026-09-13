@@ -50,12 +50,17 @@
           <n-button
             size="small"
             @click="emit('select-psd')"
+            :disabled="isUploading"
           >
             上传
           </n-button>
         </template>
         选择PSD文件进行编辑
       </n-tooltip>
+
+      <n-button v-if="isUploading" size="small" @click="emit('cancel-upload')">
+        取消解析
+      </n-button>
 
       <n-tooltip placement="bottom">
         <template #trigger>
@@ -122,12 +127,14 @@ defineProps({
   jumpOptions: { type: Array, required: true },
   moreOptions: { type: Array, required: true },
   currentPsdData: { type: Object, default: null },
-  isSendingToGenerate: { type: Boolean, required: true }
+  isSendingToGenerate: { type: Boolean, required: true },
+  isUploading: { type: Boolean, default: false }
 })
 
 const emit = defineEmits([
   'toggle-canvas',
   'select-psd',
+  'cancel-upload',
   'open-preview',
   'jump-select',
   'more-select',

@@ -3,7 +3,7 @@
  * 处理原生文件选择、批量读取及拖拽上传PSD文件的交互
  */
 
-import { ref } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 
 /**
  * 创建 PSD 文件选择与拖拽上传交互。
@@ -20,6 +20,24 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
   
   const isUploading = ref(false)
   const isDragOver = ref(false)
+  let batch = null
+  let disposed = false
+
+  /**
+   * 取消当前批量导入。
+   * 处理流程：
+   * 1、终止当前解析并阻止后续文件，保留成功文件与已写入历史。
+   */
+  const cancelUpload = () => {
+    // 1、等待在途请求真正结算后由原清理流程恢复按钮。
+    batch?.abort()
+  }
+
+  onBeforeUnmount(() => {
+    // 2、只在真正销毁时取消，普通缓存切换继续处理。
+    disposed = true
+    cancelUpload()
+  })
 
   // ==================== 方法 ====================
   
@@ -60,6 +78,7 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
     e.preventDefault()
     e.stopPropagation()
     isDragOver.value = false
+    if (isUploading.value || disposed) return
 
     const files = Array.from(e.dataTransfer.files).filter(file =>
       file.name.toLowerCase().endsWith('.psd')
@@ -73,10 +92,13 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
     console.log('📂 拖放的PSD文件:', files)
 
     isUploading.value = true
+    const currentBatch = new globalThis.AbortController()
+    batch = currentBatch
 
     // 处理每个文件，确保都有真实路径
     const filesWithPath = []
     for (let i = 0; i < files.length; i++) {
+      if (currentBatch.signal.aborted) break
       const file = files[i]
 
       // 检查文件是否已经有path属性
@@ -89,6 +111,7 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
         try {
           // 读取文件内容
           const arrayBuffer = await file.arrayBuffer()
+          if (currentBatch.signal.aborted) break
 
           // 调用Electron API保存到临时目录并获取路径
           const result = await window.electronAPI?.saveDraggedFile?.(file.name, arrayBuffer)
@@ -119,7 +142,15 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
       }
     }
 
+    if (currentBatch.signal.aborted) {
+      isUploading.value = false
+      batch = null
+      if (!disposed) message.info('已取消导入')
+      return
+    }
+
     if (filesWithPath.length === 0) {
+      batch = null
       message.error('所有文件处理失败')
       isUploading.value = false
       return
@@ -161,6 +192,7 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
     
     // 如果没有需要加载的文件
     if (toLoad.length === 0) {
+      batch = null
       isUploading.value = false
       if (alreadyOpenedCount > 0) {
         message.info(`所有文件都已打开（${alreadyOpenedCount} 个）`)
@@ -175,6 +207,7 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
     let failCount = 0
     
     for (let i = 0; i < toLoad.length; i++) {
+      if (currentBatch.signal.aborted) break
       const file = toLoad[i]
       try {
         message.loading(`正在处理 ${i + 1}/${toLoad.length}: ${file.name}`, { 
@@ -183,9 +216,10 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
         })
         
         // 处理文件
-        await processFile(file, false)
+        await processFile(file, false, currentBatch.signal)
         successCount++
       } catch (error) {
+        if (error.name === 'AbortError') break
         console.error(`处理文件失败: ${file.name}`, error)
         failCount++
       }
@@ -218,6 +252,8 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
     }
     
     isUploading.value = false
+    batch = null
+    if (currentBatch.signal.aborted && !disposed) message.info('已取消导入，已成功文件保留')
   }
 
   /**
@@ -228,9 +264,12 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
    * 3、汇总加载结果、清理消息并释放上传状态
    */
   const handleSelectPsdFiles = async () => {
+    if (isUploading.value || disposed) return
+    let currentBatch = null
     // 1、等待文件选择结果，无有效路径时提前结束
     try {
       const result = await window.electronAPI?.selectPsdFiles?.()
+      if (disposed || isUploading.value) return
 
       if (!result || !result.success) {
         if (!result?.canceled) {
@@ -246,6 +285,8 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
       console.log('📂 用户选择的文件路径:', result.filePaths)
 
       isUploading.value = true
+      currentBatch = new globalThis.AbortController()
+      batch = currentBatch
       let successCount = 0
       let failCount = 0
       const totalFiles = result.filePaths.length
@@ -260,6 +301,7 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
       const alreadyOpenedCount = result.filePaths.length - uniquePaths.length
 
       for (let i = 0; i < uniquePaths.length; i++) {
+        if (currentBatch.signal.aborted) break
         const filePath = uniquePaths[i]
         try {
           message.loading(`正在处理 ${i + 1}/${uniquePaths.length}: ${filePath.split(/[\\/]/).pop()}`, {
@@ -269,6 +311,7 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
 
           // 读取文件
           const fileBuffer = await window.electronAPI?.readFile?.(filePath)
+          if (currentBatch.signal.aborted) break
           if (!fileBuffer) {
             console.error('无法读取文件:', filePath)
             failCount++
@@ -290,9 +333,10 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
           console.log('📁 处理文件，路径:', file.path)
 
           // 处理文件
-          await processFile(file, false)
+          await processFile(file, false, currentBatch.signal)
           successCount++
         } catch (error) {
+          if (error.name === 'AbortError') break
           console.error(`处理文件失败: ${filePath}`, error)
           failCount++
         }
@@ -300,6 +344,7 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
 
       // 3、循环结束后统一清理提示，再报告成功、已打开和失败数量
       message.destroyAll()
+      if (currentBatch.signal.aborted && !disposed) message.info('已取消导入，已成功文件保留')
 
       // 显示最终结果
       if (successCount > 0 || alreadyOpenedCount > 0 || failCount > 0) {
@@ -321,7 +366,10 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
       console.error('选择PSD文件失败:', error)
       message.error('选择文件失败: ' + error.message)
     } finally {
-      isUploading.value = false
+      if (currentBatch && batch === currentBatch) {
+        isUploading.value = false
+        batch = null
+      }
     }
   }
 
@@ -336,6 +384,7 @@ export function usePsdUpload({ message, psdFiles, processFile }) {
     handleDragOver,
     handleDragLeave,
     handleDrop,
-    handleSelectPsdFiles
+    handleSelectPsdFiles,
+    cancelUpload
   }
 }

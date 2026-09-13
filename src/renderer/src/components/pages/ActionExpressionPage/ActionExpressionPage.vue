@@ -17,6 +17,8 @@
       :jump-options="jumpOptions"
       :more-options="moreOptions"
       :current-psd-data="currentPsdData"
+      :is-uploading="isUploading"
+      @cancel-upload="cancelUpload"
       :is-sending-to-generate="isSendingToGenerate"
       @toggle-canvas="toggleCanvasPanel"
       @select-psd="handleSelectPsdFiles"
@@ -1795,7 +1797,8 @@ const {
   handleDragOver,
   handleDragLeave,
   handleDrop,
-  handleSelectPsdFiles
+  handleSelectPsdFiles,
+  cancelUpload
 } = usePsdUpload({
   message,
   psdFiles,

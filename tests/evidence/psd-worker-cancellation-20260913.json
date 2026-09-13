@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-13",
+  "baselineHead": "5817f576076b0b98131d42d8be4f77b8183c9ada",
+  "scope": "PSD解析移入一次性工作线程，单活动FIFO，真实超时/取消/退出终止；用户选择整批取消、成功文件与历史保留、缓存路由继续、真正卸载取消。",
+  "approvedBehavior": { "psd-cancel-scope": "batch", "psd-cancel-history": "keep", "psd-leave-policy": "continue-cached", "source": "本轮AskQuestion实际回答" },
+  "algorithm": "psd-engine.mjs与5817f57的psd_client.js仅清理继承的行尾空格，其他完整原文一致（含注释）；原渲染与组件检测继续复用，未修选项嵌套错位及50MiB/300MiB差异。temp/verify-psd-engine-and-measurement.mjs已执行。",
+  "baseline": {
+    "contract": "74529a5干净AaaneM完整11case严格对4gotqv；5817常量迁移E283dc同契约通过",
+    "timeout": "干净5817：temp/psd-timeout-before-1789286210933，1ms实际超时仍返回成功，12517.814041ms失败"
+  },
+  "finalTargeted": { "directory": "temp/psd-worker-final-targeted-1789290028434", "passed": 8, "failed": 0, "skipped": 0, "durationMs": 87086.355292, "contractRoot": "momentum-psd-contract-c2z8DQ", "contractBefore": "momentum-psd-contract-AaaneM", "contractCases": 11, "sessionRoot": "momentum-regression-jjVHAj", "sessionRgbaComparisons": 28, "uploadRgbaComparisons": 16, "rgbaTolerance": 0, "queueRoot": "momentum-regression-UPf97w", "formalTests": ["tests/psd-worker-queue.test.mjs", "tests/psd-cancellation.test.mjs"] },
+  "afterWhitespaceCleanup": { "directory": "temp/psd-worker-whitespace-final-1789290391926", "passed": 7, "failed": 0, "durationMs": 80317.262875, "contractRoot": "momentum-psd-contract-DFipOu", "sessionRoot": "momentum-regression-sSQaLU", "queueRoot": "momentum-regression-DYZvfy", "comparison": "完整11case仍对AaaneM，会话28与上传16RGBA零差异，取消三路径通过", "reason": "暂存检查发现新引擎文件继承行尾空白，提交未执行；仅清空白重build并完整重跑本项定向测试。" },
+  "termination": {
+    "productionCancel": "temp/psd-worker-exit-observed-1789289258668，pgkbi9，真实IPC在Worker online后取消，原解析响应前已观察exit；后续任务created晚于首exit且成功，24323.370625ms",
+    "applicationQuit": "temp/psd-worker-active-quit-1789289796727，iNIu4r，真实app quit事件前生产在线线程已经exit，原desktop.close隔离通过，11826.967791ms",
+    "queue": "正式I2oNVs及最终UPf97w各20轮活动/等待取消、错误恢复、1ms超时、stop屏障和关闭后拒绝；不transfer输入",
+    "limits": "online与1ms超时不证明已进入原生readPsd内部；正式队列直接加载产物模块与入口bundle是独立实例，真实IPC和app quit另外观测"
+  },
+  "ui": { "batch": "真实按钮、首个成功/第二受控等待后取消/第三未调用、保留已写入历史并可重试；延迟后仍调用原解析，验证拒绝迟到成功", "cached": "真实/home缓存切换不取消，完成后返回保留会话", "unmounted": "真实/login销毁布局取消一次，返回不接受旧任务成功", "provenance": ["temp/psd-cancellation-formal-1789289672254", "temp/psd-worker-final-targeted-1789290028434"] },
+  "heartbeat": {
+    "directory": "temp/psd-worker-heartbeat-1789287844126", "root": "momentum-regression-gMyyss", "method": "真实Electron同原生产引擎，每素材main/worker各20轮交替，5ms定时心跳；仅本机测量，不是IPC延迟或内存改善证明",
+    "yun-jian-qi-lin": { "mainMedianDurationMs": 127.155687, "workerMedianDurationMs": 177.0885625, "mainMedianMaxHeartbeatGapMs": 129.64775, "workerMedianMaxHeartbeatGapMs": 7.6557915 },
+    "xing-kong": { "mainMedianDurationMs": 351.1566875, "workerMedianDurationMs": 409.6462705, "mainMedianMaxHeartbeatGapMs": 353.978646, "workerMedianMaxHeartbeatGapMs": 8.074 },
+    "interpretation": "主进程心跳间隔缩短，任务总耗时增加；不声称解析速度变快"
+  },
+  "workerCapabilityObservation": { "directory": "temp/psd-worker-capabilities-1789289927737", "root": "momentum-regression-Ng3EA2", "passed": true, "cases": 5, "guardInstallations": 5, "violations": 0, "limits": "只在实际Worker启动前注入JS能力观察，拒绝列举的写入/网络/子进程；未拦截所有fs.open方式及原生系统调用，不是完整安全沙箱。原desktop helper未改，未继承真实凭据。" },
+  "packaging": { "command": "npx electron-builder --dir --mac --arm64 --publish never -c.directories.output=temp/psd-worker-package-final", "passed": true, "asarQueue": "temp/psd-worker-final-asar-1789290143353，ISR4Fm，真实Electron从最新.app的app.asar加载队列及Worker，20轮通过5044.627833ms", "limits": "未签名macOS arm64目录包；不是完整安装/启动该.app验收，未隔离仓库node_modules排除依赖回退；跨平台未验" },
+  "finalByteMatchedPackage": { "directory": "temp/psd-worker-package-trimmed", "build": "602146", "packaging": "602148通过", "asarProvenance": "temp/psd-worker-trimmed-asar-1789290528513", "root": "momentum-psd-queue-dMF6s2", "passed": true, "durationMs": 5218.941125, "limits": "仍仅实际ASAR模块加载验收，非启动该.app或安装验收" },
+  "failuresPreserved": [
+    "初版队列观察在application.evaluate直接dynamic import无loader失败VdSkKb，只修测试vm默认loader",
+    "初版will-quit屏障在Promise微任务直接app.quit挂起BRJ7b4，确认进程树后仅终止本次测试，记录temp/psd-willquit-hang.md；改setImmediate重入后退出恢复，未改helper",
+    "生命周期探针先以历史写入误当IPC到达，修为实际边界等待；随后/login真实发现两次取消8u1xBT，增加abort幂等保护后vMejUJ及正式测试通过",
+    "新增AbortController未在eslint全局表声明导致检查失败，改用globalThis.AbortController，不关闭规则"
+  ],
+  "checks": { "build": "602143最终build及目录包通过", "lint": "渐进lint+新增模块额外eslint通过，全仓历史26 errors未修", "size": "严格规模超限0", "fullRegression": "本项提交前未跑完整；最近75/75 hYlpc3属于74529，当前正式测试新增4项，后续需实际运行79项" },
+  "remaining": ["完整回归", "主进程IPC延迟与内存长稳", "50MiB边界与队列容量上限", "跨窗口取消拒绝及sender销毁独立场景", "完整安装包启动、原生依赖独立性及跨平台", "整体安全边界和CI仍未完成"]
+}

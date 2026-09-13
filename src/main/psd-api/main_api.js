@@ -15,7 +15,7 @@ import { parsePSD, renderPSDLayers, detectComponents } from './psd_client.js';
  * @param {object} options - 解析选项
  * @returns {Promise<object>} 解析结果
  */
-async function mainParsePSD(fileBuffer, options = {}) {
+async function mainParsePSD(fileBuffer, options = {}, signal) {
     // 1、获取并验证解析配置。
     const config = getPSDConfig(options);
     const validation = validatePSDConfig(config);
@@ -57,7 +57,8 @@ async function mainParsePSD(fileBuffer, options = {}) {
         const result = await parsePSD(
             fileBuffer,
             config.parseDefaults,
-            config.PROCESSING_TIMEOUT
+            config.PROCESSING_TIMEOUT,
+            signal
         );
         
         console.log('PSD文件解析完成');
@@ -224,7 +225,7 @@ async function psdApiWrapper(operation, params) {
         let result;
         switch (operation) {
             case 'parse':
-                result = await mainParsePSD(params.fileBuffer, params.options);
+                result = await mainParsePSD(params.fileBuffer, params.options, params.signal);
                 break;
             case 'render':
                 result = await mainRenderPSD(params.psdData, params.options);

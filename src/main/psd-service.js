@@ -9,6 +9,8 @@ import path from 'path';
 // 动态导入PSD API
 let psdApi = null;
 let logger = null;
+// 解析任务按发送窗口和调用方标识隔离，取消不能影响其他窗口或后续请求。
+const parseTasks = new Map();
 
 /**
  * 按需加载 PSD API 并复用模块实例。
@@ -59,6 +61,15 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-parse-file', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-parse-${Date.now()}`;
+        const controller = new globalThis.AbortController();
+        const taskId = options?.taskId;
+        const taskKey = typeof taskId === 'string' && taskId.length <= 128
+            ? `${event.sender.id}:${taskId}` : null;
+        const task = { controller };
+        const abortDestroyedTask = () => controller.abort();
+        event.sender.once('destroyed', abortDestroyedTask);
+        if (taskKey && !parseTasks.has(taskKey)) parseTasks.set(taskKey, task);
+        else if (taskKey) controller.abort();
         
         try {
             const api = await loadPSDApi();
@@ -75,7 +86,8 @@ async function registerPSDApiHandlers() {
             // 调用PSD解析API
             const result = await api.psdApiWrapper('parse', {
                 fileBuffer: options.fileBuffer,
-                options: options.parseOptions || {}
+                options: options.parseOptions || {},
+                signal: controller.signal
             });
             
             logger?.info(`PSD解析完成，耗时: ${Date.now() - startTime}ms`);
@@ -100,7 +112,24 @@ async function registerPSDApiHandlers() {
                 requestId,
                 processingTime: Date.now() - startTime
             };
+        } finally {
+            // 4、结算后只释放本次任务，不删除同键的其他记录。
+            event.sender.removeListener('destroyed', abortDestroyedTask);
+            if (taskKey && parseTasks.get(taskKey) === task) parseTasks.delete(taskKey);
         }
+    });
+
+    /**
+     * 取消调用窗口持有的一次解析。
+     * 处理流程：
+     * 1、仅按发送窗口和任务标识查找，活动线程由队列真实终止。
+     */
+    ipcMain.handle('psd-cancel-parse', (event, taskId) => {
+        // 1、不允许按任意窗口编号或服务生成的请求标识跨窗口取消。
+        if (typeof taskId !== 'string' || taskId.length > 128) return { success: false };
+        const task = parseTasks.get(`${event.sender.id}:${taskId}`);
+        task?.controller.abort();
+        return { success: true, cancelled: Boolean(task) };
     });
 
     // 3、注册 PSD 图层渲染入口。
@@ -314,6 +343,7 @@ async function registerPSDApiHandlers() {
 function unregisterPSDApiHandlers() {
     // 1、准备本模块通道清单。
     console.log('注销 PSD API IPC 处理器...');
+    ipcMain.removeHandler('psd-cancel-parse');
     
     const handlers = [
         'psd-parse-file',

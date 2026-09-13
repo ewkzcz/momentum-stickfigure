@@ -2,6 +2,7 @@
  * PSD 解析与页面初始化：调用桌面解析服务、缓存部件分类并协调首次载入状态。
  */
 import { markRaw } from 'vue'
+import { usePsdParseTasks } from './usePsdParseTasks.js'
 
 /**
  * PSD 文件解析与处理逻辑（核心）
@@ -178,6 +179,7 @@ const buildExpressionMeta = (tabs = [], expressionsMap = {}) => {
  * @param {Object} deps 依赖项，包含页面响应式状态与业务方法
  */
 export function usePsdParser(deps) {
+  const parseTasks = usePsdParseTasks()
   // 1、复用页面状态容器，避免产生另一份选中或图层数据
   const {
     // 基础依赖
@@ -297,21 +299,17 @@ export function usePsdParser(deps) {
    * @param {Object} parseOptions
    * @returns {Promise<Object>}
    */
-  const parsePsdFile = async (file, parseOptions = {}) => {
+  const parsePsdFile = async (file, parseOptions = {}, signal) => {
     // 1、保留调用方传入的解析选项覆盖默认值
     try {
-      const arrayBuffer = await file.arrayBuffer()
-      const result = await window.electronAPI?.invoke('psd-parse-file', {
-        fileBuffer: arrayBuffer,
-        parseOptions: {
-          parseImages: true,
-          parseChannelData: false,
-          validateFile: true,
-          processLayers: true,
-          autoDetectComponents: true,
-          ...parseOptions
-        }
-      })
+      const result = await parseTasks.parse(file, {
+        parseImages: true,
+        parseChannelData: false,
+        validateFile: true,
+        processLayers: true,
+        autoDetectComponents: true,
+        ...parseOptions
+      }, signal)
 
       // 2、区分 IPC 调用成功和内层解析成功，拒绝把失败对象当作 PSD 数据。
       if (result && result.success) {
@@ -341,7 +339,7 @@ export function usePsdParser(deps) {
    * @param {File} file
    * @param {boolean} showMessage
    */
-  const processFile = async (file, showMessage = true) => {
+  const processFile = async (file, showMessage = true, signal) => {
     // 1、在解析前记录真实路径，供后续历史恢复使用
     try {
       console.log('📁 开始处理文件:', file.name)
@@ -364,7 +362,7 @@ export function usePsdParser(deps) {
         message.loading('正在解析PSD文件...', { duration: 0, key: 'parse' })
       }
 
-      const parsedData = await parsePsdFile(file)
+      const parsedData = await parsePsdFile(file, {}, signal)
       const data = markRaw(parsedData)
 
       console.log('✅ PSD解析完成')
