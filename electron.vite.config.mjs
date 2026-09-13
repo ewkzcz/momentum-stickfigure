@@ -56,7 +56,7 @@ function copyApiModulesPlugin() {
         mkdirSync(psdTargetDir, { recursive: true })
       }
       
-      const psdFiles = ['config.js', 'psd_client.js', 'psd_utils.js', 'main_api.js', 'package.json', 'index.js']
+      const psdFiles = ['config.js', 'psd-constants.mjs', 'psd_client.js', 'psd_utils.js', 'main_api.js', 'package.json', 'index.js']
       psdFiles.forEach(file => {
         const source = `${psdSourceDir}/${file}`
         const target = `${psdTargetDir}/${file}`

@@ -4,7 +4,7 @@
  */
 
 import { readPsd, writePsdBuffer, initializeCanvas } from 'ag-psd';
-import { PSD_ERROR_MESSAGES, COMPONENT_DETECTION_CONFIG } from './config.js';
+import { PSD_ERROR_MESSAGES, COMPONENT_DETECTION_CONFIG } from './psd-constants.mjs';
 
 const SHOULD_LOG_LAYER_DETAILS = process.env.PSD_LAYER_VERBOSE === 'true';
 /**
