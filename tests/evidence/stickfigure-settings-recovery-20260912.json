@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "scope": "人物设置恢复、同步重载和导入归属迁移；不修改原行为",
+  "baselineCommit": "3ba7ffd9f8c522135126385210d22715804734d5",
+  "mechanicalChecks": [
+    "temp/verify-stickfigure-recovery-extraction.mjs：三个原同步块AST、正文及内部注释一致；父脚本仅三处原位同步调用和解构变更；原catch/await及模板样式不变",
+    "temp/stickfigure-recovery-trace.mjs：638组原始属性读取、写入、存储、日志及逐边界异常轨迹严格一致；补充验证，不替代Electron"
+  ],
+  "baseline": {
+    "existingProvenance": "temp/stickfigure-recovery-existing-1789259353380",
+    "existingPassed": "4/4，93163ms",
+    "archive": "momentum-settings-archive-5Fdefi",
+    "basic": "momentum-regression-Q0XE5l",
+    "frontHand": "momentum-regression-pti0BG",
+    "groups": "momentum-regression-cJ68EM",
+    "recovery": "momentum-settings-recovery-vFhnbL",
+    "recoveryProvenance": "temp/settings-recovery-corrected-1789259550154",
+    "recoveryRepeat": "momentum-settings-recovery-5Of0we",
+    "recoveryRepeatProvenance": "temp/settings-recovery-repeat-1789259670296",
+    "recoveryCases": 10
+  },
+  "candidate": {
+    "provenance": "temp/stickfigure-recovery-candidate-1789259991867",
+    "passed": "5/5，0跳过，196385ms",
+    "archive": "momentum-settings-archive-HaoDR3，严格对照5Fdefi",
+    "recovery": "momentum-settings-recovery-nMr5MO，严格对照vFhnbL",
+    "basic": "momentum-regression-MOWxKT",
+    "frontHand": "momentum-regression-ZxWoR1",
+    "groups": "momentum-regression-x8I5fA",
+    "layoutProvenance": "temp/stickfigure-recovery-layout-1789260206546",
+    "layout": "momentum-regression-Dfa7PD，对照Q0XE5l基础设置initial/saved/restarted计算样式和RGBA零差异",
+    "build": "npm run build；renderer index-pTC5Qvsr.js；index-Bhpp1Q-R.css；既有unused与体积警告保留",
+    "static": "npm run lint；node scripts/check-source-size.mjs --strict；git diff --check；均通过。渐进lint不等于全仓eslint通过"
+  },
+  "preservedBehavior": [
+    "备份A优先恢复覆盖导入B的本地配置，但首次重启UI命名规则及同名文件处理仍从B初始化，下一次刷新才读取A；原挂载重载漏两个字段，不在迁移中修复",
+    "缺少整个groupNames的旧导入保留当前未保存表单名称，刷新后初始化补默认；持久化保持原导入对象",
+    "损坏人物localStorage回默认表单而保留损坏原文；损坏最新备份回退localStorage；损坏导入不改现存数据",
+    "版本继续/取消分别导入/不变；关闭按钮、Escape、遮罩在1200ms观察窗均隐藏弹窗但导入按钮仍加载；只证明原版缺陷及迁移一致，不称取消完成",
+    "人物默认路径及两前手常量不再暴露给父页；DEFAULT_GROUP_NAMES仍供模板使用；唯一响应式状态未复制"
+  ],
+  "retainedFailures": [
+    "首次命令误写不存在的settings-stickfigure/settings-groups文件名，在Electron启动前被access拒绝；改用git清单真实文件名",
+    "momentum-settings-recovery-xlFIKC在legacy-migration因测试未切回基础子页签导致定位超时；只修测试导航，不改业务或行为断言；该结果不可用作通过基线"
+  ],
+  "boundaries": [
+    "复用未改动的tests/helpers/desktop.mjs隔离后台Electron，使用假配置，无真实AI/Python请求",
+    "本次前手/图组名称为功能回归，不宣称独立布局截图比较",
+    "同步异常轨迹为轻量VM模型，未模拟真实磁盘失败",
+    "损坏人物配置测试未单独计数后续生图/高清加载是否被阻断；调用位置与catch由机械核验保护",
+    "本次尚未重跑全量；最近全量O3ApZi 65/65属于迁移前3ba7ffd",
+    "预览偶发空白、全仓26个eslint错误、PSD Worker生产化、安全、CI及安装包验收仍待完成"
+  ]
+}

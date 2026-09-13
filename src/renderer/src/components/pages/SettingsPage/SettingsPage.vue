@@ -310,10 +310,10 @@ const {
   isSavingStickfigure,
   isSelectingStickfigureFolder,
   fileNamingRuleOptions,
-  DEFAULT_FRONT_HAND_BOTH_NAMES,
-  DEFAULT_FRONT_HAND_RIGHT_NAMES,
   DEFAULT_GROUP_NAMES,
-  getDefaultPicturesPath,
+  restoreStickfigureSettingsFromBackup,
+  reloadStickfigureSettingsFromStorage,
+  applyImportedStickfigureSettings,
   saveStickfigureConfig,
   selectStickfigureOutputFolder,
   resetStickfigureOutputToDefault,
@@ -395,10 +395,7 @@ const loadConfig = async () => {
         console.log('📁 从用户文档目录找到配置备份，正在恢复...')
 
         // 恢复简笔画配置
-        if (restoreResult.settings.stickfigureConfig) {
-          localStorage.setItem('stickfigure-config', JSON.stringify(restoreResult.settings.stickfigureConfig))
-          console.log('✅ 简笔画配置已从备份恢复')
-        }
+        restoreStickfigureSettingsFromBackup(restoreResult)
 
         // 恢复纳米香蕉配置
         const restoredGeminiConfig = restoreResult.settings.geminiConfig || restoreResult.settings.falConfig
@@ -440,36 +437,7 @@ const loadConfig = async () => {
     }
 
     // 2、从恢复后的本地存储重新读取人物配置并更新表单。
-    console.log('🔄 重新加载简笔画配置...')
-    const savedStickfigureConfig = localStorage.getItem('stickfigure-config')
-    if (savedStickfigureConfig) {
-      const parsed = JSON.parse(savedStickfigureConfig)
-      console.log('📖 从localStorage加载简笔画配置:', parsed)
-      console.log('📋 图组名称配置:', parsed.groupNames)
-
-      // 更新 reactive 对象的每个属性
-      stickfigureConfig.outputRoot = parsed.outputRoot || getDefaultPicturesPath()
-      stickfigureConfig.overwriteMode = parsed.overwriteMode || 'rename'
-      stickfigureConfig.createPsdFolder = parsed.createPsdFolder !== undefined ? parsed.createPsdFolder : true
-      stickfigureConfig.enableFuzzyMatch = parsed.enableFuzzyMatch !== undefined ? parsed.enableFuzzyMatch : true
-      stickfigureConfig.frontHandBothNames = parsed.frontHandBothNames || DEFAULT_FRONT_HAND_BOTH_NAMES
-      stickfigureConfig.frontHandRightNames = parsed.frontHandRightNames || DEFAULT_FRONT_HAND_RIGHT_NAMES
-
-      // 更新图组名称配置
-      if (parsed.groupNames) {
-        stickfigureConfig.groupNames.frontHand = parsed.groupNames.frontHand || DEFAULT_GROUP_NAMES.frontHand
-        stickfigureConfig.groupNames.backHand = parsed.groupNames.backHand || DEFAULT_GROUP_NAMES.backHand
-        stickfigureConfig.groupNames.bothHands = parsed.groupNames.bothHands || DEFAULT_GROUP_NAMES.bothHands
-        stickfigureConfig.groupNames.upperBody = parsed.groupNames.upperBody || DEFAULT_GROUP_NAMES.upperBody
-        stickfigureConfig.groupNames.lowerBody = parsed.groupNames.lowerBody || DEFAULT_GROUP_NAMES.lowerBody
-        stickfigureConfig.groupNames.action = parsed.groupNames.action || DEFAULT_GROUP_NAMES.action
-        stickfigureConfig.groupNames.expression = parsed.groupNames.expression || DEFAULT_GROUP_NAMES.expression
-      }
-
-      console.log('✅ 简笔画配置已更新到组件')
-    } else {
-      console.log('⚠️ localStorage中没有找到简笔画配置，使用默认值')
-    }
+    reloadStickfigureSettingsFromStorage()
 
     // 3、重新加载抠图高清路径并兼容旧字段名。
     const savedHdToolkitConfig = localStorage.getItem('hd-toolkit-config')
@@ -605,34 +573,7 @@ const handleImportSettings = async () => {
       }
 
       // 3、先更新人物表单，再持久化导入的人物配置。
-      if (importedSettings.stickfigureConfig) {
-        const imported = importedSettings.stickfigureConfig
-
-        // 更新基础配置
-        stickfigureConfig.outputRoot = imported.outputRoot || getDefaultPicturesPath()
-        stickfigureConfig.overwriteMode = imported.overwriteMode || 'rename'
-        stickfigureConfig.fileNamingRule = imported.fileNamingRule || 'timestamp-semantic' // 新增：文件名规则
-        stickfigureConfig.duplicateFileHandling = imported.duplicateFileHandling || 'addIndex' // 新增：同名文件处理方式
-        stickfigureConfig.createPsdFolder = imported.createPsdFolder !== undefined ? imported.createPsdFolder : true
-        stickfigureConfig.enableFuzzyMatch = imported.enableFuzzyMatch !== undefined ? imported.enableFuzzyMatch : true
-        stickfigureConfig.frontHandBothNames = imported.frontHandBothNames || DEFAULT_FRONT_HAND_BOTH_NAMES
-        stickfigureConfig.frontHandRightNames = imported.frontHandRightNames || DEFAULT_FRONT_HAND_RIGHT_NAMES
-
-        // 更新图组名称配置
-        if (imported.groupNames) {
-          stickfigureConfig.groupNames.frontHand = imported.groupNames.frontHand || DEFAULT_GROUP_NAMES.frontHand
-          stickfigureConfig.groupNames.backHand = imported.groupNames.backHand || DEFAULT_GROUP_NAMES.backHand
-          stickfigureConfig.groupNames.bothHands = imported.groupNames.bothHands || DEFAULT_GROUP_NAMES.bothHands
-          stickfigureConfig.groupNames.upperBody = imported.groupNames.upperBody || DEFAULT_GROUP_NAMES.upperBody
-          stickfigureConfig.groupNames.lowerBody = imported.groupNames.lowerBody || DEFAULT_GROUP_NAMES.lowerBody
-          stickfigureConfig.groupNames.action = imported.groupNames.action || DEFAULT_GROUP_NAMES.action
-          stickfigureConfig.groupNames.expression = imported.groupNames.expression || DEFAULT_GROUP_NAMES.expression
-        }
-
-        // 保存到 localStorage
-        localStorage.setItem('stickfigure-config', JSON.stringify(imported))
-        console.log('[设置页] 简笔画配置已导入并更新到界面')
-      }
+      applyImportedStickfigureSettings(importedSettings)
 
       // 4、接受当前生图配置名和旧版配置名，统一写入当前存储键。
       const importedGeminiConfig = importedSettings.geminiConfig || importedSettings.falConfig

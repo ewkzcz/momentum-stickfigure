@@ -342,16 +342,108 @@ export function useStickfigureSettings({ message, showSaveRestartTip, appVersion
     }
   }
 
+  /**
+   * 恢复备份中的人物配置。
+   * 处理流程：
+   * 1、沿用原外层恢复结果读取顺序，将人物对象写回本地存储并记录日志。
+   * 2、异常继续交给页面原恢复 catch 处理，不新增校验或回滚。
+   */
+  const restoreStickfigureSettingsFromBackup = (restoreResult) => {
+    // 1、保留原条件及重复属性读取，不提前缓存备份对象。
+    if (restoreResult.settings.stickfigureConfig) {
+      localStorage.setItem('stickfigure-config', JSON.stringify(restoreResult.settings.stickfigureConfig))
+      console.log('✅ 简笔画配置已从备份恢复')
+    }
+  }
+
+  /**
+   * 从本地存储重新加载人物表单。
+   * 处理流程：
+   * 1、同步读取并解析人物配置，保留原缺省值及布尔字段判断。
+   * 2、仅在图组对象存在时更新名称；原本遗漏的文件命名字段仍不参与本次重载。
+   */
+  const reloadStickfigureSettingsFromStorage = () => {
+    // 1、解析异常由页面原加载 catch 处理，后续配置域仍按原流程停止。
+    console.log('🔄 重新加载简笔画配置...')
+    const savedStickfigureConfig = localStorage.getItem('stickfigure-config')
+    if (savedStickfigureConfig) {
+      const parsed = JSON.parse(savedStickfigureConfig)
+      console.log('📖 从localStorage加载简笔画配置:', parsed)
+      console.log('📋 图组名称配置:', parsed.groupNames)
+
+      // 更新 reactive 对象的每个属性
+      stickfigureConfig.outputRoot = parsed.outputRoot || getDefaultPicturesPath()
+      stickfigureConfig.overwriteMode = parsed.overwriteMode || 'rename'
+      stickfigureConfig.createPsdFolder = parsed.createPsdFolder !== undefined ? parsed.createPsdFolder : true
+      stickfigureConfig.enableFuzzyMatch = parsed.enableFuzzyMatch !== undefined ? parsed.enableFuzzyMatch : true
+      stickfigureConfig.frontHandBothNames = parsed.frontHandBothNames || DEFAULT_FRONT_HAND_BOTH_NAMES
+      stickfigureConfig.frontHandRightNames = parsed.frontHandRightNames || DEFAULT_FRONT_HAND_RIGHT_NAMES
+
+      // 更新图组名称配置
+      if (parsed.groupNames) {
+        stickfigureConfig.groupNames.frontHand = parsed.groupNames.frontHand || DEFAULT_GROUP_NAMES.frontHand
+        stickfigureConfig.groupNames.backHand = parsed.groupNames.backHand || DEFAULT_GROUP_NAMES.backHand
+        stickfigureConfig.groupNames.bothHands = parsed.groupNames.bothHands || DEFAULT_GROUP_NAMES.bothHands
+        stickfigureConfig.groupNames.upperBody = parsed.groupNames.upperBody || DEFAULT_GROUP_NAMES.upperBody
+        stickfigureConfig.groupNames.lowerBody = parsed.groupNames.lowerBody || DEFAULT_GROUP_NAMES.lowerBody
+        stickfigureConfig.groupNames.action = parsed.groupNames.action || DEFAULT_GROUP_NAMES.action
+        stickfigureConfig.groupNames.expression = parsed.groupNames.expression || DEFAULT_GROUP_NAMES.expression
+      }
+
+      console.log('✅ 简笔画配置已更新到组件')
+    } else {
+      console.log('⚠️ localStorage中没有找到简笔画配置，使用默认值')
+    }
+  }
+
+  /**
+   * 应用导入文件中的人物配置。
+   * 处理流程：
+   * 1、按原顺序为表单补齐字段，保留缺少整个图组对象时的现有名称。
+   * 2、持久化原导入对象而非补齐后的表单；写入异常继续由页面原导入 catch 处理。
+   */
+  const applyImportedStickfigureSettings = (importedSettings) => {
+    // 1、调用位置仍在文件读取与版本确认之后，不增加异步边界。
+    if (importedSettings.stickfigureConfig) {
+      const imported = importedSettings.stickfigureConfig
+
+      // 更新基础配置
+      stickfigureConfig.outputRoot = imported.outputRoot || getDefaultPicturesPath()
+      stickfigureConfig.overwriteMode = imported.overwriteMode || 'rename'
+      stickfigureConfig.fileNamingRule = imported.fileNamingRule || 'timestamp-semantic' // 新增：文件名规则
+      stickfigureConfig.duplicateFileHandling = imported.duplicateFileHandling || 'addIndex' // 新增：同名文件处理方式
+      stickfigureConfig.createPsdFolder = imported.createPsdFolder !== undefined ? imported.createPsdFolder : true
+      stickfigureConfig.enableFuzzyMatch = imported.enableFuzzyMatch !== undefined ? imported.enableFuzzyMatch : true
+      stickfigureConfig.frontHandBothNames = imported.frontHandBothNames || DEFAULT_FRONT_HAND_BOTH_NAMES
+      stickfigureConfig.frontHandRightNames = imported.frontHandRightNames || DEFAULT_FRONT_HAND_RIGHT_NAMES
+
+      // 更新图组名称配置
+      if (imported.groupNames) {
+        stickfigureConfig.groupNames.frontHand = imported.groupNames.frontHand || DEFAULT_GROUP_NAMES.frontHand
+        stickfigureConfig.groupNames.backHand = imported.groupNames.backHand || DEFAULT_GROUP_NAMES.backHand
+        stickfigureConfig.groupNames.bothHands = imported.groupNames.bothHands || DEFAULT_GROUP_NAMES.bothHands
+        stickfigureConfig.groupNames.upperBody = imported.groupNames.upperBody || DEFAULT_GROUP_NAMES.upperBody
+        stickfigureConfig.groupNames.lowerBody = imported.groupNames.lowerBody || DEFAULT_GROUP_NAMES.lowerBody
+        stickfigureConfig.groupNames.action = imported.groupNames.action || DEFAULT_GROUP_NAMES.action
+        stickfigureConfig.groupNames.expression = imported.groupNames.expression || DEFAULT_GROUP_NAMES.expression
+      }
+
+      // 保存到 localStorage
+      localStorage.setItem('stickfigure-config', JSON.stringify(imported))
+      console.log('[设置页] 简笔画配置已导入并更新到界面')
+    }
+  }
+
   // 3、跨域恢复、导入与模板继续共用同一配置对象；初始化函数保持私有。
   return {
+    restoreStickfigureSettingsFromBackup,
+    reloadStickfigureSettingsFromStorage,
+    applyImportedStickfigureSettings,
     stickfigureConfig,
     isSavingStickfigure,
     isSelectingStickfigureFolder,
     fileNamingRuleOptions,
-    DEFAULT_FRONT_HAND_BOTH_NAMES,
-    DEFAULT_FRONT_HAND_RIGHT_NAMES,
     DEFAULT_GROUP_NAMES,
-    getDefaultPicturesPath,
     saveStickfigureConfig,
     selectStickfigureOutputFolder,
     resetStickfigureOutputToDefault,
