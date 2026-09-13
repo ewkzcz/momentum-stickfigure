@@ -89,6 +89,34 @@ export function createBrowserViewController({ getPicturesDirectory }) {
     } catch (_) {}
   }
 
+  /** 只释放本实例持有的记录和监听；重复或迟到清理不影响同键新实例。 */
+  function releaseView(record) {
+    if (!record || record.released) return
+    record.released = true
+    const { window, view, key } = record
+    window.removeListener('closed', record.onDestroyed)
+    view.webContents.removeListener('destroyed', record.onDestroyed)
+    const resize = __autoResizeHandlers.get(view)
+    if (resize) {
+      window.removeListener('resize', resize)
+      __autoResizeHandlers.delete(view)
+    }
+    if (globalBrowserViews.get(key) === record) globalBrowserViews.delete(key)
+    try { removeView(window, view) } catch (_) {}
+    // 沿用原close策略，不强制绕过网页退出确认。
+    try { if (!view.webContents.isDestroyed()) view.webContents.close() } catch (_) {}
+  }
+
+  /** 为在途及已加载视图建立同一生命周期记录。 */
+  function trackView(key, window, view, useNative) {
+    const record = { key, view, window, useNative, released: false }
+    record.onDestroyed = () => releaseView(record)
+    globalBrowserViews.set(key, record)
+    window.once('closed', record.onDestroyed)
+    view.webContents.once('destroyed', record.onDestroyed)
+    return record
+  }
+
   /**
    * 获取用于发起系统拖拽的隐藏宿主窗口。
    * 处理流程：
@@ -304,8 +332,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      */
     ipcMain.handle('browserview:open', async (event, { url, partition = 'persist:doubao', bounds, enableDevTools = false, theme, nativeTheme: useNative } = {}) => {
       // 仅在本次打开尚未成功时持有回收入口，避免加载失败遗留已挂载的网页。
-      let openingWindow = null
-      let openingView = null
+      let openingRecord = null
       try {
         // 1、每个视图通过分区和地址共同定位。
         const window = BrowserWindow.fromWebContents(event.sender)
@@ -314,12 +341,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         // 如果已有同分区的视图，先移除
         const key = `${event.sender.id}:${partition}:${url || ''}`
         const existing = globalBrowserViews.get(key)
-        if (existing) {
-          try { removeView(window, existing.view) } catch (_) {}
-          // BrowserView 本身没有 destroy；关闭其网页内容才会实际释放渲染资源。
-          try { existing.view.webContents.close() } catch (_) {}
-          globalBrowserViews.delete(key)
-        }
+        if (existing) releaseView(existing)
 
         // 2、创建隔离的网页视图并挂载到调用窗口。
         const view = new BrowserView({
@@ -335,8 +357,8 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         })
 
 
-        openingWindow = window
-        openingView = view
+        const record = trackView(key, window, view, useNative)
+        openingRecord = record
         addView(window, view)
 
         // 边界：默认铺满除顶部工具栏外区域，由渲染层传入
@@ -352,9 +374,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
           view.webContents.setUserAgent(sanitized)
         } catch (_) {}
 
-        // 加载前登记所属实例，使关闭或后续同键打开能够找到在途视图。
-        const record = { view, window, useNative }
-        globalBrowserViews.set(key, record)
+        // 本记录已登记，关闭或后续同键打开能找到在途视图。
         if (url) await view.webContents.loadURL(url)
         if (globalBrowserViews.get(key) !== record || view.webContents.isDestroyed()) {
           throw new Error('网页视图打开已取消')
@@ -379,12 +399,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         return { success: true }
       } catch (error) {
         // 加载失败时视图可能尚未入表；只回收本次实例，不影响同键的其他请求。
-        if (openingView) {
-          try { removeView(openingWindow, openingView) } catch (_) {}
-          try { openingView.webContents.close() } catch (_) {}
-          const key = `${event.sender.id}:${partition}:${url || ''}`
-          if (globalBrowserViews.get(key)?.view === openingView) globalBrowserViews.delete(key)
-        }
+        releaseView(openingRecord)
         console.error('BrowserView 打开失败:', error)
         return { success: false, error: error.message }
       }
@@ -401,12 +416,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         // 1、使用与打开入口一致的键定位视图。
         const key = `${event.sender.id}:${partition}:${url || ''}`
         const record = globalBrowserViews.get(key)
-        if (record) {
-          // 2、释放窗口挂载和视图引用。
-          try { removeView(record.window, record.view) } catch (_) {}
-          try { record.view.webContents.close() } catch (_) {}
-          globalBrowserViews.delete(key)
-        }
+        releaseView(record)
         return { success: true }
       } catch (error) {
         console.error('BrowserView 关闭失败:', error)
@@ -647,11 +657,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
     ipcMain.removeHandler('browserview:close')
     ipcMain.removeHandler('browserview:setBounds')
     // 2、清理所有残留视图并释放缓存引用。
-    for (const { view, window } of globalBrowserViews.values()) {
-      try { removeView(window, view) } catch (_) {}
-      try { view?.webContents.close() } catch (_) {}
-    }
-    globalBrowserViews.clear()
+    for (const record of [...globalBrowserViews.values()]) releaseView(record)
     console.log('✓ BrowserView 处理器已移除')
   }
 
