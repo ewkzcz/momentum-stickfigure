@@ -1,0 +1,51 @@
+{
+  "date": "2026-09-13",
+  "subject": "PSD跨窗口取消与销毁边界、文件上限及IPC响应补充验收",
+  "productionHead": "d463322da5882910d0a24362ecad6b25df5a3ca3",
+  "productionChanges": false,
+  "fullRegression": {
+    "evidenceId": "layer-render-acceptance-klsx2I",
+    "tests": 79,
+    "passed": 79,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 1195212.242166,
+    "endedAt": "2026-09-13T09:30:33.832Z",
+    "referenceFiles": 266,
+    "referenceSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed"
+  },
+  "senderBoundaries": {
+    "baselineProvenance": "temp/psd-sender-boundaries-1789291834741",
+    "baselineRoots": ["momentum-regression-VljyQZ", "momentum-regression-U2aRVi"],
+    "formalProvenance": "temp/psd-sender-formal-1789292089899",
+    "formalRoots": ["momentum-regression-bn2UKc", "momentum-regression-GL65Ta"],
+    "tests": 2,
+    "passed": 2,
+    "durationMs": 3226.836334,
+    "testFile": "tests/psd-sender-boundaries.test.mjs",
+    "coverage": ["真实主窗口任务未结算时，预览窗口取消相同taskId返回cancelled:false，原任务成功", "五轮真实预览窗口销毁，事件顺序created/online/sender-destroyed/exit，主进程原处理器返回PSD解析已取消", "每次销毁后主窗口使用相同taskId成功解析"],
+    "observation": "透明继承真实Worker并记录原IPC处理器结算；原desktop及后台保护未修改",
+    "limitations": ["online不证明已进入原生readPsd内部", "主动destroy验证sender销毁，不等同用户beforeunload关闭确认"]
+  },
+  "fileSize": {
+    "provenance": "temp/psd-size-and-ipc-1789291837816",
+    "root": "momentum-regression-xHn16T",
+    "passed": true,
+    "casesBytes": [52428799, 52428800, 52428801, 4],
+    "coverage": "边界以下和等于50MiB的损坏数据进入真实Worker并按原解析错误拒绝；以上不创建Worker；随后小损坏输入仍进入解析",
+    "limitations": ["不是50MiB合法PSD成功解析证明", "不是队列任务数或总内存上限验证"]
+  },
+  "ipcLatency": {
+    "root": "momentum-regression-7NPxzC",
+    "passed": true,
+    "roundsPerModePerFixture": 20,
+    "method": "同一真实Electron进程，交替直接执行生产engine与生产queue；renderer先发测试解析通道，再发测试空响应IPC，记录往返；不调用外部服务",
+    "summaries": [
+      {"fixture": "yun-jian-qi-lin", "mainMedianDurationMs": 126.35, "workerMedianDurationMs": 180.60, "mainMedianMaxIpcMs": 126.30, "workerMedianMaxIpcMs": 0.60},
+      {"fixture": "xing-kong", "mainMedianDurationMs": 344.65, "workerMedianDurationMs": 407.65, "mainMedianMaxIpcMs": 344.65, "workerMedianMaxIpcMs": 1.30}
+    ],
+    "limitations": ["专用测试IPC不等同整个生产psd-parse-file接口延迟", "总解析时间增加，改善的是解析期间主进程对IPC的响应", "内存仅记录进程快照，未强制GC或长稳，不声明内存改善"]
+  },
+  "checks": {"build": true, "progressiveLint": true, "strictSize": true, "wholeSourceLintErrors": 26},
+  "remaining": ["队列容量与总字节限制", "beforeunload拒绝退出及重复退出请求", "完整安装包启动及依赖不回退仓库", "外链真实弹出路径受后台helper固定deny保护限制，尚未动态验收", "跨平台及原生模块系统调用隔离"]
+}
