@@ -198,7 +198,6 @@ import { useMessage, useDialog } from 'naive-ui'
 import { useRoute } from 'vue-router'
 import { normalizeApiBaseUrl } from '@shared/api-url.js'
 import { useHoverPreviewSetting } from '../../../composables/useHoverPreviewSetting.js'
-import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-config.js'
 import StickfigureBasicSettings from './components/StickfigureBasicSettings.vue'
 import StickfigureFrontHandSettings from './components/StickfigureFrontHandSettings.vue'
 import StickfigureGroupNameSettings from './components/StickfigureGroupNameSettings.vue'
@@ -297,7 +296,9 @@ const {
   geminiConfig,
   isSavingGemini,
   isSelectingFolder,
-  getDefaultProjectRoot,
+  restoreGeminiSettingsFromBackup,
+  reloadGeminiSettingsFromStorage,
+  applyImportedGeminiSettings,
   saveGeminiConfig,
   selectProjectRootFolder,
   resetProjectRootToDefault
@@ -398,14 +399,7 @@ const loadConfig = async () => {
         restoreStickfigureSettingsFromBackup(restoreResult)
 
         // 恢复纳米香蕉配置
-        const restoredGeminiConfig = restoreResult.settings.geminiConfig || restoreResult.settings.falConfig
-        if (restoredGeminiConfig) {
-          localStorage.setItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY, JSON.stringify(restoredGeminiConfig))
-          if (localStorage.getItem('fal-config')) {
-            localStorage.removeItem('fal-config')
-          }
-          console.log('✅ 纳米香蕉配置已从备份恢复')
-        }
+        restoreGeminiSettingsFromBackup(restoreResult)
 
         // 恢复快捷键配置
         if (restoreResult.settings.hotkeysConfig) {
@@ -457,42 +451,7 @@ const loadConfig = async () => {
     }
 
     // 4、生图配置优先使用当前存储键，缺失时读取旧键。
-    const savedGeminiConfig = localStorage.getItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY) || localStorage.getItem('fal-config')
-    let needsSave = false
-
-    if (savedGeminiConfig) {
-      const parsed = JSON.parse(savedGeminiConfig)
-
-      // 检查保存的projectRoot是否包含旧的硬编码用户名或不存在的路径
-      if (parsed.projectRoot && 
-          (parsed.projectRoot.includes('Administrator\\Pictures\\fal-project') ||
-           parsed.projectRoot.includes('~/Pictures/fal-project'))) {
-        // 如果是旧的硬编码路径，使用新的默认路径
-        console.log('检测到旧的projectRoot路径，使用新的默认路径')
-        parsed.projectRoot = getDefaultProjectRoot()
-        needsSave = true
-      }
-
-      Object.assign(geminiConfig, parsed)
-
-      // 如果projectRoot为空或无效，设置为默认值
-      if (!geminiConfig.projectRoot || geminiConfig.projectRoot.trim() === '') {
-        geminiConfig.projectRoot = getDefaultProjectRoot()
-        needsSave = true
-      }
-
-      // 确保编辑图片路径与生成图片路径一致
-      geminiConfig.editOutputDir = geminiConfig.outputDir
-
-      // 如果检测到需要更新路径，立即保存到localStorage
-      if (needsSave) {
-        console.log('自动保存更新后的配置到localStorage:', geminiConfig.projectRoot)
-        localStorage.setItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY, JSON.stringify(geminiConfig))
-        if (localStorage.getItem('fal-config')) {
-          localStorage.removeItem('fal-config')
-        }
-      }
-    }
+    reloadGeminiSettingsFromStorage()
 
 
     // 5、后端配置仅补充尚未定义的字段，保留表单现有用户设置。
@@ -576,25 +535,7 @@ const handleImportSettings = async () => {
       applyImportedStickfigureSettings(importedSettings)
 
       // 4、接受当前生图配置名和旧版配置名，统一写入当前存储键。
-      const importedGeminiConfig = importedSettings.geminiConfig || importedSettings.falConfig
-      if (importedGeminiConfig) {
-        const imported = importedGeminiConfig
-
-        // 更新所有属性
-        geminiConfig.apiKey = imported.apiKey || ''
-        geminiConfig.baseUrl = imported.baseUrl || ''
-        geminiConfig.projectRoot = imported.projectRoot || getDefaultProjectRoot()
-        geminiConfig.outputDir = imported.outputDir || 'output'
-        geminiConfig.editOutputDir = imported.editOutputDir || imported.outputDir || 'output'
-        geminiConfig.logDir = imported.logDir || 'logs'
-
-        // 保存到 localStorage
-        localStorage.setItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY, JSON.stringify(geminiConfig))
-        if (localStorage.getItem('fal-config')) {
-          localStorage.removeItem('fal-config')
-        }
-        console.log('[设置页] 纳米香蕉配置已导入并更新到界面')
-      }
+      applyImportedGeminiSettings(importedSettings)
 
       // 5、保存并广播快捷键，同时尝试更新系统注册。
       if (importedSettings.hotkeysConfig) {
