@@ -281,15 +281,83 @@ export function useHdToolkitSettings({ message, showSaveRestartTip, appVersion, 
     }
   }
 
+  /**
+   * 从备份恢复抠图高清配置。
+   * 处理流程：
+   * 1、保存原备份对象，再按原新旧字段顺序同步更新表单。
+   */
+  const restoreHdToolkitSettingsFromBackup = (restoreResult) => {
+    // 1、恢复异常仍交给页面原 catch，不改变后端并行加载。
+    if (restoreResult.settings.hdToolkitConfig) {
+      localStorage.setItem('hd-toolkit-config', JSON.stringify(restoreResult.settings.hdToolkitConfig))
+      console.log('✅ 抠图高清配置已从备份恢复')
+
+      // 更新到 reactive 对象，兼容旧字段名
+      const cfg = restoreResult.settings.hdToolkitConfig
+      hdToolkitConfig.pythonHome = cfg.pythonHome || cfg.pythonPath || ''
+      hdToolkitConfig.removebgWeightsDir = cfg.removebgWeightsDir || cfg.removebgWeightsPath || ''
+      hdToolkitConfig.highresWeightsDir = cfg.highresWeightsDir || cfg.highresWeightsPath || ''
+      hdToolkitConfig.outputDir = cfg.outputDir || cfg.outputPath || ''
+    }
+  }
+
+  /**
+   * 从存储重新读取抠图高清表单。
+   * 处理流程：
+   * 1、同步解析本地配置，按原优先级兼容旧路径字段，不自动回写。
+   */
+  const reloadHdToolkitSettingsFromStorage = () => {
+    // 1、解析失败继续阻断页面同一加载流程中的后续步骤。
+    const savedHdToolkitConfig = localStorage.getItem('hd-toolkit-config')
+    if (savedHdToolkitConfig) {
+      const parsed = JSON.parse(savedHdToolkitConfig)
+      console.log('📖 从localStorage加载抠图高清配置:', parsed)
+
+      // 兼容旧字段名
+      hdToolkitConfig.pythonHome = parsed.pythonHome || parsed.pythonPath || ''
+      hdToolkitConfig.removebgWeightsDir = parsed.removebgWeightsDir || parsed.removebgWeightsPath || ''
+      hdToolkitConfig.highresWeightsDir = parsed.highresWeightsDir || parsed.highresWeightsPath || ''
+      hdToolkitConfig.outputDir = parsed.outputDir || parsed.outputPath || ''
+
+      console.log('✅ 抠图高清配置已更新到组件')
+    } else {
+      console.log('⚠️ localStorage中没有找到抠图高清配置，使用默认值')
+    }
+  }
+
+  /**
+   * 应用已读取的抠图高清导入对象。
+   * 处理流程：
+   * 1、按原导入缺省链更新表单并保存规范字段，后端保存仍由页面原位等待。
+   */
+  const applyImportedHdToolkitSettings = (imported) => {
+    // 1、不调用正常保存校验，保留导入路径及原异常传播。
+    // 统一为规范键名
+    hdToolkitConfig.pythonHome = imported.pythonHome || imported.pythonPath || getDefaultHdToolkitPath('python-env\\python3\\python.exe')
+    hdToolkitConfig.removebgWeightsDir = imported.removebgWeightsDir || imported.removebgWeightsPath || getDefaultHdToolkitPath('python-env\\weights\\removebg')
+    hdToolkitConfig.highresWeightsDir = imported.highresWeightsDir || imported.highresWeightsPath || getDefaultHdToolkitPath('python-env\\weights\\highres')
+    hdToolkitConfig.outputDir = imported.outputDir || imported.outputPath || 'C:\\Users\\Asus\\Pictures\\hd-toolkit'
+
+    // 保存到 localStorage（用规范键名）
+    localStorage.setItem('hd-toolkit-config', JSON.stringify({
+      pythonHome: hdToolkitConfig.pythonHome,
+      removebgWeightsDir: hdToolkitConfig.removebgWeightsDir,
+      highresWeightsDir: hdToolkitConfig.highresWeightsDir,
+      outputDir: hdToolkitConfig.outputDir
+    }))
+  }
+
   // 3、页面共享同一状态，并继续负责跨域恢复、导入和导出。
   return {
+    restoreHdToolkitSettingsFromBackup,
+    reloadHdToolkitSettingsFromStorage,
+    applyImportedHdToolkitSettings,
     hdToolkitConfig,
     isSavingHdToolkit,
     isSelectingPython,
     isSelectingRemovebgWeights,
     isSelectingHighresWeights,
     isSelectingOutput,
-    getDefaultHdToolkitPath,
     loadInitialHdToolkitConfig,
     loadHdToolkitConfigFromBackend,
     saveHdToolkitConfig,

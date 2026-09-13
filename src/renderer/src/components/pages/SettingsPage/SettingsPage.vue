@@ -356,7 +356,9 @@ const {
   isSelectingRemovebgWeights,
   isSelectingHighresWeights,
   isSelectingOutput,
-  getDefaultHdToolkitPath,
+  restoreHdToolkitSettingsFromBackup,
+  reloadHdToolkitSettingsFromStorage,
+  applyImportedHdToolkitSettings,
   loadHdToolkitConfigFromBackend,
   saveHdToolkitConfig,
   selectPythonPath,
@@ -405,17 +407,7 @@ const loadConfig = async () => {
         restoreHotkeySettingsFromBackup(restoreResult)
 
         // 恢复抠图高清配置
-        if (restoreResult.settings.hdToolkitConfig) {
-          localStorage.setItem('hd-toolkit-config', JSON.stringify(restoreResult.settings.hdToolkitConfig))
-          console.log('✅ 抠图高清配置已从备份恢复')
-
-          // 更新到 reactive 对象，兼容旧字段名
-          const cfg = restoreResult.settings.hdToolkitConfig
-          hdToolkitConfig.pythonHome = cfg.pythonHome || cfg.pythonPath || ''
-          hdToolkitConfig.removebgWeightsDir = cfg.removebgWeightsDir || cfg.removebgWeightsPath || ''
-          hdToolkitConfig.highresWeightsDir = cfg.highresWeightsDir || cfg.highresWeightsPath || ''
-          hdToolkitConfig.outputDir = cfg.outputDir || cfg.outputPath || ''
-        }
+        restoreHdToolkitSettingsFromBackup(restoreResult)
       } else {
         console.log('ℹ️ 未找到配置备份，使用localStorage中的配置')
       }
@@ -427,21 +419,7 @@ const loadConfig = async () => {
     reloadStickfigureSettingsFromStorage()
 
     // 3、重新加载抠图高清路径并兼容旧字段名。
-    const savedHdToolkitConfig = localStorage.getItem('hd-toolkit-config')
-    if (savedHdToolkitConfig) {
-      const parsed = JSON.parse(savedHdToolkitConfig)
-      console.log('📖 从localStorage加载抠图高清配置:', parsed)
-
-      // 兼容旧字段名
-      hdToolkitConfig.pythonHome = parsed.pythonHome || parsed.pythonPath || ''
-      hdToolkitConfig.removebgWeightsDir = parsed.removebgWeightsDir || parsed.removebgWeightsPath || ''
-      hdToolkitConfig.highresWeightsDir = parsed.highresWeightsDir || parsed.highresWeightsPath || ''
-      hdToolkitConfig.outputDir = parsed.outputDir || parsed.outputPath || ''
-
-      console.log('✅ 抠图高清配置已更新到组件')
-    } else {
-      console.log('⚠️ localStorage中没有找到抠图高清配置，使用默认值')
-    }
+    reloadHdToolkitSettingsFromStorage()
 
     // 4、生图配置优先使用当前存储键，缺失时读取旧键。
     reloadGeminiSettingsFromStorage()
@@ -553,19 +531,7 @@ const handleImportSettings = async () => {
       if (importedSettings.hdToolkitConfig) {
         const imported = importedSettings.hdToolkitConfig
 
-        // 统一为规范键名
-        hdToolkitConfig.pythonHome = imported.pythonHome || imported.pythonPath || getDefaultHdToolkitPath('python-env\\python3\\python.exe')
-        hdToolkitConfig.removebgWeightsDir = imported.removebgWeightsDir || imported.removebgWeightsPath || getDefaultHdToolkitPath('python-env\\weights\\removebg')
-        hdToolkitConfig.highresWeightsDir = imported.highresWeightsDir || imported.highresWeightsPath || getDefaultHdToolkitPath('python-env\\weights\\highres')
-        hdToolkitConfig.outputDir = imported.outputDir || imported.outputPath || 'C:\\Users\\Asus\\Pictures\\hd-toolkit'
-
-        // 保存到 localStorage（用规范键名）
-        localStorage.setItem('hd-toolkit-config', JSON.stringify({
-          pythonHome: hdToolkitConfig.pythonHome,
-          removebgWeightsDir: hdToolkitConfig.removebgWeightsDir,
-          highresWeightsDir: hdToolkitConfig.highresWeightsDir,
-          outputDir: hdToolkitConfig.outputDir
-        }))
+        applyImportedHdToolkitSettings(imported)
 
         // 同步到后端配置文件
         if (window.hdToolkit?.saveConfig) {
