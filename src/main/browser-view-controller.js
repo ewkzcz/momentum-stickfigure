@@ -298,8 +298,8 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 为调用窗口打开指定分区的内嵌网页。
      * 处理流程：
      * 1、定位宿主并清理相同分区与地址的旧视图。
-     * 2、创建视图、设置边界和浏览器兼容信息，再加载地址。
-     * 3、缓存视图记录，在导航和页面就绪后同步主题。
+     * 2、创建视图、设置边界和浏览器兼容信息，登记在途实例后加载地址。
+     * 3、确认记录未被关闭或替换，在导航和页面就绪后同步主题。
      */
     ipcMain.handle('browserview:open', async (event, { url, partition = 'persist:doubao', bounds, enableDevTools = false, theme, nativeTheme: useNative } = {}) => {
       // 仅在本次打开尚未成功时持有回收入口，避免加载失败遗留已挂载的网页。
@@ -351,11 +351,15 @@ export function createBrowserViewController({ getPicturesDirectory }) {
           view.webContents.setUserAgent(sanitized)
         } catch (_) {}
 
-        if (url) await view.webContents.loadURL(url)
-
-        // 3、保存视图引用，并在网页生命周期内重新应用主题。
+        // 加载前登记所属实例，使关闭或后续同键打开能够找到在途视图。
         const record = { view, window, useNative }
         globalBrowserViews.set(key, record)
+        if (url) await view.webContents.loadURL(url)
+        if (globalBrowserViews.get(key) !== record || view.webContents.isDestroyed()) {
+          throw new Error('网页视图打开已取消')
+        }
+
+        // 3、确认本次视图仍归当前请求持有，再应用网页生命周期主题。
 
         if (theme) scheduleApplyTheme(view, theme, useNative)
 
