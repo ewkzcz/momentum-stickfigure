@@ -65,7 +65,7 @@
 
 <script>
 /** 对话框人物合成页面：管理蒙版图片、人物素材、画布交互及导出。 */
-import { ref, reactive, computed, onMounted, onActivated, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onActivated, onBeforeUnmount, nextTick } from 'vue'
 import { useMessage } from 'naive-ui'
 import DialogFrameManager from './components/DialogFrameManager.vue'
 import DialogFrameCanvas from './components/DialogFrameCanvas.vue'
@@ -120,6 +120,9 @@ export default {
       message: ''
     })
 
+    // 当前提示只持有一个关闭任务，后续提示替换时取消旧任务。
+    let toastTimer = null
+
     /**
      * 显示提示信息
      * 处理流程：
@@ -128,12 +131,14 @@ export default {
      */
     const showToast = (type, message) => {
       // 1、设置本次提示内容并显示。
+      if (toastTimer !== null) clearTimeout(toastTimer)
       toast.type = type
       toast.message = message
       toast.show = true
       
       // 2、安排提示自动关闭。
-      setTimeout(() => {
+      toastTimer = setTimeout(() => {
+        toastTimer = null
         toast.show = false
       }, 3000)
     }
@@ -145,8 +150,13 @@ export default {
      */
     const hideToast = () => {
       // 1、取消提示可见状态。
+      if (toastTimer !== null) clearTimeout(toastTimer)
+      toastTimer = null
       toast.show = false
     }
+
+    // 页面销毁时释放本次提示的计时器，不改变缓存停用时的原提示行为。
+    onBeforeUnmount(hideToast)
 
     /**
      * 处理对话框图片上传

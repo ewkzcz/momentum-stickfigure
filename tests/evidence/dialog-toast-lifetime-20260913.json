@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scope": "对话合成页新提示替换旧提示时重置自动关闭计时器",
+  "baselineCommit": "cee41f9af5407a15649e5e42d2a83365beb616e3",
+  "changes": ["页面仅保存当前提示的一个计时器，新提示取消旧计时器，保持原3000ms时长", "手动隐藏和真实卸载时清理计时器，缓存停用行为不变", "未改合成绘制、导出、提示组件、模板样式或既有测试等待阈值"],
+  "baseline": {
+    "fullFailure": "ef92697，temp/layer-render-acceptance-UknlR1：73项72通过1失败；45qjpR在opacity-default等待导出成功提示超时，文件已实际写入但完整像素验收未完成",
+    "repeatFailure": "ef92697未改源码独立temp/dialog-canvas-after-toast-timeout-1789281851340，TmBsxM同一导出提示超时，37059.174041ms失败",
+    "correctBehavior": "cee41f9，temp/dialog-toast-lifetime-before-corrected-1789282288830，nrQMZM通过真实上传和两次公开选择，第二次提示约1.4秒时被旧3秒定时器隐藏，8852.027833ms失败",
+    "testDevelopmentFailure": "初版CaPDju错误尝试点击未上传时禁用的导出按钮，30秒取消；仅改用真实上传后可达选择操作，保留失败，不算业务证据"
+  },
+  "candidate": {
+    "provenance": "temp/dialog-toast-candidate-1789282383712",
+    "result": "3/3通过，113193.216084ms",
+    "toast": "momentum-regression-V8flHQ，重复提示保留最新期限并仍自动隐藏",
+    "canvas": "momentum-regression-6N8pLD，原18场景全部主画布及真实导出PNG严格对照最初干净xbb6QN，RGBA零差异，82780.706208ms",
+    "interaction": "momentum-regression-wrVmnh，原十交互场景通过，18931.72325ms；本次未指定其专属BEFORE，不冒称交互前后像素严格对照",
+    "formal": "temp/dialog-toast-formal-1789282553546，momentum-regression-1MLO2U，正式tests/dialog-toast-lifetime.test.mjs实际通过，10471.2815ms",
+    "build": "index-eEAcyugv.js、index-3VNMwGWq.css；main228.86kB及preview保持原产物"
+  },
+  "checks": ["build、渐进lint、额外DialogFramePage.vue lint、严格规模及git diff --check通过", "保留原desktop隔离辅助、旧图像参考、全部原绘制和导出断言；未延长提示时间或降低等待标准", "重复提示测试检查调度时长上限，机器停顿不能误算提前隐藏缺陷"],
+  "boundaries": ["卸载清理经源码审查，尚未新增卸载后定时器计数专项", "当前样本支持旧定时器覆盖新提示的缺陷修复，不保证所有未来提示超时均源于同一原因", "本项之后尚未完整回归；人物页历史连接中断未修，PSD Worker、安全、CI安装包等仍未完成"]
+}
