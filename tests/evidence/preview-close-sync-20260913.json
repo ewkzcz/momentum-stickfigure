@@ -1,0 +1,12 @@
+{
+  "date":"2026-09-13",
+  "subject":"真实预览自关闭按钮的自动化同步修正",
+  "productionHead":"af96621aea041176d4c5d359937ad2363ccc77b4",
+  "productionChanged":false,
+  "originalFailure":{"fullEvidence":"layer-render-acceptance-awP7eY","head":"0e890d2c37e8f2b4ea51fd4022caac28aa21ae89","tests":94,"passed":92,"failed":2,"cases":["canvas-output:122关闭click","window-lifecycle:82关闭click"]},
+  "diagnostics":[{"directory":"temp/preview-close-order-1789303849795","root":"6QgAXZ","rounds":50,"clickErrors":1,"finding":"失败轮仍真实原IPC进入、窗口close、sender destroyed、window closed，主窗存活"},{"directory":"temp/preview-close-no-wait-1789304049799","root":"F3ZEc4","finding":"noWaitAfter仍首轮同类失败"},{"directory":"temp/preview-close-mouse-1789304098145","root":"eh6ea4","finding":"trial检查后真实mouse.click仍首轮同类失败"}],
+  "change":"保留真实locator.click。新增独立测试同步函数透明包裹原IPC，强制唯一目标sender、唯一调用、原success:true、真实destroyed及页面close；仅此完整证据链成立时允许精确的目标关闭错误。其余点击失败仍拒绝，所有原窗口数量/不存在响应/RGBA断言不变。tests/helpers/desktop.mjs和后台保护不改。",
+  "formal":{"directory":"temp/preview-close-formal-1789304345805","roots":["rvIp4o","u0ITl1","gcs13A"],"tests":3,"passed":3,"failed":0,"durationMs":42470.122458,"coverage":"新增50轮关闭因果链、原画布输出十轮及原窗口生命周期十轮/主窗20次重建"},
+  "otherFailurePreserved":{"directory":"temp/preview-close-causal-1789304242464","roots":["ikDkSu","ll7IWM"],"finding":"画布输出通过，窗口生命周期在关闭前stableCanvas图像未稳定失败；后续原样通过不构成预览图像时序已修"},
+  "limits":["透明观察会影响时序，但每轮均强制原处理器与原生资源事实，不以吞异常替代成功","不是生产窗口关闭行为修改","未修复历史预览内容偶发未到达或解码不稳定","未覆盖beforeunload拒绝退出"]
+}

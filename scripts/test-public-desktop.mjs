@@ -24,6 +24,7 @@ const files = [
   'tests/custom-dialog-path.test.mjs',
   'tests/drag-start-failure.test.mjs',
   'tests/part-drag-exception.test.mjs',
+  'tests/preview-close.test.mjs',
   'tests/storage-atomicity.test.mjs',
   'tests/storage-mode.test.mjs'
 ]

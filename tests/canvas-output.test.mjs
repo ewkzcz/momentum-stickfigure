@@ -10,6 +10,7 @@ import { launchDesktop, repository } from './helpers/desktop.mjs'
 import { syntheticFixtures, syntheticReferenceDirectory } from './helpers/reference.mjs'
 import { assertSamePixels, decodePng, observeImages, stableCanvas, verifyFixture } from './helpers/images.mjs'
 import { referenceDigest } from './scenarios/canvas-preset-hover.mjs'
+import { closePreviewByButton } from './helpers/preview-close.mjs'
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 
@@ -118,9 +119,7 @@ test('画布输出：两条菜单接收路径真实显示输入，独立预览�
       await preview.locator('.canvas-wrapper').waitFor({ state: 'visible' })
       const result = await stableCanvas(preview, '.canvas-wrapper canvas')
       await output(stage, Buffer.from(result.png, 'base64'), before)
-      const closing = preview.waitForEvent('close')
-      await preview.getByRole('button', { name: '关闭', exact: true }).click()
-      await closing
+      await closePreviewByButton(application, preview)
       await assertSamePixels(await mainImage(page), before, `${stage} 关闭后主画布`)
     }
     assert.deepEqual(desktop.errors, [])

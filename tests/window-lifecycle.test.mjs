@@ -8,6 +8,7 @@ import path from 'node:path'
 import { createCanvas } from '@napi-rs/canvas'
 import { launchDesktop, repository } from './helpers/desktop.mjs'
 import { stableCanvas, assertSamePixels } from './helpers/images.mjs'
+import { closePreviewByButton } from './helpers/preview-close.mjs'
 
 /** 获取原生窗口列表；1、仅规范化随机窗口编号，保留真实资源路径和后台状态。 */
 async function windows(application) {
@@ -78,9 +79,7 @@ test('窗口生命周期：十轮预览复用、主题和视图同步、关闭�
       await preview.locator(`.canvas-preview-page.theme-${theme}`).waitFor()
       // 2、文件名转发只核对IPC成功；该值没有公开展示，不读取组件私有状态冒充用户行为。
       assert.deepEqual(await page.evaluate(name => window.electronAPI.invoke('canvas-preview-update-filename', name), `测试-${index}.png`), { success: true })
-      const closed = preview.waitForEvent('close')
-      await preview.getByRole('button', { name: '关闭', exact: true }).click()
-      await closed
+      await closePreviewByButton(application, preview)
       assert.deepEqual((await windows(application)).map(window => window.id), [mainId])
       assert.deepEqual(await page.evaluate(() => window.electronAPI.invoke('canvas-preview-close')), { success: true })
       const missing = []
