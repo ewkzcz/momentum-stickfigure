@@ -13,9 +13,9 @@ import { verifyFixture } from './helpers/images.mjs'
  * 1、保持原Worker参数和IPC实现，仅记录创建、在线、退出及响应。
  * 2、在在线事件销毁指定真实窗口，验证其destroyed订阅。
  */
-async function observe(desktop) {
+async function observe(desktop, destroyOn = 'online') {
   // 1、所有观察都位于原后台隔离内，不替换解析算法或模拟sender。
-  await desktop.application.evaluate(({ BrowserWindow, ipcMain }) => {
+  await desktop.application.evaluate(({ BrowserWindow, ipcMain }, destroyOn) => {
     const threads = process.getBuiltinModule('worker_threads')
     const Original = threads.Worker
     const state = globalThis.__psdSenderProbe = { trace: [], next: 0, destroyWindow: null, settled: [], cancellations: [] }
@@ -39,8 +39,8 @@ async function observe(desktop) {
         super(...args)
         const id = ++state.next
         state.trace.push({ id, event: 'created' })
-        this.once('online', () => {
-          state.trace.push({ id, event: 'online' })
+        this.once('online', () => state.trace.push({ id, event: 'online' }))
+        this.once(destroyOn, () => {
           if (state.destroyWindow !== null) {
             const window = BrowserWindow.fromId(state.destroyWindow)
             state.destroyWindow = null
@@ -52,7 +52,7 @@ async function observe(desktop) {
       }
     }
     process.getBuiltinModule('module').syncBuiltinESMExports()
-  })
+  }, destroyOn)
 }
 
 /**
@@ -108,7 +108,8 @@ test('PSD真实IPC拒绝其他窗口取消相同任务标识', { timeout: 90000 
   }
 })
 
-test('PSD发送窗口销毁终止真实活动线程，主窗口随后恢复解析', { timeout: 90000 }, async () => {
+for (const destroyOn of ['online', 'message']) {
+test(`PSD发送窗口销毁（${destroyOn}）终止真实活动线程，主窗口随后恢复解析`, { timeout: 90000 }, async () => {
   // 1、连续五次创建、启动解析、销毁发送窗口，再从主窗口使用相同标识恢复。
   const desktop = await launchDesktop()
   const result = { passed: false, rounds: [] }
@@ -117,7 +118,7 @@ test('PSD发送窗口销毁终止真实活动线程，主窗口随后恢复解�
     const fixture = (await syntheticFixtures())[0]
     await verifyFixture(fixture.absolutePath, fixture.sha256)
     const bytes = [...await readFile(fixture.absolutePath)]
-    await observe(desktop)
+    await observe(desktop, destroyOn)
     for (let round = 0; round < 5; round++) {
       const other = await preview(desktop)
       await desktop.application.evaluate(({ BrowserWindow }) => {
@@ -159,3 +160,4 @@ test('PSD发送窗口销毁终止真实活动线程，主窗口随后恢复解�
     try { await desktop.close() } finally { await writeFile(path.join(desktop.root, 'psd-sender-destroy-result.json'), JSON.stringify(result, null, 2)) }
   }
 })
+}

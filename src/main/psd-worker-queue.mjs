@@ -32,8 +32,9 @@ function settle(job, error, value) {
   job.signal?.removeEventListener('abort', job.abort)
   job.fileBuffer = null
   job.options = null
+  // 2、只在工作线程已经退出或从未启动时释放调用方；结算前取消仍拒绝迟到成功。
+  if (!error && job.signal?.aborted) error = cancellationError()
   job.signal = null
-  // 2、只在工作线程已经退出或从未启动时释放调用方。
   if (error) job.reject(error)
   else job.resolve(value)
 }
