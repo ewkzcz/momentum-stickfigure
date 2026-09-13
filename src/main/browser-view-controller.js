@@ -10,6 +10,7 @@ import fs from 'fs'
  * 2、提供原注册和注销入口，不改变主题脚本、IPC或释放行为。
  */
 export function createBrowserViewController({ getPicturesDirectory }) {
+  // 索引同时包含调用方webContents标识、分区和地址，窗口之间不能操作对方视图。
   const globalBrowserViews = new Map()
 
   // ==================== BrowserView 嵌入处理器 ====================
@@ -311,7 +312,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         if (!window) return { success: false, error: '窗口不存在' }
 
         // 如果已有同分区的视图，先移除
-        const key = partition + ':' + (url || '')
+        const key = `${event.sender.id}:${partition}:${url || ''}`
         const existing = globalBrowserViews.get(key)
         if (existing) {
           try { removeView(window, existing.view) } catch (_) {}
@@ -381,7 +382,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         if (openingView) {
           try { removeView(openingWindow, openingView) } catch (_) {}
           try { openingView.webContents.close() } catch (_) {}
-          const key = partition + ':' + (url || '')
+          const key = `${event.sender.id}:${partition}:${url || ''}`
           if (globalBrowserViews.get(key)?.view === openingView) globalBrowserViews.delete(key)
         }
         console.error('BrowserView 打开失败:', error)
@@ -398,7 +399,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
     ipcMain.handle('browserview:close', async (event, { partition = 'persist:doubao', url } = {}) => {
       try {
         // 1、使用与打开入口一致的键定位视图。
-        const key = partition + ':' + (url || '')
+        const key = `${event.sender.id}:${partition}:${url || ''}`
         const record = globalBrowserViews.get(key)
         if (record) {
           // 2、释放窗口挂载和视图引用。
@@ -421,7 +422,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
     ipcMain.handle('browserview:setBounds', async (event, { partition = 'persist:doubao', url, bounds } = {}) => {
       try {
         // 1、仅更新已创建视图的边界。
-        const key = partition + ':' + (url || '')
+        const key = `${event.sender.id}:${partition}:${url || ''}`
         const record = globalBrowserViews.get(key)
         if (!record) return { success: false, error: '视图不存在' }
         if (bounds) setViewBounds(record.view, bounds)
@@ -440,7 +441,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
     ipcMain.handle('browserview:applyTheme', async (event, { partition = 'persist:doubao', url, scheme, nativeTheme: useNative } = {}) => {
       try {
         // 1、未指定颜色方案时使用系统当前主题。
-        const key = partition + ':' + (url || '')
+        const key = `${event.sender.id}:${partition}:${url || ''}`
         const record = globalBrowserViews.get(key)
         if (!record) return { success: false, error: '视图不存在' }
 
@@ -463,7 +464,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
     ipcMain.handle('browserview:reload', async (event, { partition = 'persist:doubao', url } = {}) => {
       try {
         // 1、视图不存在时返回明确错误。
-        const key = partition + ':' + (url || '')
+        const key = `${event.sender.id}:${partition}:${url || ''}`
         const record = globalBrowserViews.get(key)
         if (!record) return { success: false, error: '视图不存在' }
         try { record.view.webContents.reloadIgnoringCache() } catch (_) { record.view.webContents.reload() }
