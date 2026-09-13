@@ -492,6 +492,16 @@ const handleImportSettings = async () => {
             },
             onNegativeClick: () => {
               resolve(false)
+            },
+            // 关闭、Esc 与遮罩均视为取消；回调不返回 false，避免阻止弹窗关闭。
+            onClose: () => {
+              resolve(false)
+            },
+            onEsc: () => {
+              resolve(false)
+            },
+            onMaskClick: () => {
+              resolve(false)
             }
           })
         })

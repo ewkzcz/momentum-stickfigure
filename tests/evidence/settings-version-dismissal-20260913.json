@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scope": "设置版本不匹配弹窗的关闭、Escape和遮罩统一取消导入",
+  "baselineCommit": "c0d743191f1d9c8097866ad59aa051a555d01718",
+  "authorization": "用户通过结构化问题明确选择settings-version-dismissal: cancel后实施",
+  "changes": ["仅增加onClose、onEsc、onMaskClick三个回调，resolve(false)且返回undefined，避免阻止Naive UI关闭", "明确继续及取消按钮、配置写入顺序、模板和样式保持不变"],
+  "baseline": {
+    "provenance": "temp/settings-version-dismissal-before-corrected-1789263198633",
+    "result": "2通过、3失败；三个关闭入口隐藏弹窗后5秒仍未退出loading，明确取消及继续通过",
+    "roots": ["momentum-regression-SDxFJS", "momentum-regression-bUUGGJ", "momentum-regression-bA5JHB", "momentum-regression-O0Cq2D", "momentum-regression-cdfWHP"],
+    "testDevelopmentFailure": "首次测试再次打开前未补原生选择队列，导致额外cancel失败；仅修队列后在干净原版重跑，保留首次证据temp/settings-version-dismissal-before-1789263123294"
+  },
+  "candidate": {
+    "initial": "temp/settings-version-dismissal-fixed-1789276369987，5/5通过，7644ms",
+    "formal": "temp/settings-version-dismissal-formal-1789276762512，正式tests/settings-version-dismissal.test.mjs，5/5通过，6852.51175ms",
+    "roots": ["momentum-regression-ifh2Gu", "momentum-regression-1mWyuP", "momentum-regression-KCMZ82", "momentum-regression-0LqTZk", "momentum-regression-a5XJm4"],
+    "archive": "temp/settings-version-dismissal-archive-1789276795974，9/9通过，56554.087ms；momentum-settings-archive-VBTgDX严格对照6jrp76，另momentum-regression-oijsPS通过设置文件四通道及真实磁盘失败/完整重启",
+    "build": "index-DaLR_jZI.js、index-oru2u_u5.css"
+  },
+  "checks": ["正式测试验证确认前五配置键不变、三个关闭及明确取消恢复按钮、只有继续写入人物配置、不自动创建备份、取消后再次打开并取消无副作用", "npm run lint、额外SettingsPage.vue lint、严格规模扫描和git diff --check通过", "生产改动后已重新build，正式测试期间源码和out溯源未变，原desktop隔离辅助未改"],
+  "boundaries": ["本次无视觉改动，未新增专属像素测试；归档严格对照通过", "弹窗专属测试以初始配置为起点，未覆盖非空所有域草稿、已有备份、跨平台或页面销毁", "最新65/65完整回归属于5ee57ce，不包含高清恢复迁移和本修复；本项完整回归尚未运行", "全仓26项静态错误、PSD Worker、安全和安装包仍待处理"]
+}
