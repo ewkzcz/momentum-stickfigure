@@ -191,6 +191,9 @@ export function useCanvasRender(deps) {
     isRendering.value = true
     const measurement = perfLogger.start('render:part', { threshold: 18 })
 
+    // 每次调用独立持有统计容器，异常收尾也可访问。
+    const allGroupPaths = new Set()
+    const selectedPathsMap = new Map()
     let watchdogTimer = null
     try {
       watchdogTimer = setTimeout(() => {
@@ -217,11 +220,7 @@ export function useCanvasRender(deps) {
       // 在离屏canvas上清空（主canvas暂时保持当前内容）
       offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height)
       
-      // 获取所有分组的图层路径和选中状态
-      const allGroupPaths = new Set()
-      const selectedPathsMap = new Map()
-      
-      // 构建所有分组的路径映射
+      // 获取所有分组的图层路径和选中状态，构建本次调用的路径映射。
       buildGroupPathsMap(allGroupPaths, selectedPathsMap)
       
       // 在离屏canvas上渲染所有图层，每个分组只渲染选中的部件
@@ -843,7 +842,7 @@ export function useCanvasRender(deps) {
               allGroupPaths,
               selectedPathsMap,
               canvas,
-              showBg, showBl, showSbl, showWp, showBh, showFt, showSd, showBk, showSh, showShk, showHs, showBhs, showDs,
+              showBg, showBl, showSbl, showWp, showBh, showFt, showSd, showBk, showRr, showSh, showShk, showHs, showBhs, showDs,
               layerPath
             )
             clippingIndicesForControlledGroup.forEach(idx => processedClippingIndices.add(idx))
@@ -866,7 +865,7 @@ export function useCanvasRender(deps) {
                 allGroupPaths,
                 selectedPathsMap,
                 canvas,
-                showBg, showBl, showSbl, showWp, showBh, showFt, showSd, showBk, showSh, showShk, showHs, showBhs, showDs,
+                showBg, showBl, showSbl, showWp, showBh, showFt, showSd, showBk, showRr, showSh, showShk, showHs, showBhs, showDs,
                 layerPath
               )
               clippingIndicesForControlledGroup.forEach(idx => processedClippingIndices.add(idx))
@@ -982,7 +981,7 @@ export function useCanvasRender(deps) {
     allGroupPaths,
     selectedPathsMap,
     canvas,
-    showBg, showBl, showSbl, showWp, showBh, showFt, showSd, showBk, showSh, showShk, showHs, showBhs, showDs,
+    showBg, showBl, showSbl, showWp, showBh, showFt, showSd, showBk, showRr, showSh, showShk, showHs, showBhs, showDs,
     parentPath
   ) => {
     // 1、将组内容渲染到临时画布。
