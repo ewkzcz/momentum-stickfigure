@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-13",
+  "subject": "PSD结算取消修复后的完整回归与远端公开CI",
+  "head": "b61e80da9095d96605c589f27e3d75700335b658",
+  "fullLocal": {"evidenceId":"layer-render-acceptance-5W6U7i","tests":89,"passed":89,"failed":0,"skipped":0,"durationMs":1262822.547291,"endedAt":"2026-09-13T12:09:28.992Z","referenceFilesUnchanged":266,"allReferenceDigestSha256":"9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed"},
+  "remote": {"runId":34755379784,"url":"https://github.com/ewkzcz/momentum-stickfigure/actions/runs/34755379784","conclusion":"success","runner":"macos-14","node":"24.11.1","tests":17,"passed":17,"failed":0,"skipped":0,"durationMs":129196.437292,"endedAt":"2026-09-13T11:51:18Z","verification":"gh run view的任务状态和实际日志分别核实"},
+  "priorRemoteFailure": {"runId":34754915532,"tests":16,"passed":15,"failed":1,"cause":"发送窗口销毁后，PSD成功结果在Worker退出前仍可迟到结算","originalAssertionPreserved":true},
+  "limits": ["远端为公开测试子集，不代替本机私人PSD与RGBA验收", "不证明历史间歇故障根治或全仓lint通过", "不是当前安装包启动、多平台或真实AI/Python验收", "整体优化仍有未完成任务"]
+}

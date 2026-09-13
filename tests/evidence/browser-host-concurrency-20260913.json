@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-13",
+  "subject": "网页宿主销毁与同键并发真实桌面验收",
+  "productionHead": "b61e80da9095d96605c589f27e3d75700335b658",
+  "productionChanged": false,
+  "baseline": [
+    {"directory":"temp/browser-host-destroy-1789301369196","roots":["yv9m2J","r1TNOv"],"tests":2,"passed":2,"durationMs":4125.766959},
+    {"directory":"temp/browser-concurrent-open-1789301400722","roots":["IeVl6m"],"tests":1,"passed":1,"durationMs":2373.395667}
+  ],
+  "formal": {"directory":"temp/browser-host-concurrency-formal-1789301530856","roots":["dGLL6r","GKJFtd","DbQ9Z8","1DHdNH","AKBDX9","AIKbPI","z9mmKf"],"tests":7,"passed":7,"failed":0,"skipped":0,"durationMs":21286.529916,"sourceAndBuildStable":true},
+  "publicSubset": {"directory":"temp/public-desktop-ci","tests":20,"passed":20,"failed":0,"skipped":0,"durationMs":96121.2045},
+  "scope": ["已加载和加载中视图各五轮真实预览宿主destroy，原生browserView内容归零且主窗恢复", "二十轮同键并发打开，旧请求失败，后请求保持可操作且最终资源归零", "真实本地HTTP与原IPC、原桌面helper和后台保护不变", "公开CI追加两个文件三项测试，不删除原清单"],
+  "limits": ["通过表明当前原生资源路径可用，不声称修复了新缺陷", "未观察生产Map和闭包引用，不能排除已销毁对象引用残留", "不覆盖beforeunload拒绝关闭、计时器清理或内存长稳", "不涉及真实第三方登录、外链、权限、session或安全沙箱"]
+}
