@@ -765,7 +765,6 @@ export default {
       canvasWidth,
       canvasHeight,
       zoom,
-      activeImage,
       
       // 事件处理函数
       handleLayerSelect,

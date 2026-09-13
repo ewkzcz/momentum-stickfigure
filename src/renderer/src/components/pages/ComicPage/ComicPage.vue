@@ -70,7 +70,7 @@
 /** 漫画排版页面：组织视角模板、图片导入、画布编辑及文件导出。 */
 import { ref, reactive, computed, onMounted, onActivated } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
-import { NButton, useMessage } from 'naive-ui'
+import { useMessage } from 'naive-ui'
 import TemplatePanel from './components/TemplatePanel.vue'
 import LayerImageManager from './components/LayerImageManager.vue'
 import CanvasEditor from './components/CanvasEditor.vue'
@@ -85,8 +85,7 @@ export default {
     TemplatePanel,
     LayerImageManager,
     CanvasEditor,
-    ToastNotification,
-    NButton
+    ToastNotification
   },
   /**
    * 建立漫画编辑页面状态与交互入口。
@@ -755,7 +754,7 @@ export default {
     /**
      * 处理单个图层导出
      * 处理流程：
-     * 1、确认画布编辑器可用
+     * 1、确认画布编辑器可用并选择目录
      * 2、调用单层导出接口并报告结果
      * @param {Object} layer - 要导出的图层
      */
@@ -766,10 +765,13 @@ export default {
         return
       }
 
-      // 2、委托编辑器导出目标图层并提示调用结果。
       try {
+        const folderResult = await selectExportFolder()
+        if (!folderResult) return
+
+        // 2、委托编辑器导出目标图层并提示调用结果。
         showToast('success', `正在导出图层：${layer.name}...`)
-        await canvasEditor.value.exportSingle(layer, exportPath.value)
+        await canvasEditor.value.exportSingle(layer, folderResult.path)
         showToast('success', `图层 ${layer.name} 导出成功`)
       } catch (error) {
         showToast('error', `导出失败：${error.message}`)
