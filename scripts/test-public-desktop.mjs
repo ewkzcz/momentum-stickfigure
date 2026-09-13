@@ -19,6 +19,7 @@ const files = [
   'tests/browser-owner.test.mjs',
   'tests/browser-host-destroy.test.mjs',
   'tests/browser-concurrent-open.test.mjs',
+  'tests/browser-image-path.test.mjs',
   'tests/custom-dialog-files.test.mjs',
   'tests/custom-dialog-path.test.mjs',
   'tests/drag-start-failure.test.mjs',

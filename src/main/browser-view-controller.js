@@ -502,6 +502,10 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         const buffer = Buffer.from(base64, 'base64')
         const ext = (mimeType && mimeType.includes('jpeg')) ? '.jpg' : '.png'
         const name = (fileName && String(fileName).trim()) || `doubao_${Date.now()}${ext}`
+        // 文件名只能定位图片目录内的单个文件，拒绝调用方借路径覆盖其他目录。
+        if (name === '.' || name === '..' || /[\\/]/.test(name) || path.isAbsolute(name)) {
+          throw new Error('文件名不能包含路径')
+        }
         // 保存到与纳米香蕉一致的根目录（Pictures/MomentumStickFigure）
         const picturesDir = getPicturesDirectory ? getPicturesDirectory() : app.getPath('pictures')
         const targetDir = path.join(picturesDir, 'MomentumStickFigure')
@@ -541,6 +545,10 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         if (!base64) return { success: false, error: 'base64 empty' }
         const ext = (mimeType && /jpe?g/i.test(mimeType)) ? '.jpg' : '.png'
         const safeName = (fileName && String(fileName).trim()) || `doubao_${Date.now()}${ext}`
+        // 与直接拖拽入口使用相同文件名边界，保持空白名称的原默认命名。
+        if (safeName === '.' || safeName === '..' || /[\\/]/.test(safeName) || path.isAbsolute(safeName)) {
+          throw new Error('文件名不能包含路径')
+        }
         const picturesDir = getPicturesDirectory ? getPicturesDirectory() : app.getPath('pictures')
         const targetDir = path.join(picturesDir, 'MomentumStickFigure')
         if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true })

@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-13",
+  "subject": "网页图片准备与直接拖拽文件名边界",
+  "baselineHead": "533ccc1ac46c81b2c5a0dd2d52becdf8aa56d6c9",
+  "baseline": {"directory":"temp/browser-image-path-1789301876727","roots":["vivWfS","1f6EFA"],"tests":2,"failed":2,"finding":"两个原IPC均接受../regression-owned-marker.txt并实际覆盖业务图片子目录外的测试自有哨兵"},
+  "candidate": {"directory":"temp/browser-image-path-candidate-1789301923694","roots":["cSNqQw","dqN0ri"],"tests":2,"passed":2,"durationMs":1774.486708},
+  "formal": {"directory":"temp/browser-image-path-formal-1789301994805","roots":["ohGNrB","OqxdtY","LYFBt1","KnuWMv","TwMdZf","CgWJjN"],"tests":6,"passed":6,"failed":0,"skipped":0,"durationMs":8429.424208,"sourceAndBuildStable":true},
+  "change": "两处原名称规范化之后、mkdir/write之前拒绝点名称、路径分隔符和绝对路径；保留错误包装、空白默认名、中文名称、数值转字符串、真实字节和原helper拖拽记录",
+  "validation": ["各入口九种拒绝路径不增加写入或拖拽且哨兵逐字保留", "各入口七种正常及默认名称保持原输出", "生产build、渐进lint、strict源码规模、差异检查通过"],
+  "limits": ["不触真实用户文件或真实系统拖拽", "未解决目标或父目录symlink、文件替换竞态、Windows保留名称与NTFS流", "不是所有文件IPC的授权或来源鉴权", "不改变同步拖拽filePath入口，后续另行核查"]
+}
