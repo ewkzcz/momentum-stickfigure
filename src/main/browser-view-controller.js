@@ -302,6 +302,9 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 3、缓存视图记录，在导航和页面就绪后同步主题。
      */
     ipcMain.handle('browserview:open', async (event, { url, partition = 'persist:doubao', bounds, enableDevTools = false, theme, nativeTheme: useNative } = {}) => {
+      // 仅在本次打开尚未成功时持有回收入口，避免加载失败遗留已挂载的网页。
+      let openingWindow = null
+      let openingView = null
       try {
         // 1、每个视图通过分区和地址共同定位。
         const window = BrowserWindow.fromWebContents(event.sender)
@@ -331,6 +334,8 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         })
 
 
+        openingWindow = window
+        openingView = view
         addView(window, view)
 
         // 边界：默认铺满除顶部工具栏外区域，由渲染层传入
@@ -368,6 +373,13 @@ export function createBrowserViewController({ getPicturesDirectory }) {
 
         return { success: true }
       } catch (error) {
+        // 加载失败时视图可能尚未入表；只回收本次实例，不影响同键的其他请求。
+        if (openingView) {
+          try { removeView(openingWindow, openingView) } catch (_) {}
+          try { openingView.webContents.close() } catch (_) {}
+          const key = partition + ':' + (url || '')
+          if (globalBrowserViews.get(key)?.view === openingView) globalBrowserViews.delete(key)
+        }
         console.error('BrowserView 打开失败:', error)
         return { success: false, error: error.message }
       }

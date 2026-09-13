@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "scope": "内嵌网页打开失败时回收本次已创建视图",
+  "baselineCommit": "ef92697c58062718ddeaa005244a0554eef4404c",
+  "changes": ["本次open局部保留宿主与视图，在catch解除挂载并关闭网页内容", "仅当Map仍引用本次视图才删除记录，避免误删其他同键请求", "正常打开注册时序、主题逻辑及原错误响应不变；不混入并发和在途关闭语义"],
+  "baseline": { "provenance": "temp/browser-load-failure-before-1789281754127", "root": "momentum-regression-ocO5md", "result": "真实本地HTTP连接中断，生产open返回失败，5秒后attached/live仍1/1而非0/0；6510.824708ms失败", "supplement": "temp/browser-load-failure-source.test.mjs执行原open回调原文，受控loadURL拒绝同样残留；仅作源函数补充" },
+  "candidate": { "provenance": "temp/browser-load-failure-candidate-1789281981078", "roots": ["momentum-regression-IGYZRr", "momentum-regression-Gq5kQL"], "result": "失败回收及正常替换分区关闭各20轮，2/2通过，16930.072625ms", "formal": "temp/browser-load-failure-formal-1789282066506，momentum-regression-QX6r1G，正式tests/browser-load-failure.test.mjs实际20轮通过，7153.40475ms", "build": "main index.js 228.86kB，renderer index-DM3C8v18.js不变" },
+  "checks": ["build、渐进lint、严格规模、git diff --check通过", "使用真实Electron公开资源计数及原preload，不访问生产Map或手动销毁视图；原desktop辅助未改", "仅本机HTTP，无第三方网络或登录，源码和out溯源稳定"],
+  "precedingFullRegression": "ef92697的temp/layer-render-acceptance-UknlR1：73项72通过1失败、0跳过、1307296ms，266参考不变；对话画布45qjpR在opacity-default等待导出成功提示超时，磁盘与日志表明文件已写但未验证该PNG全部像素。未改生产独立TmBsxM重跑同样失败，原因尚在调查，不能算全量通过",
+  "boundaries": ["未测beforeunload、销毁失败、setBounds等同步异常、多宿主、同键并发及在途关闭", "未声称清理所有BrowserView异步边界或改善性能", "本项后完整回归未跑；对话导出提示失败仍待定位，PSD Worker、安全、CI及安装包尚未完成"]
+}
