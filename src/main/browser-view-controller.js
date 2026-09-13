@@ -93,6 +93,10 @@ export function createBrowserViewController({ getPicturesDirectory }) {
   function releaseView(record) {
     if (!record || record.released) return
     record.released = true
+    for (const timer of record.themeTimers) clearTimeout(timer)
+    record.themeTimers.clear()
+    for (const [event, listener] of record.themeListeners) record.view.webContents.removeListener(event, listener)
+    record.themeListeners.length = 0
     const { window, view, key } = record
     window.removeListener('closed', record.onDestroyed)
     view.webContents.removeListener('destroyed', record.onDestroyed)
@@ -109,12 +113,28 @@ export function createBrowserViewController({ getPicturesDirectory }) {
 
   /** 为在途及已加载视图建立同一生命周期记录。 */
   function trackView(key, window, view, useNative) {
-    const record = { key, view, window, useNative, released: false }
+    const record = { key, view, window, useNative, released: false, themeTimers: new Set(), themeListeners: [] }
     record.onDestroyed = () => releaseView(record)
     globalBrowserViews.set(key, record)
     window.once('closed', record.onDestroyed)
     view.webContents.once('destroyed', record.onDestroyed)
     return record
+  }
+
+  /** 只有当前仍持有的有效视图才能继续异步主题操作。 */
+  function isCurrentView(record) {
+    return !record.released && globalBrowserViews.get(record.key) === record &&
+      !record.window.isDestroyed() && !record.view.webContents.isDestroyed()
+  }
+
+  /** 保留原延迟时序，但把任务归属于对应的视图实例。 */
+  function deferTheme(record, callback, delay) {
+    if (!isCurrentView(record)) return
+    const timer = setTimeout(() => {
+      record.themeTimers.delete(timer)
+      if (isCurrentView(record)) callback()
+    }, delay)
+    record.themeTimers.add(timer)
   }
 
   /**
@@ -181,10 +201,11 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 1、同步系统主题与视图背景。
      * 2、按选项注入主题样式和脚本。
      */
-    const applyThemeToView = async (view, scheme, useNativeInjection) => {
+    const applyThemeToView = async (record, scheme, useNativeInjection) => {
+      const { view } = record
       // 1、先验证视图引用，再同步原生主题与背景。
       try {
-        if (!view || !view.webContents) return
+        if (!isCurrentView(record)) return
 
         // 同步系统级主题。
         try { nativeTheme.themeSource = (scheme === 'dark' || scheme === 'light') ? scheme : 'system' } catch (_) {}
@@ -260,6 +281,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
           // 确保在注入前webContents是可用的
           if (!view.webContents.isDestroyed()) {
             await view.webContents.insertCSS(css)
+            if (!isCurrentView(record)) return
             await view.webContents.executeJavaScript(script)
           }
         }
@@ -273,9 +295,9 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 处理流程：
      * 1、调用异步主题应用函数并忽略同步调用异常。
      */
-    const scheduleApplyTheme = (view, scheme, useNative) => {
+    const scheduleApplyTheme = (record, scheme, useNative) => {
       // 1、交由主题函数处理异步同步过程。
-      try { applyThemeToView(view, scheme, useNative) } catch (_) {}
+      try { applyThemeToView(record, scheme, useNative) } catch (_) {}
     }
 
     /**
@@ -382,19 +404,20 @@ export function createBrowserViewController({ getPicturesDirectory }) {
 
         // 3、确认本次视图仍归当前请求持有，再应用网页生命周期主题。
 
-        if (theme) scheduleApplyTheme(view, theme, useNative)
+        if (theme) scheduleApplyTheme(record, theme, useNative)
 
         /**
          * 在网页导航或就绪后重新应用当前主题。
          * 处理流程：
          * 1、优先使用指定主题，否则读取系统主题后发起同步。
          */
-        const reapply = () => scheduleApplyTheme(view, theme || (nativeTheme.shouldUseDarkColors ? 'dark' : 'light'), record.useNative)
-        view.webContents.on('dom-ready', () => setTimeout(reapply, 50))
-        view.webContents.on('did-finish-load', () => setTimeout(reapply, 0))
-        view.webContents.on('did-navigate', () => setTimeout(reapply, 100))
-        view.webContents.on('did-navigate-in-page', () => setTimeout(reapply, 100))
-        for (let i = 1; i <= 3; i++) setTimeout(reapply, i * 300)
+        const reapply = () => scheduleApplyTheme(record, theme || (nativeTheme.shouldUseDarkColors ? 'dark' : 'light'), record.useNative)
+        for (const [event, delay] of [['dom-ready', 50], ['did-finish-load', 0], ['did-navigate', 100], ['did-navigate-in-page', 100]]) {
+          const listener = () => deferTheme(record, reapply, delay)
+          record.themeListeners.push([event, listener])
+          view.webContents.on(event, listener)
+        }
+        for (let i = 1; i <= 3; i++) deferTheme(record, reapply, i * 300)
 
         return { success: true }
       } catch (error) {
@@ -456,7 +479,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         if (!record) return { success: false, error: '视图不存在' }
 
         record.useNative = useNative
-        scheduleApplyTheme(record.view, scheme || (nativeTheme.shouldUseDarkColors ? 'dark' : 'light'), record.useNative)
+        scheduleApplyTheme(record, scheme || (nativeTheme.shouldUseDarkColors ? 'dark' : 'light'), record.useNative)
 
         return { success: true }
       } catch (error) {
@@ -481,8 +504,8 @@ export function createBrowserViewController({ getPicturesDirectory }) {
 
         // 2、页面刷新后分次同步主题，覆盖不同的加载时机。
         const scheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
-        setTimeout(() => scheduleApplyTheme(record.view, scheme, record.useNative), 150)
-        setTimeout(() => scheduleApplyTheme(record.view, scheme, record.useNative), 400)
+        deferTheme(record, () => scheduleApplyTheme(record, scheme, record.useNative), 150)
+        deferTheme(record, () => scheduleApplyTheme(record, scheme, record.useNative), 400)
 
         return { success: true }
       } catch (error) {
