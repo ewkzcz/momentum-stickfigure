@@ -340,8 +340,8 @@ const {
   hotkeysConfig,
   isSavingHotkeys,
   currentEditingHotkey,
-  DEFAULT_HOTKEYS,
-  persistHotkeysConfig,
+  restoreHotkeySettingsFromBackup,
+  applyImportedHotkeySettings,
   handleHotkeyInput,
   resetHotkey,
   clearHotkey,
@@ -402,14 +402,7 @@ const loadConfig = async () => {
         restoreGeminiSettingsFromBackup(restoreResult)
 
         // 恢复快捷键配置
-        if (restoreResult.settings.hotkeysConfig) {
-          hotkeysConfig.toggleMainWindow = restoreResult.settings.hotkeysConfig.toggleMainWindow || DEFAULT_HOTKEYS.toggleMainWindow
-          hotkeysConfig.togglePreviewWindow = restoreResult.settings.hotkeysConfig.togglePreviewWindow || DEFAULT_HOTKEYS.togglePreviewWindow
-          hotkeysConfig.openSearch = restoreResult.settings.hotkeysConfig.openSearch || DEFAULT_HOTKEYS.openSearch
-          hotkeysConfig.toggleCanvasHover = restoreResult.settings.hotkeysConfig.toggleCanvasHover || DEFAULT_HOTKEYS.toggleCanvasHover
-          persistHotkeysConfig(hotkeysConfig)
-          console.log('✅ 快捷键配置已从备份恢复')
-        }
+        restoreHotkeySettingsFromBackup(restoreResult)
 
         // 恢复抠图高清配置
         if (restoreResult.settings.hdToolkitConfig) {
@@ -541,14 +534,7 @@ const handleImportSettings = async () => {
       if (importedSettings.hotkeysConfig) {
         const imported = importedSettings.hotkeysConfig
 
-        // 更新快捷键配置
-        hotkeysConfig.toggleMainWindow = imported.toggleMainWindow || DEFAULT_HOTKEYS.toggleMainWindow
-        hotkeysConfig.togglePreviewWindow = imported.togglePreviewWindow || DEFAULT_HOTKEYS.togglePreviewWindow
-        hotkeysConfig.openSearch = imported.openSearch || DEFAULT_HOTKEYS.openSearch
-        hotkeysConfig.toggleCanvasHover = imported.toggleCanvasHover || DEFAULT_HOTKEYS.toggleCanvasHover
-
-        // 保存到 localStorage
-        persistHotkeysConfig(hotkeysConfig)
+        applyImportedHotkeySettings(imported)
 
         // 通知主进程更新全局快捷键
         if (window.electronAPI?.hotkeys?.updateHotkeys) {

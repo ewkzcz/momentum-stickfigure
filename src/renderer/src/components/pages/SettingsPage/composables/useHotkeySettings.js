@@ -257,13 +257,47 @@ export const useHotkeySettings = ({ message, showSaveRestartTip, SAVE_RESTART_HI
     }
   }
 
+  /**
+   * 恢复备份中的快捷键配置。
+   * 处理流程：
+   * 1、按原顺序恢复四项快捷键并广播持久化，保留部件悬浮快捷键的原遗漏。
+   */
+  const restoreHotkeySettingsFromBackup = (restoreResult) => {
+    // 1、原恢复异常继续由页面捕获，不在此处注册系统快捷键。
+    if (restoreResult.settings.hotkeysConfig) {
+      hotkeysConfig.toggleMainWindow = restoreResult.settings.hotkeysConfig.toggleMainWindow || DEFAULT_HOTKEYS.toggleMainWindow
+      hotkeysConfig.togglePreviewWindow = restoreResult.settings.hotkeysConfig.togglePreviewWindow || DEFAULT_HOTKEYS.togglePreviewWindow
+      hotkeysConfig.openSearch = restoreResult.settings.hotkeysConfig.openSearch || DEFAULT_HOTKEYS.openSearch
+      hotkeysConfig.toggleCanvasHover = restoreResult.settings.hotkeysConfig.toggleCanvasHover || DEFAULT_HOTKEYS.toggleCanvasHover
+      persistHotkeysConfig(hotkeysConfig)
+      console.log('✅ 快捷键配置已从备份恢复')
+    }
+  }
+
+  /**
+   * 应用已读取的导入快捷键对象。
+   * 处理流程：
+   * 1、沿用四项字段的缺省值规则，持久化并广播；系统注册仍由页面在原异步位置执行。
+   */
+  const applyImportedHotkeySettings = (imported) => {
+    // 1、仅迁移同步表单与存储职责，外层对象读取和条件判断保持在页面原位。
+    // 更新快捷键配置
+    hotkeysConfig.toggleMainWindow = imported.toggleMainWindow || DEFAULT_HOTKEYS.toggleMainWindow
+    hotkeysConfig.togglePreviewWindow = imported.togglePreviewWindow || DEFAULT_HOTKEYS.togglePreviewWindow
+    hotkeysConfig.openSearch = imported.openSearch || DEFAULT_HOTKEYS.openSearch
+    hotkeysConfig.toggleCanvasHover = imported.toggleCanvasHover || DEFAULT_HOTKEYS.toggleCanvasHover
+
+    // 保存到 localStorage
+    persistHotkeysConfig(hotkeysConfig)
+  }
+
   // 3、跨域流程与模板共用唯一响应式配置，不转发域内加载器或存储键。
   return {
+    restoreHotkeySettingsFromBackup,
+    applyImportedHotkeySettings,
     hotkeysConfig,
     isSavingHotkeys,
     currentEditingHotkey,
-    DEFAULT_HOTKEYS,
-    persistHotkeysConfig,
     handleHotkeyInput,
     resetHotkey,
     clearHotkey,
