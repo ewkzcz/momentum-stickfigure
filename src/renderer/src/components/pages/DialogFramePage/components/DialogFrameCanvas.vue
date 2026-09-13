@@ -46,7 +46,7 @@
           v-if="activeCharacter || dialogFrame"
           class="btn btn-small"
           @click="handleImageReset"
-          :title="activeObjectType === 'frame' ? '重置对话框' : '重置选中人物'"
+          :title="activeObjectTypeForToolbar === 'frame' ? '重置对话框' : '重置选中人物'"
         >
           重置
         </button>
@@ -422,7 +422,8 @@ export default {
       canvas,
       canvasContainer,
       zoom,
-      activeObjectType,
+      // 工具栏复用原computed引用，通过别名避免与只读prop重名。
+      activeObjectTypeForToolbar: activeObjectType,
       embedMode,
       opacityGradientMode,
       handleEmbedModeChange,
