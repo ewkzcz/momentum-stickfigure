@@ -34,6 +34,10 @@ const perfLogger = createPerformanceLogger('layer-tree')
  * 2、提供可见性同步、状态恢复与画布渲染方法。
  * 3、返回页面所需的状态及操作接口。
  * @param {Object} deps - 依赖项
+ * @param {Ref} [deps.layerTreeData] - 页面共享的图层树数据，未注入时独立创建
+ * @param {Ref} [deps.layerTreeOperations] - 页面共享的图层操作记录
+ * @param {Ref} [deps.selectedLayersMap] - 页面共享的选中图层映射
+ * @param {Ref} [deps.controlPriority] - 页面共享的最后操作来源
  * @param {Ref} deps.currentPsdData - 当前PSD数据
  * @param {Ref} deps.canvasRef - Canvas引用
  * @param {Ref} deps.selectedParts - 选中的部件
@@ -76,10 +80,10 @@ export function useLayerTree(deps) {
 
   // ==================== 状态 ====================
   
-  const layerTreeData = ref([]) // 图层树数据
-  const layerTreeOperations = ref({}) // 记录用户通过图层树的操作：{ '图层路径': { name: '图层名', visible: true/false, changed: true } }
-  const selectedLayersMap = ref({}) // 选中的图层映射 { layerName: true/false }
-  const controlPriority = ref('parts') // 'layerTree' 或 'parts'，记录最后一次操作的来源
+  const layerTreeData = deps.layerTreeData ?? ref([]) // 图层树数据
+  const layerTreeOperations = deps.layerTreeOperations ?? ref({}) // 记录用户通过图层树的操作：{ '图层路径': { name: '图层名', visible: true/false, changed: true } }
+  const selectedLayersMap = deps.selectedLayersMap ?? ref({}) // 选中的图层映射 { layerName: true/false }
+  const controlPriority = deps.controlPriority ?? ref('parts') // 'layerTree' 或 'parts'，记录最后一次操作的来源
   
   // 2、组织树节点构造、交互同步和图像渲染流程。
   // ==================== 构建图层树 ====================

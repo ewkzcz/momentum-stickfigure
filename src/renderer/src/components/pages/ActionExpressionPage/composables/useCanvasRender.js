@@ -44,6 +44,7 @@ const perfLogger = createPerformanceLogger('canvas-render')
  * 2、定义整帧、部件和蒙版渲染流程。
  * 3、返回渲染状态与调用接口。
  * @param {object} deps - 依赖对象
+ * @param {Ref} deps.isRendering - 可选的页面共享渲染状态
  * @param {Ref} deps.canvasRef - Canvas元素引用
  * @param {Ref} deps.canvasStyle - Canvas样式
  * @param {Ref} deps.scrollMode - 滚动模式
@@ -86,7 +87,7 @@ export function useCanvasRender(deps) {
   /**
    * 渲染进行中标志
    */
-  const isRendering = ref(false)
+  const isRendering = deps.isRendering ?? ref(false)
 
   // 2、提供不同粒度的画布渲染流程。
   // ==================== 刷新画布 ====================

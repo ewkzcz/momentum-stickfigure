@@ -865,11 +865,11 @@ const initLayerTree = (deps) => {
   layerTreeInstance = useLayerTree(deps)
   return layerTreeInstance
 }
-// 临时导出（在初始化前使用默认值）
-let layerTreeData = ref([])
-let layerTreeOperations = ref({})
-let selectedLayersMap = ref({})
-let controlPriority = ref('parts')
+// 页面持有唯一状态引用；早期创建的拖拽等模块与晚初始化图层树共用同一容器。
+const layerTreeData = ref([])
+const layerTreeOperations = ref({})
+const selectedLayersMap = ref({})
+const controlPriority = ref('parts')
 /**
  * 图层树构建方法的初始化占位。
  * 处理流程：
@@ -1162,7 +1162,7 @@ let importPsdHistory = () => {}
 
 // ==================== Canvas渲染核心逻辑临时占位变量 ====================
 // 注意：必须在 usePresetData 之前定义，因为 usePresetData 依赖这些变量
-let isRendering = ref(false)
+const isRendering = ref(false) // 预设、画布渲染和预览订阅始终共用此引用
 /**
  * 画布刷新的异步初始化占位。
  * 处理流程：
@@ -1518,6 +1518,7 @@ const initCanvasRender = () => {
   // 1、集中传入响应式依赖，保持各渲染入口使用同一组状态
   const renderComposable = useCanvasRender({
     // Canvas基础状态
+    isRendering,
     canvasRef,
     canvasStyle,
     scrollMode,
@@ -1590,8 +1591,7 @@ const initCanvasRender = () => {
     }
   })
 
-  // 2、替换临时占位变量，并向画布缩放模块传递实际渲染入口
-  isRendering = renderComposable.isRendering
+  // 2、只替换函数占位，状态 ref 保持原对象，并向画布缩放模块传递实际渲染入口
   refreshCanvas = renderComposable.refreshCanvas
   renderAllLayers = renderComposable.renderAllLayers
   renderPart = renderComposable.renderPart
@@ -1639,6 +1639,10 @@ commonControlsDeps.renderAllLayers = () => queueRenderAllLayers()
 
 // 初始化图层树 composable（在依赖函数定义之后）
 const layerTreeComposable = initLayerTree({
+  layerTreeData,
+  layerTreeOperations,
+  selectedLayersMap,
+  controlPriority,
   currentPsdData,
   canvasRef,
   selectedParts,
@@ -1659,11 +1663,7 @@ const layerTreeComposable = initLayerTree({
   drawLayerImage
 })
 
-// 重新赋值图层树相关变量
-layerTreeData = layerTreeComposable.layerTreeData
-layerTreeOperations = layerTreeComposable.layerTreeOperations
-selectedLayersMap = layerTreeComposable.selectedLayersMap
-controlPriority = layerTreeComposable.controlPriority
+// 只接入图层树业务方法，状态容器在页面声明后始终保持原引用。
 buildLayerTree = layerTreeComposable.buildLayerTree
 
 // 1、在原反向同步位置创建唯一同步标记，不提前注册尾部通用控件 watch。
@@ -1686,7 +1686,7 @@ const syncBackgroundControlFromLayerTree = layerTreeComposable.syncBackgroundCon
 initCanvasRender()
 
 // 会话仅由挂载后的标签事件及内部互调触发；在唯一一次渲染初始化后接入最终引用。
-// layerTreeData、buildLayerTree、renderAllLayers 已替换占位，后续不会重新赋值。
+// layerTreeData 始终是页面原 ref；buildLayerTree、renderAllLayers 已替换函数占位，后续不会重新赋值。
 const { savePsdState, restorePsdState, switchPsdFile, removePsdFile } = usePsdSession({
   session: {
     psdFiles, currentPsdFile, currentPsdData, psdPartsCache, psdStatesCache, currentTab, userInteracted
