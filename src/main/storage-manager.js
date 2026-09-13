@@ -131,7 +131,7 @@ class StorageManager {
         const finish = (err) => {
           try {
             // 异步写入完成时校验版本，同步退出保存或更新写入优先。
-            if (!err && version === this.writeVersion) fs.renameSync(temporaryFile, this.storageFilePath)
+            if (!err && version === this.writeVersion) this.replaceStorageFile(temporaryFile)
             if (err) console.error('[StorageManager] 保存storage失败:', err)
           } catch (error) {
             console.error('[StorageManager] 保存storage失败:', error)
@@ -167,6 +167,24 @@ class StorageManager {
     const directory = path.join(path.dirname(this.storageFilePath), `.storage-write-${randomUUID()}`)
     fs.mkdirSync(directory, { mode: 0o700 })
     return directory
+  }
+
+  /**
+   * 保留既有配置权限后替换完整快照。
+   * 处理流程：
+   * 1、目标存在时复制其权限位，避免临时文件默认权限扩大访问。
+   * 2、在同一文件系统内替换目标，任何失败均保留原目标。
+   */
+  replaceStorageFile(temporaryFile) {
+    // 1、首次创建沿用原默认权限；只有目标不存在可以省略权限继承。
+    try {
+      const mode = fs.statSync(this.storageFilePath).mode & 0o777
+      fs.chmodSync(temporaryFile, mode)
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+    }
+    // 2、权限已准备后才公布新快照，异步与退出同步共用同一路径。
+    fs.renameSync(temporaryFile, this.storageFilePath)
   }
 
   /**
@@ -486,7 +504,7 @@ class StorageManager {
       temporaryDirectory = this.createTemporaryStorage()
       const temporaryFile = path.join(temporaryDirectory, path.basename(this.storageFilePath))
       fs.writeFileSync(temporaryFile, JSON.stringify(storageData, null, 2), 'utf-8')
-      fs.renameSync(temporaryFile, this.storageFilePath)
+      this.replaceStorageFile(temporaryFile)
       console.log('[StorageManager] 已同步保存所有数据到共享文件')
     } catch (error) {
       console.error('[StorageManager] 同步保存失败:', error)
