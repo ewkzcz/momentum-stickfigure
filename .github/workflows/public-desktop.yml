@@ -1,0 +1,48 @@
+# 公开夹具桌面回归：不读取私人PSD，不把缺少桌面环境视作成功或静默跳过。
+name: 公开夹具桌面回归
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-desktop-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  public-desktop:
+    name: macOS公开夹具与生命周期
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - name: 获取源码
+        uses: actions/checkout@v4
+      - name: 配置Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.1'
+          cache: npm
+      - name: 安装锁定依赖
+        run: npm ci
+      - name: 渐进静态检查
+        run: npm run lint
+      - name: 严格源码规模检查
+        run: npm run check:size -- --strict
+      - name: 构建实际应用
+        run: npm run build
+      - name: 真实Electron公开夹具回归
+        run: node scripts/test-public-desktop.mjs
+      - name: 保存公开测试诊断
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-desktop-diagnostics
+          path: temp/public-desktop-ci
+          if-no-files-found: warn
+          retention-days: 7

@@ -1,0 +1,12 @@
+{
+  "date": "2026-09-13",
+  "subject": "单个公开夹具桌面持续集成工作流",
+  "productionHead": "c2f0a709e5051d0746eb3468d2aae7818f3ab044",
+  "workflow": ".github/workflows/public-desktop.yml",
+  "runner": "macos-14",
+  "entry": "scripts/test-public-desktop.mjs",
+  "localValidation": {"tests": 16, "passed": 16, "failed": 0, "skipped": 0, "durationMs": 92226.290333, "evidenceDirectory": "temp/public-desktop-ci", "progressiveLint": true},
+  "latestFullRegression": {"evidenceId": "layer-render-acceptance-bPPRQY", "head": "c2f0a709e5051d0746eb3468d2aae7818f3ab044", "tests": 88, "passed": 88, "failed": 0, "skipped": 0, "durationMs": 1276585.719, "endedAt": "2026-09-13T11:32:46.971Z", "referenceFilesUnchanged": 266},
+  "scope": ["锁定Node和npm锁文件安装后生产build", "只读仓库权限，不含真实凭据或私人PSD", "固定12文件16项公开测试，真实Electron串行运行", "桌面环境不足保持失败，不静默跳过", "上传本轮隔离文本诊断，不递归上传配置、素材或用户目录"],
+  "limits": ["本机16项通过不等同GitHub远端工作流已通过", "渐进lint不替代全仓26个现有src错误", "不替代私人PSD冻结RGBA、安装包或多平台验收", "远端运行结果待push后核实"]
+}
