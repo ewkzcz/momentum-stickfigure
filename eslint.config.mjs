@@ -13,5 +13,7 @@ export default [
     rules: { 'no-undef': 'error', 'no-unreachable': 'error', 'no-dupe-args': 'error', 'no-dupe-keys': 'error', 'valid-typeof': 'error' }
   },
   { files: ['src/renderer/**/*.{js,vue}', 'tests/**/*.mjs'], languageOptions: { globals: browserGlobals } },
+  // renderer独有的标准浏览器能力已在真实Electron核验；不向主进程或Node测试扩大声明。
+  { files: ['src/renderer/**/*.{js,vue}'], languageOptions: { globals: Object.fromEntries(['TextEncoder', 'crypto', 'alert', 'fetch', 'confirm', 'CustomEvent', 'requestIdleCallback'].map(name => [name, 'readonly'])) } },
   { files: ['src/main/**/*.js', 'src/preload/**/*.js'], languageOptions: { globals: { ...nodeGlobals } } }
 ]
