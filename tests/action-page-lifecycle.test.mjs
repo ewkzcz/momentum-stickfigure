@@ -14,6 +14,7 @@ import { readFile, readdir, stat, writeFile } from 'node:fs/promises'
 import { launchDesktop, repository } from './helpers/desktop.mjs'
 import { syntheticFixtures, referenceDirectory } from './helpers/reference.mjs'
 import { observeImages, stableCanvas, assertSamePixels, verifyFixture } from './helpers/images.mjs'
+import { acceptanceMode, assertBaselineEvidence, verifyManifest } from './helpers/acceptance-provenance.mjs'
 import { referenceDigest } from './scenarios/canvas-preset-hover.mjs'
 
 const parentSource = 'src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.vue'
@@ -51,7 +52,7 @@ async function references() {
   }
 }
 
-async function provenance(before) {
+async function provenance(before, regression) {
   const sourceStatus = git('status', '--porcelain', '--untracked-files=all', '--', 'src')
   const rendererStatus = git('status', '--porcelain', '--untracked-files=all', '--', 'src/renderer')
   const head = git('rev-parse', 'HEAD')
@@ -60,6 +61,7 @@ async function provenance(before) {
     ...git('ls-files', '--others', '--exclude-standard', '--', 'src').split('\n')
   ].filter(Boolean))].sort() : []
   if (before) {
+    assertBaselineEvidence(before)
     assert.equal(before.version, 1)
     assert.equal(before.passed, true, '原版基线必须完整通过，包括隔离关闭')
     assert.equal(before.mode, 'baseline', '不能把迁移后的对照结果当作原版基线')
@@ -75,12 +77,12 @@ async function provenance(before) {
     delete oldPackage.scripts.lint
     delete currentPackage.scripts.lint
     assert.deepEqual(currentPackage, oldPackage, '除追加lint范围外package内容不变')
-  } else {
+  } else if (!regression) {
     assert.equal(rendererStatus, '', '采集原版前必须恢复洁净 renderer 源码')
     assert.equal(sourceStatus, '', '采集原版前必须恢复洁净源码')
   }
   assert.equal(git('status', '--porcelain', '--', 'electron.vite.config.mjs', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock'), '', '构建配置与依赖必须洁净')
-  if (!before) assert.equal(git('status', '--porcelain', '--', 'package.json'), '', '原版package必须洁净')
+  if (!before && !regression) assert.equal(git('status', '--porcelain', '--', 'package.json'), '', '原版package必须洁净')
   const source = await directoryEvidence(path.join(repository, 'src'))
   const out = await directoryEvidence(path.join(repository, 'out'))
   const newestSource = Math.max(...Object.values(source.files).map(file => file.mtimeMs), (await stat(path.join(repository, 'electron.vite.config.mjs'))).mtimeMs)
@@ -270,13 +272,16 @@ test('人物页生命周期：20轮缓存进出、尺寸重置、路径历史及
   const beforeRoot = process.env.MOMENTUM_ACTION_LIFECYCLE_BEFORE ? path.resolve(process.env.MOMENTUM_ACTION_LIFECYCLE_BEFORE) : null
   const beforeDirectory = beforeRoot ? await directoryEvidence(beforeRoot) : null
   const before = beforeRoot ? JSON.parse(await readFile(path.join(beforeRoot, resultName), 'utf8')) : null
-  const source = await provenance(before)
+  const manifest = process.env.MOMENTUM_ACCEPTANCE_MANIFEST
+  const mode = acceptanceMode(beforeRoot, manifest)
+  const regression = manifest ? await verifyManifest(repository, manifest) : null
+  const source = await provenance(before, regression)
   const referenceBefore = await references()
   const fixture = (await syntheticFixtures())[0]
   await verifyFixture(fixture.absolutePath, fixture.sha256)
   const desktop = await launchDesktop(undefined, 'software-layout')
   const { page, application, root } = desktop
-  const result = { version: 1, mode: before ? 'comparison' : 'baseline', provenance: source,
+  const result = { version: 1, mode, regression, provenance: source,
     fixture: { id: fixture.id, path: fixture.path, sha256: fixture.sha256 },
     scenes: {}, cycles: [], unmountCycles: [], memory: [], passed: false,
     limits: [
@@ -483,6 +488,7 @@ test('人物页生命周期：20轮缓存进出、尺寸重置、路径历史及
       assert.equal((await directoryEvidence(path.join(repository, 'src'))).sha256, source.source.sha256, '执行期间源码发生变化，证据无效')
       assert.equal((await directoryEvidence(path.join(repository, 'out'))).sha256, source.out.sha256, '执行期间 out 发生变化，证据无效')
       assert.equal(git('rev-parse', 'HEAD'), source.head, '执行期间 HEAD 发生变化')
+      if (regression) assert.deepEqual(await verifyManifest(repository, manifest), regression, '清单在运行期间发生变化')
       result.passed = stage === 'completed'
     } catch (error) {
       result.cleanupFailure = error.message

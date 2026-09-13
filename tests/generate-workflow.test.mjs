@@ -1,5 +1,6 @@
 /** 图像处理工作流回归：真实 Electron 公开界面与真实磁盘，服务替身不验证真实 AI 或 Python。 */
 import test from 'node:test'
+import { acceptanceMode, assertBaselineEvidence, verifyManifest } from './helpers/acceptance-provenance.mjs'
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
@@ -167,6 +168,8 @@ test('GeneratePage：原任务持久化、共享输入输出、生成编辑恢�
   let stage = 'source-provenance'
   let before
   let beforeRoot
+  const manifest = process.env.MOMENTUM_ACCEPTANCE_MANIFEST
+  let regression
   try {
     evidence.head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim()
     evidence.sourceStatus = execFileSync('git', ['status', '--porcelain', '--', 'src'], { cwd: repository, encoding: 'utf8' })
@@ -175,16 +178,20 @@ test('GeneratePage：原任务持久化、共享输入输出、生成编辑恢�
     evidence.sourceSha256 = hash(await readFile(path.join(repository, sourcePath, 'GeneratePage.vue')))
     evidence.mainBuildSha256 = hash(await readFile(path.join(repository, 'out/main/index.js')))
     const beforeLocation = process.env.MOMENTUM_GENERATE_WORKFLOW_BEFORE
+    evidence.mode = acceptanceMode(beforeLocation, manifest)
+    regression = manifest ? await verifyManifest(repository, manifest) : null
+    evidence.regression = regression
     if (beforeLocation) {
       const beforeFile = beforeLocation.endsWith('.json') ? path.resolve(beforeLocation) : path.join(path.resolve(beforeLocation), 'generate-workflow-result.json')
       beforeRoot = path.dirname(beforeFile)
       before = JSON.parse(await readFile(beforeFile, 'utf8'))
+      assertBaselineEvidence(before)
       assert.equal(before.schema, evidence.schema)
       assert.equal(before.passed, true, '只接受完整通过的原版证据')
       assert.equal(before.sourcePath, sourcePath)
       assert.equal(before.sourceStatus, '', '基线 git status src 必须为空')
       assert.equal(before.generatePageStatus, '', '基线 GeneratePage 源码目录必须干净')
-    } else {
+    } else if (!regression) {
       assert.equal(evidence.sourceStatus, '', '建立基线前必须保持 src 干净')
       assert.equal(evidence.generatePageStatus, '', '建立基线前必须保持 GeneratePage 源码目录干净')
     }
@@ -451,6 +458,7 @@ test('GeneratePage：原任务持久化、共享输入输出、生成编辑恢�
     // 8、失败也关闭后台桌面并保存已有证据；保留隔离目录供主助手核验，不删除失败截图。
     try {
       if (desktop) await desktop.close()
+      if (regression) assert.deepEqual(await verifyManifest(repository, manifest), regression, '清单在运行期间发生变化')
     } catch (error) {
       evidence.passed = false
       evidence.cleanupFailure = error.message
