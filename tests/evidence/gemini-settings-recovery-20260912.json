@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "scope": "生图设置恢复、同步重载和导入职责归域，保持配置和异步语义",
+  "baselineCommit": "c5da7ef12d0664bec14d3ba449f539ab233ed1f6",
+  "changes": [
+    "三个同步块原位迁入useGeminiSettings；父页保留原await falApi.getConfig及仅补undefined字段逻辑",
+    "当前键优先、旧fal-config兼容、旧路径匹配、Object.assign未知字段保留、编辑输出目录及有条件回写顺序不变",
+    "导入保持其独立缺省值规则，不调用正常保存验证；恢复/导入/重载原异常范围不变",
+    "默认项目路径只供域内部使用，父页删除不再使用的存储键导入，不新增状态"
+  ],
+  "checks": {
+    "mechanical": "temp/verify-gemini-recovery-extraction.mjs通过：三个同步块完整AST及原正文注释、父页剩余原文/调用位置、旧域状态函数、模板样式一致；仅去除迁移块一处非模板行尾空格",
+    "static": "npm run lint、node scripts/check-source-size.mjs --strict、git diff --check通过；渐进lint不等于完整eslint",
+    "build": "npm run build通过；index-hJT0ZWrQ.js、index-DOHmp9H6.css；既有体积/unused警告保留"
+  },
+  "baseline": {
+    "newProbe": "momentum-gemini-recovery-QHzdyv，5个真实桌面场景通过，52887ms",
+    "newProbeProvenance": "temp/gemini-recovery-baseline-disk-1789260500650",
+    "repeat": "momentum-gemini-recovery-vgYsjx，严格对照QHzdyv",
+    "archive": "momentum-settings-archive-0oNZQZ",
+    "gemini": "momentum-regression-OkeFuZ",
+    "provenance": "temp/gemini-recovery-full-baseline-1789260568181",
+    "passed": "3/3，131186ms"
+  },
+  "candidate": {
+    "newProbe": "momentum-gemini-recovery-ehhrC2，严格对照QHzdyv",
+    "archive": "momentum-settings-archive-GgSdxL，严格对照0oNZQZ",
+    "gemini": "momentum-regression-H7lStG，严格对照OkeFuZ计算样式与RGBA零差异",
+    "provenance": "temp/gemini-recovery-candidate-1789260922064",
+    "passed": "3/3，0跳过，131883ms"
+  },
+  "newCoverage": [
+    "新旧键并存时当前键优先，正常路径不清旧键且不回写编辑目录",
+    "仅旧键且正常路径时表单读取旧键，但不自动迁移存储键",
+    "旧路径~/Pictures/fal-project与空白路径自动修正为隔离默认图片目录；持久化同步编辑目录、保留未知字段并清理旧键",
+    "损坏当前键不回退有效旧键，表单保留默认值，后续fal-get-config调用计数为0",
+    "实际共享存储落盘；旧字段导入及完整进程重启通过归档探针覆盖"
+  ],
+  "retainedFailures": [
+    "EalK4a：测试直接读取标签textContent含装饰导致键不匹配，只修为实际文本定位",
+    "KUtMjs：共享存储尚未首次生成，测试未容忍ENOENT；仅允许缺失文件等待，不吞解析/其他错误；两者均为失败结果不可作基线"
+  ],
+  "boundaries": [
+    "沿用原desktop强制隔离；透明包装现有fal-get-config处理器记录完成，不替换业务返回；未发真实AI/Python请求",
+    "未运行新人物十场景在此候选上的全量重复；旧父剩余脚本机械保护，累计完整回归待运行",
+    "未穷尽所有异常getter/写入失败或旧Windows硬编码路径；不宣称完整配置安全或全仓静态通过",
+    "历史预览空白、版本弹窗关闭仍加载、PSD Worker、安全与安装包等继续待处理"
+  ]
+}

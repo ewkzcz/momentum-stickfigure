@@ -180,12 +180,106 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
     console.log('重置项目根路径为:', defaultPath)
   }
 
+  /**
+   * 从备份恢复生图持久化配置。
+   * 处理流程：
+   * 1、优先读取当前配置名，缺失时兼容旧名，按原顺序保存并移除旧键。
+   */
+  const restoreGeminiSettingsFromBackup = (restoreResult) => {
+    // 1、存储异常仍由页面原恢复 catch 处理。
+    const restoredGeminiConfig = restoreResult.settings.geminiConfig || restoreResult.settings.falConfig
+    if (restoredGeminiConfig) {
+      localStorage.setItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY, JSON.stringify(restoredGeminiConfig))
+      if (localStorage.getItem('fal-config')) {
+        localStorage.removeItem('fal-config')
+      }
+      console.log('✅ 纳米香蕉配置已从备份恢复')
+    }
+  }
+
+  /**
+   * 从存储重新加载生图配置并迁移旧路径。
+   * 处理流程：
+   * 1、优先当前键，兼容旧键；修正原流程识别的旧路径和空路径。
+   * 2、保持编辑与生成目录同步，只在路径修正时回写本地配置。
+   */
+  const reloadGeminiSettingsFromStorage = () => {
+    // 1、保持同步异常传播，后端补充仍由页面在此操作之后发起。
+    const savedGeminiConfig = localStorage.getItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY) || localStorage.getItem('fal-config')
+    let needsSave = false
+
+    if (savedGeminiConfig) {
+      const parsed = JSON.parse(savedGeminiConfig)
+
+      // 检查保存的projectRoot是否包含旧的硬编码用户名或不存在的路径
+      if (parsed.projectRoot &&
+          (parsed.projectRoot.includes('Administrator\\Pictures\\fal-project') ||
+           parsed.projectRoot.includes('~/Pictures/fal-project'))) {
+        // 如果是旧的硬编码路径，使用新的默认路径
+        console.log('检测到旧的projectRoot路径，使用新的默认路径')
+        parsed.projectRoot = getDefaultProjectRoot()
+        needsSave = true
+      }
+
+      Object.assign(geminiConfig, parsed)
+
+      // 如果projectRoot为空或无效，设置为默认值
+      if (!geminiConfig.projectRoot || geminiConfig.projectRoot.trim() === '') {
+        geminiConfig.projectRoot = getDefaultProjectRoot()
+        needsSave = true
+      }
+
+      // 确保编辑图片路径与生成图片路径一致
+      geminiConfig.editOutputDir = geminiConfig.outputDir
+
+      // 如果检测到需要更新路径，立即保存到localStorage
+      if (needsSave) {
+        console.log('自动保存更新后的配置到localStorage:', geminiConfig.projectRoot)
+        localStorage.setItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY, JSON.stringify(geminiConfig))
+        if (localStorage.getItem('fal-config')) {
+          localStorage.removeItem('fal-config')
+        }
+      }
+    }
+  }
+
+  /**
+   * 将导入的生图配置写入表单和存储。
+   * 处理流程：
+   * 1、兼容新旧配置名，沿用导入专属缺省值和输出目录规则。
+   * 2、保存已补齐的表单并清理旧键，不复用正常保存校验以免改变导入语义。
+   */
+  const applyImportedGeminiSettings = (importedSettings) => {
+    // 1、页面完成版本确认后同步调用，失败由原导入 catch 处理。
+    const importedGeminiConfig = importedSettings.geminiConfig || importedSettings.falConfig
+    if (importedGeminiConfig) {
+      const imported = importedGeminiConfig
+
+      // 更新所有属性
+      geminiConfig.apiKey = imported.apiKey || ''
+      geminiConfig.baseUrl = imported.baseUrl || ''
+      geminiConfig.projectRoot = imported.projectRoot || getDefaultProjectRoot()
+      geminiConfig.outputDir = imported.outputDir || 'output'
+      geminiConfig.editOutputDir = imported.editOutputDir || imported.outputDir || 'output'
+      geminiConfig.logDir = imported.logDir || 'logs'
+
+      // 保存到 localStorage
+      localStorage.setItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY, JSON.stringify(geminiConfig))
+      if (localStorage.getItem('fal-config')) {
+        localStorage.removeItem('fal-config')
+      }
+      console.log('[设置页] 纳米香蕉配置已导入并更新到界面')
+    }
+  }
+
   // 2、仅暴露页面实际使用的状态与操作，保留配置对象引用。
   return {
+    restoreGeminiSettingsFromBackup,
+    reloadGeminiSettingsFromStorage,
+    applyImportedGeminiSettings,
     geminiConfig,
     isSavingGemini,
     isSelectingFolder,
-    getDefaultProjectRoot,
     saveGeminiConfig,
     selectProjectRootFolder,
     resetProjectRootToDefault
