@@ -751,7 +751,9 @@ async function startProcess() {
   processProgress.status = 'default'
   processProgress.message = '正在初始化...'
   result.show = false
-  
+
+  // 本次调用独立持有取消函数，异常时也能释放，不覆盖其他任务的订阅。
+  let unsubscribeProgress = null
   try {
     const payload = {
       pythonHome: config.pythonHome,
@@ -776,18 +778,17 @@ async function startProcess() {
     }
     
     if (window.videoOcr.onProgress) {
-      const unsubscribe = window.videoOcr.onProgress(progressHandler)
       // 保存取消订阅函数，处理完成后调用
-      window.__videoOcrUnsubscribe = unsubscribe
+      unsubscribeProgress = window.videoOcr.onProgress(progressHandler)
     }
     
     // 4、订阅完成后提交任务，避免漏掉初始化进度。
     const response = await window.videoOcr.processVideo(payload)
     
     // 5、正常收到响应后解除订阅，再按响应结果更新界面。
-    if (window.__videoOcrUnsubscribe) {
-      window.__videoOcrUnsubscribe()
-      window.__videoOcrUnsubscribe = null
+    if (unsubscribeProgress) {
+      unsubscribeProgress()
+      unsubscribeProgress = null
     }
     
     if (response?.success) {
@@ -816,7 +817,12 @@ async function startProcess() {
     processProgress.status = 'error'
     processProgress.message = '处理失败'
   } finally {
-    isProcessing.value = false
+    // 6、桥接请求拒绝时补做本次订阅清理，正常响应已在原位置释放。
+    try {
+      if (unsubscribeProgress) unsubscribeProgress()
+    } finally {
+      isProcessing.value = false
+    }
   }
 }
 
