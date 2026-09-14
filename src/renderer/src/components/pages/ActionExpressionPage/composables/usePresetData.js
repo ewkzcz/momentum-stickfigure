@@ -227,6 +227,8 @@ export function usePresetData({
   const dialog = useDialog()
   const sessionGuard = usePsdSessionGuard({ currentPsdFile, currentPsdData })
   let loadSequence = 0
+  let saveSequence = 0
+  const committedSaves = new Map()
   const renderCoordinator = getCanvasRenderCoordinator({ canvasRef, isRendering, renderCoordinator: injectedRenderCoordinator })
 
   // ========== 状态定义 ==========
@@ -268,7 +270,7 @@ export function usePresetData({
    * 处理流程：
    * 1、附加存储版本并移除内嵌图片后写入。
    */
-  const saveAllPresetsData = async (data) => {
+  const saveAllPresetsData = async (data, onSaved = () => {}) => {
     // 1、只持久化轻量元数据和预览文件路径。
     try {
       const payload = {
@@ -277,6 +279,7 @@ export function usePresetData({
         psdItems: sanitizePsdItemsForStorage(data.psdItems || [])
       }
       localStorage.setItem(GLOBAL_PRESETS_STORAGE_KEY, JSON.stringify(payload))
+      onSaved()
       console.log('💾 保存全局预设数据成功，共', payload.psdItems.length, '个PSD')
     } catch (error) {
       console.error('❌ 保存全局预设失败:', error)
@@ -411,6 +414,7 @@ export function usePresetData({
       }
       
       const currentPath = currentPsdFile.value.filePath || currentPsdFile.value.name
+      const sequence = ++saveSequence
       const savingPsd = currentPsdData.value
       const sourcePresets = presets.value.slice()
       const savingPresets = JSON.parse(JSON.stringify(sourcePresets))
@@ -427,15 +431,8 @@ export function usePresetData({
       
       if (!isCurrent()) return
       // 获取全局预设数据
-      const allData = await getAllPresetsData(isCurrent)
+      await getAllPresetsData(isCurrent)
       if (!isCurrent()) return
-      
-      // 查找当前PSD的预设项（通过路径或哈希匹配）
-      let existingIndex = allData.psdItems.findIndex(item => item.psdPath === currentPath)
-      if (existingIndex < 0 && psdHash) {
-        // 如果路径不匹配，尝试通过哈希查找
-        existingIndex = allData.psdItems.findIndex(item => item.psdHash === psdHash)
-      }
       
       // 2、确保所有预设都有文件化的预览，再保存元数据。
       for (const [index, preset] of savingPresets.entries()) {
@@ -447,6 +444,15 @@ export function usePresetData({
           source.previewPath = preset.previewPath
         }
       }
+
+      // 所有异步准备结束后同步读取、合并并写入，避免恢复等待前的全局快照。
+      // 路径及内容哈希共享提交次序，兼容同内容文件移动后的匹配。
+      const saveKeys = [`path:${currentPath}`, ...(psdHash ? [`hash:${psdHash}`] : [])]
+      if (saveKeys.some(key => (committedSaves.get(key) || 0) > sequence)) return
+      const stored = localStorage.getItem(GLOBAL_PRESETS_STORAGE_KEY)
+      const allData = stored ? JSON.parse(stored) : { psdItems: [], storage_version: PRESET_STORAGE_VERSION }
+      let existingIndex = allData.psdItems.findIndex(item => item.psdPath === currentPath)
+      if (existingIndex < 0 && psdHash) existingIndex = allData.psdItems.findIndex(item => item.psdHash === psdHash)
 
       // 构建当前PSD的预设项
       const psdItem = {
@@ -466,7 +472,9 @@ export function usePresetData({
       }
       
       // 保存到全局存储
-      await saveAllPresetsData(allData)
+      await saveAllPresetsData(allData, () => {
+        for (const key of saveKeys) committedSaves.set(key, sequence)
+      })
       console.log('💾 保存预设列表:', savingPresets.length, '个')
       console.log('🔐 PSD哈希:', psdHash ? psdHash.substring(0, 16) + '...' : '未计算')
     } catch (error) {
