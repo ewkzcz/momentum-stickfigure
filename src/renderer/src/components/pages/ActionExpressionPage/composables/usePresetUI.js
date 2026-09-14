@@ -30,10 +30,13 @@ export function usePresetUI({
    * 2、等待输入框渲染后聚焦并选中文本。
    */
   const startEditPresetName = (presetId) => {
+    const isCurrent = sessionGuard.capture()
+    if (!isCurrent()) return
     // 1、进入指定预设的编辑状态。
     editingPresetId.value = presetId
     // 2、等视图更新后定位输入框。
     nextTick(() => {
+      if (!isCurrent()) return
       // 聚焦到输入框
       const input = document.querySelector('.preset-name-input')
       if (input) {

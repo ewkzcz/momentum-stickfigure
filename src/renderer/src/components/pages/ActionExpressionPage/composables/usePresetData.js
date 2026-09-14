@@ -822,11 +822,14 @@ export function usePresetData({
    * 1、清除当前选择并重新渲染图层画布。
    */
   const deselectAllPresets = async () => {
+    const isCurrent = sessionGuard.capture()
+    if (!isCurrent()) return
     // 1、仅在存在选中预设时恢复图层渲染。
     if (selectedPresetId.value) {
       selectedPresetId.value = null
       console.log('❌ 双击取消选中所有预设')
       await renderAllLayers()
+      if (!isCurrent()) return
       message.info('已取消选中预设')
     }
   }
@@ -839,6 +842,8 @@ export function usePresetData({
    * 1、找到目标预设并显示确认对话框，确认后执行删除。
    */
   const confirmDeletePreset = (presetId) => {
+    const isCurrent = sessionGuard.capture()
+    if (!isCurrent()) return
     // 1、以预设名称确认删除对象。
     const preset = presets.value.find(p => p.id === presetId)
     if (!preset) return
@@ -850,6 +855,7 @@ export function usePresetData({
       positiveText: '删除',
       negativeText: '取消',
       onPositiveClick: () => {
+        if (!isCurrent()) return
         deletePreset(presetId)
       }
     })

@@ -23,7 +23,7 @@ await build({
     load(id) {
       if (process.env.MOMENTUM_RACE_REVISION && id.startsWith(directory)) return execFileSync('git', ['show', `${process.env.MOMENTUM_RACE_REVISION}:${path.relative(root, id)}`], { cwd: root, encoding: 'utf8' })
       if (id === '\0race-entry') return ['useCanvasRender', 'useLayerTree', 'usePresetData', 'usePresetUI'].map(name => `export { ${name} } from ${JSON.stringify(path.join(directory, `composables/${name}.js`))}`).join('\n') + `\nexport * from ${JSON.stringify(path.join(directory, 'utils/layerRenderUtils.js'))}` + (process.env.MOMENTUM_RACE_REVISION ? '' : `\nexport * from ${JSON.stringify(path.join(directory, 'composables/useCanvasRenderCoordinator.js'))}`)
-      if (id === '\0race-ui') return 'export const useMessage = () => new Proxy({}, {get: () => (...args) => globalThis.__raceMessages.push(args)}); export const useDialog = () => ({})'
+      if (id === '\0race-ui') return 'export const useMessage = () => new Proxy({}, {get: () => (...args) => globalThis.__raceMessages.push(args)}); export const useDialog = () => ({warning: options => globalThis.__raceDialogs.push(options)})'
       if (id === '\0race-metrics') return 'export const createPerformanceLogger = () => ({start: () => ({end() {}}), logEvent() {}})'
     }
   }],
@@ -32,8 +32,8 @@ await build({
 export const modules = await import(pathToFileURL(path.join(output, 'modules.mjs')).href)
 export const flush = async () => { for (let i = 0; i < 12; i++) await new Promise(resolve => setImmediate(resolve)) }
 export function setup(t) {
-  const images = [], messages = []
-  for (const [key, value] of Object.entries({ __raceMessages: messages, document: { createElement: () => createCanvas(2, 1) }, Image: class {
+  const images = [], messages = [], dialogs = []
+  for (const [key, value] of Object.entries({ __raceMessages: messages, __raceDialogs: dialogs, document: { createElement: () => createCanvas(2, 1) }, Image: class {
     constructor() {
       const image = createCanvas(2, 1)
       image.onload = null
@@ -83,5 +83,5 @@ export function setup(t) {
     return render.renderPart(partsState.selectedPart.value)
   }
   const pixel = () => Array.from(canvasRef.value.getContext('2d').getImageData(0, 0, 1, 1).data)
-  return { deps, images, messages, tree, preset, render, start, select, pixel }
+  return { deps, images, messages, dialogs, tree, preset, render, start, select, pixel }
 }
