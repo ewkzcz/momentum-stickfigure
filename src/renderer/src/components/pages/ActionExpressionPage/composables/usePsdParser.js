@@ -1,7 +1,7 @@
 /**
  * PSD 解析与页面初始化：调用桌面解析服务、缓存部件分类并协调首次载入状态。
  */
-import { markRaw, onScopeDispose } from 'vue'
+import { markRaw, onScopeDispose, ref } from 'vue'
 import { usePsdSessionGuard } from './usePsdSessionGuard.js'
 import { usePsdParseTasks } from './usePsdParseTasks.js'
 
@@ -188,8 +188,9 @@ export function usePsdParser(deps) {
 
     // 文件与当前数据
     psdFiles,
-    currentPsdFile,
-    currentPsdData,
+    // 仅使用 parsePsdFile 时无需注入页面会话；完整载入仍复用调用方的引用。
+    currentPsdFile = ref(null),
+    currentPsdData = ref(null),
 
     // 图层树与控制优先级
     layerTreeData,
