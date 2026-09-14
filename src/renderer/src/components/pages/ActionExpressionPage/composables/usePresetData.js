@@ -401,7 +401,7 @@ export function usePresetData({
    * 2、确保预览文件存在，更新记录并保存全局数据。
    */
   const savePresets = async (isCurrent = () => true) => {
-    // 加载触发的路径保存沿用加载身份；显式保存保持原有调用协议。
+    // 自动路径保存继续受加载身份约束；显式保存使用发起时快照。
     if (!isCurrent()) return
     // 1、计算文件匹配信息，兼容 PSD 被移动的情况。
     try {
@@ -411,11 +411,15 @@ export function usePresetData({
       }
       
       const currentPath = currentPsdFile.value.filePath || currentPsdFile.value.name
+      const savingPsd = currentPsdData.value
+      const sourcePresets = presets.value.slice()
+      const savingPresets = JSON.parse(JSON.stringify(sourcePresets))
+      const isSessionCurrent = sessionGuard.capture()
       
       // 计算PSD哈希（用于文件移动后的匹配）
       let psdHash = null
       try {
-        psdHash = await calculatePsdHash(currentPsdData.value)
+        psdHash = await calculatePsdHash(savingPsd)
         console.log('🔐 计算PSD哈希成功:', psdHash ? psdHash.substring(0, 16) + '...' : 'null')
       } catch (error) {
         console.warn('⚠️ 计算PSD哈希失败:', error)
@@ -434,16 +438,21 @@ export function usePresetData({
       }
       
       // 2、确保所有预设都有文件化的预览，再保存元数据。
-      for (const preset of presets.value) {
+      for (const [index, preset] of savingPresets.entries()) {
         await ensurePresetPreviewFile(preset, isCurrent)
         if (!isCurrent()) return
+        const source = sourcePresets[index]
+        if (isSessionCurrent() && presets.value.includes(source) &&
+            source.base64Image === preset.base64Image && !source.previewPath && preset.previewPath) {
+          source.previewPath = preset.previewPath
+        }
       }
 
       // 构建当前PSD的预设项
       const psdItem = {
         psdPath: currentPath,
         psdHash: psdHash,
-        presets: presets.value,
+        presets: savingPresets,
         savedAt: Date.now()
       }
       
@@ -458,7 +467,7 @@ export function usePresetData({
       
       // 保存到全局存储
       await saveAllPresetsData(allData)
-      console.log('💾 保存预设列表:', presets.value.length, '个')
+      console.log('💾 保存预设列表:', savingPresets.length, '个')
       console.log('🔐 PSD哈希:', psdHash ? psdHash.substring(0, 16) + '...' : '未计算')
     } catch (error) {
       console.error('❌ 保存预设失败:', error)
@@ -473,6 +482,8 @@ export function usePresetData({
    * @param {Object} configInfo - 配置信息 { selectedParts: { frontHand: 'xxx', backHand: 'yyy', ... } }
    */
   const handleSavePreset = async (configInfo = null) => {
+    const isCurrent = sessionGuard.capture()
+    if (!isCurrent()) return
     // 1、检查画布后捕获预览和当前配置。
     try {
       const canvas = canvasRef.value
@@ -491,17 +502,20 @@ export function usePresetData({
         config: configInfo, // 保存配置信息
         timestamp: Date.now()
       }
-      await ensurePresetPreviewFile(preset)
+      await ensurePresetPreviewFile(preset, isCurrent)
+      if (!isCurrent()) return
       
       // 2、更新列表并立即保存，避免新预设只留在内存。
       presets.value.push(preset)
       
       // 立即保存到持久化存储
       await savePresets()
+      if (!isCurrent()) return
       
       message.success(`预设"${preset.name}"已添加`)
       console.log('✅ 添加预设:', preset.name, '配置:', configInfo)
     } catch (error) {
+      if (!isCurrent()) return
       console.error('❌ 添加预设失败:', error)
       message.error('添加预设失败: ' + error.message)
     }
