@@ -4,6 +4,7 @@
  */
 
 import { ref, computed } from 'vue'
+import { usePsdSessionGuard } from './usePsdSessionGuard.js'
 import { getCanvasRenderCoordinator } from './useCanvasRenderCoordinator.js'
 import { loadRenderImage } from '../utils/renderImageTask.js'
 import { useMessage, useDialog } from 'naive-ui'
@@ -82,11 +83,13 @@ const loadPresetPreviewBase64 = async (previewPath) => {
  * 处理流程：
  * 1、跳过已有预览的项目，逐个读取并回填文件内容。
  */
-const hydratePresetListPreviews = async (presetList = []) => {
+const hydratePresetListPreviews = async (presetList = [], isCurrent = () => true) => {
   // 1、仅为保存了图片路径的项目加载预览。
   for (const preset of presetList) {
+    if (!isCurrent()) return
     if (!preset || preset.base64Image || !preset.previewPath) continue
     const base64 = await loadPresetPreviewBase64(preset.previewPath)
+    if (!isCurrent()) return
     if (base64) {
       preset.base64Image = base64
     }
@@ -98,12 +101,13 @@ const hydratePresetListPreviews = async (presetList = []) => {
  * 处理流程：
  * 1、复用已有路径，否则保存编码图片并回填路径。
  */
-const ensurePresetPreviewFile = async (preset) => {
+const ensurePresetPreviewFile = async (preset, isCurrent = () => true) => {
   // 1、优先复用已经文件化的预览。
-  if (!preset) return null
+  if (!preset || !isCurrent()) return null
   if (preset.previewPath) return preset.previewPath
   if (!preset.base64Image) return null
   const filePath = await savePresetPreviewToFile(preset.id || generateId(), preset.base64Image)
+  if (!isCurrent()) return null
   if (filePath) {
     preset.previewPath = filePath
   }
@@ -134,7 +138,8 @@ const sanitizePsdItemsForStorage = (psdItems = []) => {
  * 1、验证旧数据结构，为预设补齐标识与预览路径。
  * 2、移除内嵌图片并保存新的存储版本。
  */
-const migrateLegacyPresetData = async (legacyData) => {
+const migrateLegacyPresetData = async (legacyData, isCurrent = () => true) => {
+  if (!isCurrent()) return { psdItems: [], storage_version: PRESET_STORAGE_VERSION }
   // 1、处理无效旧数据，并逐个迁移有效预设。
   if (!legacyData || !Array.isArray(legacyData.psdItems)) {
     localStorage.removeItem(GLOBAL_PRESETS_STORAGE_KEY)
@@ -148,7 +153,8 @@ const migrateLegacyPresetData = async (legacyData) => {
       if (preset && !preset.id) {
         preset.id = generateId()
       }
-      const storedPath = await ensurePresetPreviewFile(preset)
+      const storedPath = await ensurePresetPreviewFile(preset, isCurrent)
+      if (!isCurrent()) return { psdItems: [], storage_version: PRESET_STORAGE_VERSION }
       if (storedPath) {
         migratedCount++
       }
@@ -219,6 +225,8 @@ export function usePresetData({
   // 1、初始化页面消息服务及预设交互状态。
   const message = useMessage()
   const dialog = useDialog()
+  const sessionGuard = usePsdSessionGuard({ currentPsdFile, currentPsdData })
+  let loadSequence = 0
   const renderCoordinator = getCanvasRenderCoordinator({ canvasRef, isRendering, renderCoordinator: injectedRenderCoordinator })
 
   // ========== 状态定义 ==========
@@ -235,7 +243,7 @@ export function usePresetData({
    * 1、读取并解析存储内容。
    * 2、按版本迁移旧数据，异常时清理损坏内容并返回空列表。
    */
-  const getAllPresetsData = async () => {
+  const getAllPresetsData = async (isCurrent = () => true) => {
     // 1、读取全局元数据，并在需要时迁移存储结构。
     try {
       const stored = localStorage.getItem(GLOBAL_PRESETS_STORAGE_KEY)
@@ -247,10 +255,10 @@ export function usePresetData({
         return data
       }
       console.log('🔄 检测到旧版预设存储格式，开始迁移...')
-      return await migrateLegacyPresetData(data)
+      return await migrateLegacyPresetData(data, isCurrent)
     } catch (error) {
       console.error('❌ 读取全局预设数据失败:', error)
-      localStorage.removeItem(GLOBAL_PRESETS_STORAGE_KEY)
+      if (isCurrent()) localStorage.removeItem(GLOBAL_PRESETS_STORAGE_KEY)
       return { psdItems: [], storage_version: PRESET_STORAGE_VERSION }
     }
   }
@@ -283,12 +291,14 @@ export function usePresetData({
    * 1、读取全局预设并优先匹配文件路径。
    * 2、路径不匹配时按内容哈希匹配，并标记路径更新。
    */
-  const findPresetsByMatch = async () => {
+  const findPresetsByMatch = async (isCurrent = () => true) => {
     // 1、定位当前 PSD 对应的全局预设记录。
     if (!currentPsdFile.value) return null
     
     const currentPath = currentPsdFile.value.filePath || currentPsdFile.value.name
-    const allData = await getAllPresetsData()
+    const matchingPsd = currentPsdData.value
+    const allData = await getAllPresetsData(isCurrent)
+    if (!isCurrent()) return null
     
     console.log('🔍 开始查找当前PSD的预设:', currentPath)
     console.log('📦 全局存储中共有', allData.psdItems.length, '个PSD的预设')
@@ -302,7 +312,8 @@ export function usePresetData({
     
     // 2、如果路径匹配失败，尝试通过 PSD 哈希匹配。
     console.log('🔐 路径匹配失败，尝试哈希匹配...')
-    const currentHash = await calculatePsdHash(currentPsdData.value)
+    const currentHash = await calculatePsdHash(matchingPsd)
+    if (!isCurrent()) return null
     if (currentHash) {
       matchedItem = allData.psdItems.find(item => item.psdHash === currentHash)
       if (matchedItem) {
@@ -326,6 +337,10 @@ export function usePresetData({
    * 2、确认文件未切换，再补载预览并保存已变化的路径。
    */
   const loadPresets = async () => {
+    const sequence = ++loadSequence
+    const isSessionCurrent = sessionGuard.capture()
+    const isCurrent = () => isSessionCurrent() && sequence === loadSequence
+    if (!isCurrent()) return
     // 1、保留发起加载时的 PSD 标识，避免异步结果串到其他文件。
     try {
       if (!currentPsdFile.value) {
@@ -345,23 +360,24 @@ export function usePresetData({
       selectedPresetId.value = null
       
       // 使用智能匹配查找预设
-      const matchedItem = await findPresetsByMatch()
+      const matchedItem = await findPresetsByMatch(isCurrent)
       
       // 2、验证 PSD 是否仍然活动，再应用预设与预览。
-      if (!currentPsdFile.value || currentPsdFile.value.id !== loadingPsdId) {
+      if (!isCurrent() || !currentPsdFile.value || currentPsdFile.value.id !== loadingPsdId) {
         console.log('⚠️ PSD已切换，放弃加载预设')
         return
       }
       
       if (matchedItem) {
         presets.value = matchedItem.presets || []
-        await hydratePresetListPreviews(presets.value)
+        await hydratePresetListPreviews(presets.value, isCurrent)
+        if (!isCurrent()) return
         console.log('📂 成功加载预设列表:', presets.value.length, '个，PSD:', loadingPsdName)
         
         // 如果路径已更新，立即保存（PSD移动后更新路径）
         if (matchedItem.pathUpdated) {
           console.log('🔄 PSD路径已更新，保存新路径')
-          await savePresets()
+          await savePresets(isCurrent)
         }
       } else {
         console.log('📝 未找到匹配的预设数据，PSD:', loadingPsdName)
@@ -369,6 +385,7 @@ export function usePresetData({
         selectedPresetId.value = null
       }
     } catch (error) {
+      if (!isCurrent()) return
       console.error('❌ 加载预设失败:', error)
       presets.value = []
       selectedPresetId.value = null
@@ -383,7 +400,9 @@ export function usePresetData({
    * 1、按路径和哈希定位当前 PSD 记录。
    * 2、确保预览文件存在，更新记录并保存全局数据。
    */
-  const savePresets = async () => {
+  const savePresets = async (isCurrent = () => true) => {
+    // 加载触发的路径保存沿用加载身份；显式保存保持原有调用协议。
+    if (!isCurrent()) return
     // 1、计算文件匹配信息，兼容 PSD 被移动的情况。
     try {
       if (!currentPsdFile.value) {
@@ -402,8 +421,10 @@ export function usePresetData({
         console.warn('⚠️ 计算PSD哈希失败:', error)
       }
       
+      if (!isCurrent()) return
       // 获取全局预设数据
-      const allData = await getAllPresetsData()
+      const allData = await getAllPresetsData(isCurrent)
+      if (!isCurrent()) return
       
       // 查找当前PSD的预设项（通过路径或哈希匹配）
       let existingIndex = allData.psdItems.findIndex(item => item.psdPath === currentPath)
@@ -414,7 +435,8 @@ export function usePresetData({
       
       // 2、确保所有预设都有文件化的预览，再保存元数据。
       for (const preset of presets.value) {
-        await ensurePresetPreviewFile(preset)
+        await ensurePresetPreviewFile(preset, isCurrent)
+        if (!isCurrent()) return
       }
 
       // 构建当前PSD的预设项
