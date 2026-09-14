@@ -62,7 +62,7 @@ export function registerFileOperationHandlers() {
  */
 export function unregisterFileOperationHandlers() {
   // 1、按通道清理文件操作监听。
-  ipcMain.removeAllListeners('check-file-exists')
-  ipcMain.removeAllListeners('read-file')
+  ipcMain.removeHandler('check-file-exists')
+  ipcMain.removeHandler('read-file')
   console.log('✓ 文件操作处理器已移除')
 }

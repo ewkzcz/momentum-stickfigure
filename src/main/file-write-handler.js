@@ -135,7 +135,7 @@ export function registerFileWriteHandler() {
  */
 export function unregisterFileWriteHandler() {
   // 1、清理两个文件写入通道的事件监听。
-  ipcMain.removeAllListeners('write-file')
-  ipcMain.removeAllListeners('save-dragged-file')
+  ipcMain.removeHandler('write-file')
+  ipcMain.removeHandler('save-dragged-file')
   console.log('✓ 文件写入处理器已移除')
 }

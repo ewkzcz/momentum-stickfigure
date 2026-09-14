@@ -125,8 +125,8 @@ export function registerPresetHandlers() {
  */
 export function unregisterPresetHandlers() {
   // 1、清理预设文件管理通道。
-  ipcMain.removeAllListeners('preset-export')
-  ipcMain.removeAllListeners('preset-import')
-  ipcMain.removeAllListeners('preset-save-file')
+  ipcMain.removeHandler('preset-export')
+  ipcMain.removeHandler('preset-import')
+  ipcMain.removeHandler('preset-save-file')
   console.log('✓ 预设处理器已移除')
 }

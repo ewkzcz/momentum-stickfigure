@@ -227,9 +227,9 @@ export function registerSettingsHandlers() {
  */
 export function unregisterSettingsHandlers() {
   // 1、清理设置文件管理的四个事件通道。
-  ipcMain.removeAllListeners('settings-export')
-  ipcMain.removeAllListeners('settings-import')
-  ipcMain.removeAllListeners('settings-auto-backup')
-  ipcMain.removeAllListeners('settings-restore')
+  ipcMain.removeHandler('settings-export')
+  ipcMain.removeHandler('settings-import')
+  ipcMain.removeHandler('settings-auto-backup')
+  ipcMain.removeHandler('settings-restore')
   console.log('✓ 设置导入导出处理器已移除')
 }

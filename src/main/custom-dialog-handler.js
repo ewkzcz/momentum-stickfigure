@@ -127,8 +127,8 @@ export function registerCustomDialogHandlers() {
  */
 export function unregisterCustomDialogHandlers() {
   // 1、清理图片管理的三个事件通道。
-  ipcMain.removeAllListeners('save-custom-dialog')
-  ipcMain.removeAllListeners('scan-custom-dialogs')
-  ipcMain.removeAllListeners('delete-custom-dialog')
+  ipcMain.removeHandler('save-custom-dialog')
+  ipcMain.removeHandler('scan-custom-dialogs')
+  ipcMain.removeHandler('delete-custom-dialog')
   console.log('✓ 自定义对话框处理器已移除')
 }

@@ -351,11 +351,13 @@ export function registerFolderSelectHandler() {
  */
 export function unregisterFolderSelectHandler() {
   // 1、移除文件选择和目录打开通道上的事件监听。
-  ipcMain.removeAllListeners('select-psd-files')
-  ipcMain.removeAllListeners('select-folder')
-  ipcMain.removeAllListeners('select-file')
-  ipcMain.removeAllListeners('select-image-files')
-  ipcMain.removeAllListeners('open-folder')
+  ipcMain.removeHandler('select-psd-files')
+  ipcMain.removeHandler('select-folder')
+  ipcMain.removeHandler('select-file')
+  ipcMain.removeHandler('select-image-files')
+  ipcMain.removeHandler('open-folder')
+  ipcMain.removeHandler('show-save-dialog')
+  ipcMain.removeHandler('save-temp-image')
   console.log('✓ PSD文件选择处理器已移除')
   console.log('✓ 文件夹选择处理器已移除')
   console.log('✓ 文件选择处理器已移除')

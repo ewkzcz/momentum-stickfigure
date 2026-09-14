@@ -49,7 +49,7 @@ function registerShellHandlers() {
  */
 function unregisterShellHandlers() {
   // 1、清理外部链接打开通道。
-  ipcMain.removeAllListeners('shell-open-external')
+  ipcMain.removeHandler('shell-open-external')
   console.log('✓ Shell处理器已移除')
 }
 

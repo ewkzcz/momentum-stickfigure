@@ -573,15 +573,15 @@ export function createWindowController({ mainDirectory }) {
       webContentsCreatedHandler = null
     }
     ipcMain.removeHandler('canvas-preview-ready')
-    ipcMain.removeAllListeners('canvas-preview-create')
-    ipcMain.removeAllListeners('canvas-preview-close')
-    ipcMain.removeAllListeners('canvas-preview-update')
-    ipcMain.removeAllListeners('canvas-preview-update-filename')
-    ipcMain.removeAllListeners('canvas-preview-sync-theme')
-    ipcMain.removeAllListeners('canvas-preview-reset-viewport')
-    ipcMain.removeAllListeners('window-set-always-on-top')
-    ipcMain.removeAllListeners('window-get-always-on-top')
-    ipcMain.removeAllListeners('window-set-mode')
+    ipcMain.removeHandler('canvas-preview-create')
+    ipcMain.removeHandler('canvas-preview-close')
+    ipcMain.removeHandler('canvas-preview-update')
+    ipcMain.removeHandler('canvas-preview-update-filename')
+    ipcMain.removeHandler('canvas-preview-sync-theme')
+    ipcMain.removeHandler('canvas-preview-reset-viewport')
+    ipcMain.removeHandler('window-set-always-on-top')
+    ipcMain.removeHandler('window-get-always-on-top')
+    ipcMain.removeHandler('window-set-mode')
     console.log('✓ 窗口控制处理器已移除')
   }
 
@@ -753,7 +753,7 @@ export function createWindowController({ mainDirectory }) {
     globalShortcut.unregisterAll()
 
     // 2、移除进程通信监听器。
-    ipcMain.removeAllListeners('hotkeys-update')
+    ipcMain.removeHandler('hotkeys-update')
 
     console.log('✓ 快捷键处理器已移除')
   }

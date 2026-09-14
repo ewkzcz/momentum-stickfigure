@@ -348,10 +348,10 @@ function registerDragToJianyingHandlers() {
  */
 function unregisterDragToJianyingHandlers() {
   // 1、按通道清理拖拽辅助功能的事件监听。
-  ipcMain.removeAllListeners('save-drag-image-and-copy')
-  ipcMain.removeAllListeners('copy-to-clipboard')
-  ipcMain.removeAllListeners('get-window-bounds')
-  ipcMain.removeAllListeners('create-temp-file-and-start-drag')
+  ipcMain.removeHandler('save-drag-image-and-copy')
+  ipcMain.removeHandler('copy-to-clipboard')
+  ipcMain.removeHandler('get-window-bounds')
+  ipcMain.removeHandler('create-temp-file-and-start-drag')
   console.log('✓ 拖拽到剪映处理器已移除')
 }
 
