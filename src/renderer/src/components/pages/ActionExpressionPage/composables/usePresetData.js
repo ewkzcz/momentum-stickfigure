@@ -862,6 +862,8 @@ export function usePresetData({
    * 2、若删除当前选择，则恢复图层画布。
    */
   const deletePreset = async (presetId) => {
+    const isCurrent = sessionGuard.capture()
+    if (!isCurrent()) return
     // 1、删除元数据及其独立预览文件。
     const index = presets.value.findIndex(p => p.id === presetId)
     if (index >= 0) {
@@ -873,6 +875,8 @@ export function usePresetData({
         await deletePresetPreviewFile(previewPath)
       }
       
+      // 原目标的保存与文件清理可完成，选择、重绘和提示只属于发起会话。
+      if (!isCurrent()) return
       // 2、如果删除的是当前选中的预设，取消选择并恢复图层。
       if (selectedPresetId.value === presetId) {
         selectedPresetId.value = null
@@ -891,6 +895,8 @@ export function usePresetData({
    * 2、更新名称并保存列表。
    */
   const renamePreset = async (presetId, newName) => {
+    const isCurrent = sessionGuard.capture()
+    if (!isCurrent()) return
     // 1、定位预设并排除其他预设已经使用的名称。
     const preset = presets.value.find(p => p.id === presetId)
     if (!preset) return
@@ -904,6 +910,8 @@ export function usePresetData({
     // 2、保存新名称并反馈结果。
     preset.name = newName
     await savePresets()
+    // 保留已完成保存的返回契约，但不向新会话反馈旧操作。
+    if (!isCurrent()) return true
     message.success('预设已重命名')
     console.log('✏️ 重命名预设:', newName)
     return true

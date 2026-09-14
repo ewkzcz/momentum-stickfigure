@@ -1277,7 +1277,9 @@ const {
 } = usePresetUI({
   presets,
   editingPresetId,
-  renamePreset
+  renamePreset,
+  currentPsdFile,
+  currentPsdData
 })
 
 // ==================== 模板应用与预览绘制编排 ====================
