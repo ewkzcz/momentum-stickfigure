@@ -19,7 +19,7 @@ export function createRenderTriggerLogger(perfLogger) {
 export function useCommonControlLayerSync({
   showBackground, showFront, showSide, showBack, showShadow, showWeapon, showBackHair,
   showShakeHead, showHoldSword, showBackHandSword, showDownwardSlash,
-  selectedPresetId, originalHandleLayerVisibilityChange
+  selectedPresetId, originalHandleLayerVisibilityChange, getRenderCoordinator
 }) {
   // 1、原同步标记仅迁移归属，不改为 ref，也不延后恢复时机。
   let isSyncingFromLayerTree = false
@@ -37,8 +37,12 @@ export function useCommonControlLayerSync({
       selectedPresetId.value = null
     }
 
-    // 调用原始函数
-    await originalHandleLayerVisibilityChange(params)
+    const coordinator = getRenderCoordinator?.()
+    const generation = coordinator?.generation
+    const work = originalHandleLayerVisibilityChange(params)
+    const sequence = coordinator?.sequence
+    await work
+    if (coordinator && (coordinator.generation !== generation || coordinator.sequence !== sequence)) return
 
     // 2、将图层树变化反向同步到对应通用控制开关
     const layerName = params.layerPath.split('/').pop()

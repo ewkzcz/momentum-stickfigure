@@ -35,7 +35,7 @@ export async function stableCanvas(page, selector = '.render-canvas', requireVis
     while (performance.now() < deadline) {
       await new Promise(requestAnimationFrame)
       const pending = [...(window.__regressionImages || [])].some((image) => !image.complete)
-      const loading = [...document.querySelectorAll('.n-message')].some((node) => /正在处理|正在解析/.test(node.textContent))
+      const loading = canvas.getAttribute('aria-busy') === 'true' || [...document.querySelectorAll('.n-message')].some((node) => /正在处理|正在解析/.test(node.textContent))
       const png = canvas.toDataURL('image/png')
       const nonempty = !requireVisible || canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data.some((value, index) => index % 4 === 3 && value > 0)
       unchanged = !pending && !loading && nonempty && png === previous ? unchanged + 1 : 0

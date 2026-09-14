@@ -51,6 +51,7 @@
                   :height="canvasHeight"
                   :style="{ ...canvasStyle, opacity: canvasOpacity, transition: 'opacity 0.3s ease-in-out' }"
                   class="render-canvas"
+                  :aria-busy="isRendering"
                   :draggable="false"
                   @mousedown="handleCanvasMouseDown"
                   @wheel.stop.prevent="handleCanvasWheel"
@@ -411,7 +412,7 @@ import { usePsdSession } from './composables/usePsdSession.js'
 import { useCanvasState } from './composables/useCanvasState.js'
 import { useKeyboard } from './composables/useKeyboard.js'
 import { useMoreMenu } from './composables/useMoreMenu.js'
-import { createCanvasRenderCoordinator } from './composables/useCanvasRenderCoordinator.js'
+import { createCanvasRenderCoordinator, bindCanvasRenderSession } from './composables/useCanvasRenderCoordinator.js'
 import { useCanvasRender } from './composables/useCanvasRender.js'
 import { usePartTabLayout } from './composables/usePartTabLayout.js'
 import { usePartSearch } from './composables/usePartSearch.js'
@@ -1165,6 +1166,7 @@ let importPsdHistory = () => {}
 // 注意：必须在 usePresetData 之前定义，因为 usePresetData 依赖这些变量
 const isRendering = ref(false) // 预设、画布渲染和预览订阅始终共用此引用
 const renderCoordinator = createCanvasRenderCoordinator({ canvasRef, isRendering })
+bindCanvasRenderSession(renderCoordinator, { currentPsdData, currentPsdFile, canvasRef, canvasWidth, canvasHeight })
 /**
  * 画布刷新的异步初始化占位。
  * 处理流程：
@@ -1201,28 +1203,8 @@ let renderGroupWithClippingAdjustments = async () => {}
  * 1、模块初始化完成前保持空操作，之后绑定真实渲染方法
  */
 let renderLayer = async () => {}
-let renderAllLayersQueue = null
-
-/**
- * 合并同时发生的全画布渲染请求。
- * 处理流程：
- * 1、无在途任务时创建渲染承诺，并在结束时清除引用
- * 2、返回共享承诺供调用方等待
- */
-const queueRenderAllLayers = () => {
-  // 1、复用正在执行的渲染，避免并发重复绘制
-  if (!renderAllLayersQueue) {
-    renderAllLayersQueue = (async () => {
-      try {
-        await renderAllLayers()
-      } finally {
-        renderAllLayersQueue = null
-      }
-    })()
-  }
-  // 2、让本轮所有调用者等待同一个任务
-  return renderAllLayersQueue
-}
+/** 每次选择均发出请求；统一协调器取消旧工作，避免复用旧 Promise 丢失末次选择。 */
+const queueRenderAllLayers = () => renderAllLayers()
 
 // ==================== 预设功能（已提取到 usePresetData.js） ====================
 // 所有预设业务逻辑函数已提取到 composables/usePresetData.js
@@ -1674,6 +1656,7 @@ buildLayerTree = layerTreeComposable.buildLayerTree
 
 // 1、在原反向同步位置创建唯一同步标记，不提前注册尾部通用控件 watch。
 const commonControlLayerSync = useCommonControlLayerSync({
+  getRenderCoordinator: () => renderCoordinator,
   showBackground, showFront, showSide, showBack, showShadow, showWeapon, showBackHair,
   showShakeHead, showHoldSword, showBackHandSword, showDownwardSlash, selectedPresetId,
   originalHandleLayerVisibilityChange: layerTreeComposable.handleLayerVisibilityChange

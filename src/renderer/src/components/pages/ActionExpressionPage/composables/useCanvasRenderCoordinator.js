@@ -1,5 +1,5 @@
 /** 主画布请求的唯一归属；离屏绘制完成后，仅当前有效请求可以提交。 */
-import { ref } from 'vue'
+import { ref, watch, onScopeDispose } from 'vue'
 import { bindRenderSignal } from '../utils/renderImageTask.js'
 
 const coordinators = new WeakMap()
@@ -11,6 +11,12 @@ export function getCanvasRenderCoordinator(deps) {
   const coordinator = createCanvasRenderCoordinator(deps)
   if (deps.canvasRef) coordinators.set(deps.canvasRef, coordinator)
   return coordinator
+}
+
+/** 页面会话和固有尺寸同步失效；A→B→A 每次变更都推进版本，缓存停用不销毁。 */
+export function bindCanvasRenderSession(coordinator, { currentPsdData, currentPsdFile, canvasRef, canvasWidth, canvasHeight }) {
+  const stop = watch([currentPsdData, currentPsdFile, canvasRef, canvasWidth, canvasHeight], () => coordinator.invalidate(), { flush: 'sync' })
+  onScopeDispose(() => { stop(); coordinator.invalidate() })
 }
 
 export function createCanvasRenderCoordinator({ canvasRef, isRendering = ref(false) }) {

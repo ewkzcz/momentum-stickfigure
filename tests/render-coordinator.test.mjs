@@ -1,8 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { ref, shallowRef } from 'vue'
+import { ref, shallowRef, effectScope } from 'vue'
 import { createCanvas } from '@napi-rs/canvas'
-import { createCanvasRenderCoordinator } from '../src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasRenderCoordinator.js'
+import { createCanvasRenderCoordinator, bindCanvasRenderSession } from '../src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasRenderCoordinator.js'
 
 function setup(t) {
   t.mock.timers.enable({ apis: ['setTimeout'] })
@@ -41,6 +41,24 @@ test('尺寸变化、画布替换和会话失效均阻止旧提交', async t => 
     assert.equal(c.commit(request, buffer), false)
     assert.equal((await request.done).status, 'stale')
     assert.equal(canvasRef.value.getContext('2d').getImageData(0, 0, 1, 1).data[3], 0)
+  }
+})
+
+test('会话同步绑定覆盖 A→B→A、清空、尺寸与真实作用域销毁', async t => {
+  const { coordinator: c, canvasRef, isRendering } = setup(t)
+  const firstPsd = {}, currentPsdData = shallowRef(firstPsd), currentPsdFile = shallowRef({ id: 'A' })
+  const canvasWidth = ref(2), canvasHeight = ref(1), scope = effectScope()
+  scope.run(() => bindCanvasRenderSession(c, { currentPsdData, currentPsdFile, canvasRef, canvasWidth, canvasHeight }))
+  const first = c.begin(), generation = c.generation
+  currentPsdData.value = {}
+  currentPsdData.value = firstPsd
+  assert.equal(c.generation, generation + 2)
+  assert.equal((await first.done).status, 'stale')
+  for (const action of [() => { currentPsdData.value = null }, () => { canvasWidth.value++ }, () => scope.stop()]) {
+    const request = c.begin()
+    action()
+    assert.equal((await request.done).status, 'stale')
+    assert.equal(isRendering.value, false)
   }
 })
 

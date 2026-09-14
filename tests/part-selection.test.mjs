@@ -57,9 +57,10 @@ test('部件选择协调：单双击取消、代理补手、三种互斥和正�
   /** 保存实际选择和像素，并对等价操作执行零容差检查。 */
   async function snapshot(name, sameImage = null) {
     const image = Buffer.from((await stableCanvas(page, '.render-canvas', false)).png, 'base64')
-    if (sameImage) await assertSamePixels(image, sameImage, name)
     await writeFile(path.join(desktop.root, `${name}.png`), image)
-    evidence.scenes.push({ name, state: await selection(page), pngSha256: createHash('sha256').update(image).digest('hex') })
+    const state = await selection(page)
+    evidence.scenes.push({ name, state, pngSha256: createHash('sha256').update(image).digest('hex') })
+    if (sameImage) await assertSamePixels(image, sameImage, name)
     return image
   }
   try {
@@ -69,6 +70,13 @@ test('部件选择协调：单双击取消、代理补手、三种互斥和正�
     await page.evaluate(() => { location.hash = '/action-expression' })
     await page.getByRole('button', { name: '上传', exact: true }).waitFor()
     await observeImages(page)
+    await page.evaluate(() => {
+      window.__partSelectionEvents = []
+      for (const type of ['click', 'dblclick']) document.addEventListener(type, event => {
+        const part = event.target.closest('.part-item')
+        if (part) window.__partSelectionEvents.push({ type, detail: event.detail, name: part.querySelector('.part-name')?.textContent, time: performance.now() })
+      }, true)
+    })
     for (const [index, fixture] of samples.entries()) {
       await verifyFixture(fixture.absolutePath, fixture.sha256)
       await application.evaluate((_electron, filePath) => { globalThis.__momentumTest.openPaths = [filePath] }, fixture.absolutePath)
@@ -178,6 +186,7 @@ test('部件选择协调：单双击取消、代理补手、三种互斥和正�
     evidence.failure = error.stack
     throw error
   } finally {
+    evidence.events = await page.evaluate(() => window.__partSelectionEvents || []).catch(() => [])
     await writeFile(path.join(desktop.root, 'part-selection-result.json'), JSON.stringify(evidence, null, 2))
     await desktop.close()
     for (const fixture of samples) await verifyFixture(fixture.absolutePath, fixture.sha256)
