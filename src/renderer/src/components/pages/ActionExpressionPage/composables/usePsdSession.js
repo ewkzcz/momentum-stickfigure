@@ -1,5 +1,6 @@
 /** PSD 会话控制：保存、恢复、切换与移除文件，复用页面及既有模块持有的唯一状态容器。 */
-import { markRaw, nextTick } from 'vue'
+import { markRaw, nextTick, onScopeDispose } from 'vue'
+import { usePsdSessionGuard } from './usePsdSessionGuard.js'
 
 /**
  * 创建 PSD 会话入口。
@@ -23,6 +24,9 @@ export function usePsdSession({ session, layerTree, parts, canvas, commonControl
   // 3、预设列表按文件加载；全局模板列表只读，切换仅清除其选择与编辑标识。
   const { presets, selectedPresetId, editingPresetId, loadPresets } = presetState
   const { templates, selectedTemplate1Id, selectedTemplate2Id, editingTemplate1Id, editingTemplate2Id, loadTemplates } = templateState
+  const sessionGuard = usePsdSessionGuard({ currentPsdFile, currentPsdData })
+  const timers = new Set()
+  onScopeDispose(() => { for (const timer of timers) clearTimeout(timer); timers.clear() })
 
   /**
    * 保存当前PSD文件的状态
@@ -314,16 +318,20 @@ export function usePsdSession({ session, layerTree, parts, canvas, commonControl
     }
 
     // 使用 nextTick 确保 presetsStorageKey 已经更新
+    const isSessionCurrent = sessionGuard.capture()
     nextTick(async () => {
+      if (!isSessionCurrent()) return
       // 确保当前PSD文件ID，用于验证预设加载的正确性
       const currentPsdId = psdFile.id
       console.log('🔄 开始为PSD加载预设和模板:', currentPsdId, psdFile.name)
 
       // 加载预设列表（但不自动选中）
       await loadPresets()
+      if (!isSessionCurrent()) return
 
       // 加载模板列表（但不自动选中）
       await loadTemplates()
+      if (!isSessionCurrent()) return
 
       // 验证当前PSD是否仍然是目标PSD（防止快速切换导致的数据混乱）
       if (currentPsdFile.value?.id === currentPsdId) {
@@ -335,12 +343,15 @@ export function usePsdSession({ session, layerTree, parts, canvas, commonControl
       }
 
       // 渲染完整画面（显示PSD原本的可见图层）
-      setTimeout(() => {
-        // 再次验证PSD ID
-        if (currentPsdFile.value?.id === currentPsdId) {
+      const timer = setTimeout(() => {
+        timers.delete(timer)
+        if (isSessionCurrent() && currentPsdFile.value?.id === currentPsdId) {
           renderAllLayers()
         }
       }, 100)
+      timers.add(timer)
+    }).catch(error => {
+      if (isSessionCurrent()) console.warn('⚠️ PSD会话加载失败:', error)
     })
 
     message.success(`已切换到 ${psdFile.name}`)
