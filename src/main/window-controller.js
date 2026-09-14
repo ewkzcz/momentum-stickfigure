@@ -1,7 +1,8 @@
 /**
  * 窗口控制模块：管理主窗口、画布预览窗口以及窗口控制和全局快捷键通信。
  */
-import { app, BrowserWindow, shell, ipcMain, nativeTheme, globalShortcut } from 'electron'
+import { app, BrowserWindow, ipcMain, nativeTheme, globalShortcut } from 'electron'
+import { openExternalUrl } from './external-link-policy.js'
 import { is } from '@electron-toolkit/utils'
 import path from 'path'
 // 导入快捷键存储
@@ -146,7 +147,7 @@ export function createWindowController({ mainDirectory }) {
     })
 
     mainWindow.webContents.setWindowOpenHandler((details) => {
-      shell.openExternal(details.url)
+      void openExternalUrl(details.url).catch(error => console.warn('外部链接未打开:', error.message))
       return { action: 'deny' }
     })
 
@@ -183,7 +184,7 @@ export function createWindowController({ mainDirectory }) {
 
           // 允许 webview 导航
           contents.setWindowOpenHandler((details) => {
-            shell.openExternal(details.url)
+            void openExternalUrl(details.url).catch(error => console.warn('外部链接未打开:', error.message))
             return { action: 'deny' }
           })
 
