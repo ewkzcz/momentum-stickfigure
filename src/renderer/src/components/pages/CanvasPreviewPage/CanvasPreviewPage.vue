@@ -791,6 +791,15 @@ onMounted(async () => {
     })
   }
   
+  // 监听已同步安装后通知主进程；加载期间暂存的状态此时才可投递。
+  if (unsubscribeCanvas && unsubscribeTheme && unsubscribeFileName && unsubscribeResetViewport) {
+    try {
+      await window.electronAPI.invoke('canvas-preview-ready')
+    } catch (error) {
+      console.error('[预览窗口] 就绪通知失败:', error)
+    }
+  }
+
   // 2、获取初始置顶状态并同步工具栏显示
   try {
     const result = await window.electronAPI?.invoke('window-get-always-on-top')

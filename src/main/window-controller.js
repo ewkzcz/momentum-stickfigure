@@ -212,6 +212,23 @@ export function createWindowController({ mainDirectory }) {
   // 注册窗口控制处理器
   // ==================== 画布预览窗口管理 ====================
   let canvasPreviewWindow = null
+  // 以原生窗口为归属保存尚未投递的最新状态，关闭后不会转交给新窗口。
+  const previewDeliveries = new WeakMap()
+  const getPreviewDelivery = (window) => {
+    if (!previewDeliveries.has(window)) {
+      const state = { ready: false, pending: new Map() }
+      previewDeliveries.set(window, state)
+      window.once('closed', () => state.pending.clear())
+    }
+    return previewDeliveries.get(window)
+  }
+  const sendPreviewState = (channel, payload) => {
+    const target = canvasPreviewWindow
+    if (!target || target.isDestroyed()) return
+    const state = getPreviewDelivery(target)
+    if (state.ready) target.webContents.send(channel, payload)
+    else state.pending.set(channel, payload)
+  }
 
   /**
    * 注册预览窗口和应用窗口控制接口。
@@ -221,6 +238,17 @@ export function createWindowController({ mainDirectory }) {
    * 3、管理窗口置顶状态和显示模式。
    */
   function registerWindowControlHandlers() {
+    ipcMain.handle('canvas-preview-ready', (event) => {
+      const target = canvasPreviewWindow
+      if (!target || target.isDestroyed() || event.sender !== target.webContents) {
+        return { success: false, error: '非当前预览窗口' }
+      }
+      const state = getPreviewDelivery(target)
+      state.ready = true
+      for (const [channel, payload] of state.pending) target.webContents.send(channel, payload)
+      state.pending.clear()
+      return { success: true }
+    })
     // 1、创建或复用独立预览窗口，并提供关闭入口。
     ipcMain.handle('canvas-preview-create', async (event) => {
       try {
@@ -349,7 +377,7 @@ export function createWindowController({ mainDirectory }) {
             }
           }
 
-          canvasPreviewWindow.webContents.send('canvas-update', payloadToSend)
+          sendPreviewState('canvas-update', payloadToSend)
 
           // 画布更新时强制保持最高置顶层级
           if (canvasPreviewWindow.isAlwaysOnTop()) {
@@ -369,7 +397,7 @@ export function createWindowController({ mainDirectory }) {
     ipcMain.handle('canvas-preview-sync-theme', async (event, theme) => {
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
-          canvasPreviewWindow.webContents.send('theme-update', theme)
+          sendPreviewState('theme-update', theme)
           return { success: true }
         }
         return { success: false, error: '预览窗口不存在' }
@@ -383,7 +411,7 @@ export function createWindowController({ mainDirectory }) {
     ipcMain.handle('canvas-preview-update-filename', async (event, fileName) => {
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
-          canvasPreviewWindow.webContents.send('canvas-filename-update', fileName)
+          sendPreviewState('canvas-filename-update', fileName)
           return { success: true }
         }
         return { success: false, error: '预览窗口不存在' }
@@ -397,7 +425,7 @@ export function createWindowController({ mainDirectory }) {
     ipcMain.handle('canvas-preview-reset-viewport', async () => {
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
-          canvasPreviewWindow.webContents.send('canvas-viewport-reset')
+          sendPreviewState('canvas-viewport-reset')
           console.log('[预览窗口] 已发送视图重置命令')
           return { success: true }
         }
@@ -544,6 +572,7 @@ export function createWindowController({ mainDirectory }) {
       app.removeListener('web-contents-created', webContentsCreatedHandler)
       webContentsCreatedHandler = null
     }
+    ipcMain.removeHandler('canvas-preview-ready')
     ipcMain.removeAllListeners('canvas-preview-create')
     ipcMain.removeAllListeners('canvas-preview-close')
     ipcMain.removeAllListeners('canvas-preview-update')
