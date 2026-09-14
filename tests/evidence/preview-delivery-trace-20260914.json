@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "scope": "历史自然预览超时的观测增强；仅修改测试，不修改生产逻辑，不声称修复根因",
+  "baseline": "11873c5c509935529630cd6a8007e30e198bf026",
+  "diagnosticCommit": "be7287e82407909f441d4c00df7745539975755f",
+  "observation": {
+    "implementation": "tests/helpers/preview-delivery-trace.mjs",
+    "description": "在隔离Electron进程透明调用原IPC处理器并记录调用/返回，按webContents.id记录创建、加载、投递及销毁；不重发消息、不改变断言、不读取Vue私有实例。每轮退出前保存preview-delivery-trace.json；沿用失败窗口桥接和DOM快照。",
+    "targetedDirectory": "temp/preview-natural-delivery-acceptance-5UTJDt",
+    "targetedLog": "temp/preview-natural-delivery-unit.log",
+    "repeatLogs": ["temp/preview-natural-delivery-repeat-1.log", "temp/preview-natural-delivery-repeat-2.log", "temp/preview-natural-delivery-repeat-3.log"],
+    "repeatDesktopIds": ["momentum-regression-YWbLqU", "momentum-regression-bXI5vu", "momentum-regression-XubIYq"],
+    "result": "同一冻结构建的首次验收及3次串行回放全部通过；每轮覆盖20次缓存进出、区域模式及2次真正卸载。未捕获自然失败，因此未取得支持生产修复的新增因果证据。",
+    "limits": "观察包装可能改变调度时序；通过不证明历史故障消失。投递记录不是渲染确认。观察器仅存在于隔离测试进程，随着进程退出释放。"
+  },
+  "fullAcceptance": {
+    "passed": true,
+    "command": "node scripts/verify-remaining-defects.mjs all",
+    "head": "be7287e82407909f441d4c00df7745539975755f",
+    "directory": "temp/remaining-defects-acceptance-c5KL7C",
+    "log": "temp/preview-delivery-trace-full.log",
+    "tests": 264, "pass": 264, "fail": 0, "skipped": 0, "cancelled": 0,
+    "durationMs": 1573367.298708,
+    "finishedAt": "2026-09-14T11:31:15.715Z",
+    "manifestSha256": "26bc3312cd660fbe388013559dc49d196f9ae89345e8cabeb20c3a30573aa0f4",
+    "integrityErrors": [],
+    "referenceFiles": 266,
+    "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed",
+    "checks": ["源码与现行lint", "规模和差异检查", "生产构建", "输入/Git/产物清单冻结核验", "完整串行回归", "授权素材和冻结参考只读核验"]
+  },
+  "remaining": [
+    "历史超时仍未定位，保留preview-ready-20260914.json中的momentum-regression-XnfsUJ等失败，不以本轮通过代替根因修复。",
+    "本证据在完整验收后提交；264项属于be7287e。",
+    "本轮未修改预设手动保存、多窗口事务、导航刷新协议、安全策略或总规划其它余项。"
+  ]
+}
