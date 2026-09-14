@@ -1,8 +1,48 @@
 /** 画布输出协调：仅负责独立预览协议与跨页面图片传递，监听和生命周期仍由页面注册。 */
-import { h, ref } from 'vue'
+import { h, ref, nextTick } from 'vue'
 
 /** 持有页面原始引用及稳定回调；初始化时不读取晚声明状态，也不创建发送状态副本。 */
-export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendingToGenerate, message, router, perfLogger, buildSuggestedFileName, logPreviewSyncTrigger }) {
+export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendingToGenerate, message, router, perfLogger, buildSuggestedFileName, logPreviewSyncTrigger, getRenderCoordinator }) {
+  let previewSequence = 0
+
+  /** 等待本轮 watch 发出渲染请求，再一次性冻结像素和元数据。 */
+  const captureSnapshot = async () => {
+    // 先记住调用所属会话，避免 nextTick 期间切换 PSD 后导出另一个会话。
+    const originalCoordinator = getRenderCoordinator?.()
+    const originalGeneration = originalCoordinator?.generation
+    const originalPsd = currentPsdData.value
+    const originalCanvas = canvasRef.value
+    await nextTick()
+    const coordinator = getRenderCoordinator?.()
+    const generation = coordinator?.generation
+    const isSessionCurrent = () => currentPsdData.value === originalPsd &&
+      canvasRef.value === originalCanvas && (!coordinator ||
+        (getRenderCoordinator?.() === coordinator && coordinator.generation === generation))
+    if (!isSessionCurrent() || (originalCoordinator &&
+      (coordinator !== originalCoordinator || generation !== originalGeneration))) return null
+    if (coordinator) {
+      // waitForCurrent 本身追随新请求；返回后若又有请求入队，继续等待。
+      let result
+      do {
+        result = await coordinator.waitForCurrent()
+        if (!isSessionCurrent()) return null
+        if (!['committed', 'idle'].includes(result.status)) return null
+      } while (result.sequence !== coordinator.sequence)
+    }
+    if (!isSessionCurrent()) return null
+    const source = canvasRef.value
+    if (!source?.width || !source?.height) return null
+    const width = source.width, height = source.height
+    const fileName = buildSuggestedFileName()
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('无法创建输出Canvas上下文')
+    ctx.drawImage(source, 0, 0)
+    return Object.freeze({ canvas, width, height, fileName, isSessionCurrent })
+  }
+
   /**
    * 打开独立画布预览窗口。
    * 处理流程：
@@ -67,8 +107,11 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
     isSendingToGenerate.value = true
     console.log('[人物调整] 开始发送画布到图像处理插件')
 
+    let snapshot
     try {
-      const canvas = canvasRef.value
+      snapshot = await captureSnapshot()
+      if (!snapshot) return
+      const { canvas } = snapshot
 
       // 验证canvas有效性
       if (!canvas.width || !canvas.height) {
@@ -108,7 +151,8 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
       console.log('[人物调整] DataURL 转换成功，长度:', dataURL.length)
 
       // 生成文件名
-      const fileName = buildSuggestedFileName() || '画布导出.png'
+      if (!snapshot.isSessionCurrent()) return
+      const fileName = snapshot.fileName || '画布导出.png'
       console.log('[人物调整] 生成文件名:', fileName)
 
       // 3、先清除旧数据，再写入本次待处理图片并跳转
@@ -132,8 +176,9 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
       console.log('[人物调整] 准备跳转到图像处理页面')
       await router.push('/image-processing')
 
-      message.success('已发送到图像处理插件')
+      if (snapshot.isSessionCurrent()) message.success('已发送到图像处理插件')
     } catch (error) {
+      if (snapshot && !snapshot.isSessionCurrent()) return
       console.error('[人物调整] 发送到生成页面失败:', error)
       message.error('发送失败：' + error.message)
     } finally {
@@ -150,6 +195,7 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
    * 3、异步发送图片与文件名并记录编码结果
    */
   const syncCanvasToPreview = async () => {
+    const outputSequence = ++previewSequence
     // 1、没有画布或有效尺寸时记录跳过原因
     if (!canvasRef.value) {
       console.warn('[预览同步] Canvas引用不存在')
@@ -157,8 +203,11 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
       return
     }
 
+    let snapshot
     try {
-      const canvas = canvasRef.value
+      snapshot = await captureSnapshot()
+      if (!snapshot) return
+      const { canvas } = snapshot
 
       // 验证canvas有效性
       if (!canvas.width || !canvas.height) {
@@ -186,8 +235,8 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
         const arrayBuffer = await blob.arrayBuffer()
         payload = {
           buffer: arrayBuffer,
-          width: canvas.width,
-          height: canvas.height,
+          width: snapshot.width,
+          height: snapshot.height,
           mimeType: blob.type || 'image/png'
         }
       } catch (blobError) {
@@ -201,8 +250,8 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
         }
         payload = {
           dataUrl,
-          width: canvas.width,
-          height: canvas.height,
+          width: snapshot.width,
+          height: snapshot.height,
           mimeType: 'image/png'
         }
       }
@@ -215,6 +264,12 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
         byteLength: payload.buffer ? payload.buffer.byteLength : payload.dataUrl.length,
         encodeTime: `${encodeTime.toFixed(1)}ms`
       })
+
+      // 同一预览只接受最新输出；旧编码完成时不得再发图片或文件名。
+      if (!snapshot.isSessionCurrent() || outputSequence !== previewSequence) {
+        previewMeasurement?.end({ skipped: true, reason: 'stale-output' })
+        return
+      }
 
       // 3、异步发送到预览窗口并同步文件名，不等待窗口更新结果
       window.electronAPI?.invoke('canvas-preview-update', payload).then(result => {
@@ -229,7 +284,7 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
       })
 
       // 异步同步文件名（不阻塞）
-      const fileName = buildSuggestedFileName()
+      const fileName = snapshot.fileName
       window.electronAPI?.invoke('canvas-preview-update-filename', fileName).catch(err => {
         console.error('[预览同步] 文件名同步失败:', err)
       })
@@ -280,8 +335,11 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
 
     isSendingToGenerate.value = true
 
+    let snapshot
     try {
-      const canvas = canvasRef.value
+      snapshot = await captureSnapshot()
+      if (!snapshot) return
+      const { canvas } = snapshot
 
       // 验证canvas有效性
       if (!canvas.width || !canvas.height) {
@@ -323,12 +381,14 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
       console.log('[人物调整] DataURL 转换成功，长度:', dataURL.length)
 
       // 生成文件名
-      const fileName = buildSuggestedFileName() || '画布导出.png'
+      if (!snapshot.isSessionCurrent()) return
+      const fileName = snapshot.fileName || '画布导出.png'
       console.log('[人物调整] 生成文件名:', fileName)
 
       // 2、保存图片到临时文件，再把图片信息放入会话缓存
       const base64Data = dataURL.split(',')[1]
       const tempDir = await window.api?.getTempDir?.()
+      if (!snapshot.isSessionCurrent()) return
       const tempFilePath = tempDir ? `${tempDir}\\${fileName}` : fileName
 
       console.log('[人物调整] 保存文件到:', tempFilePath)
@@ -337,12 +397,14 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
         await window.api?.writeFile(tempFilePath, base64Data)
         console.log('[人物调整] 文件保存成功')
       } catch (error) {
+        if (!snapshot.isSessionCurrent()) return
         console.error('[人物调整] 文件保存失败:', error)
         message.error('文件保存失败: ' + error.message)
         isSendingToGenerate.value = false
         return
       }
 
+      if (!snapshot.isSessionCurrent()) return
       // 先清除旧数据
       const oldData = sessionStorage.getItem('pendingImageForJump')
       if (oldData) {
@@ -388,8 +450,9 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
       console.log('[人物调整] 准备跳转到:', targetRoute)
       await router.push(targetRoute)
 
-      message.success(successMessage)
+      if (snapshot.isSessionCurrent()) message.success(successMessage)
     } catch (error) {
+      if (snapshot && !snapshot.isSessionCurrent()) return
       console.error('[人物调整] 跳转失败:', error)
       message.error('跳转失败：' + error.message)
     } finally {

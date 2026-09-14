@@ -602,6 +602,7 @@ const {
   resetPreviewWindowViewport,
   handleJumpSelect
 } = useCanvasOutputCoordinator({
+  getRenderCoordinator: () => renderCoordinator,
   currentPsdData,
   canvasRef,
   isSendingToGenerate,
