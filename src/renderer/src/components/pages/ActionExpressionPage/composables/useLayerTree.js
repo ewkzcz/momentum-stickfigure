@@ -3,8 +3,8 @@
  * 管理图层树的显示、操作记录、可见性控制和渲染
  */
 
-import { ref } from 'vue'
-import { getCanvasRenderCoordinator } from './useCanvasRenderCoordinator.js'
+import { ref, shallowRef } from 'vue'
+import { getCanvasRenderCoordinator, createCanvasRenderCoordinator } from './useCanvasRenderCoordinator.js'
 import { loadRenderImage, bindRenderSignal, getRenderSignal, assertRenderActive } from '../utils/renderImageTask.js'
 import { createPerformanceLogger } from '@renderer/utils/performanceLogger.js'
 
@@ -88,6 +88,24 @@ export function useLayerTree(deps) {
   const selectedLayersMap = deps.selectedLayersMap ?? ref({}) // 选中的图层映射 { layerName: true/false }
   const controlPriority = deps.controlPriority ?? ref('parts') // 'layerTree' 或 'parts'，记录最后一次操作的来源
   
+  /** 为模板快照建立独立渲染实例，复用原图层算法，不修改主画布或页面树。 */
+  const renderLayerTreeSnapshot = async treeData => {
+    const source = canvasRef.value
+    if (!source) throw new Error('Canvas未初始化')
+    const canvas = document.createElement('canvas')
+    canvas.width = source.width
+    canvas.height = source.height
+    const snapshotRef = shallowRef(canvas)
+    const coordinator = createCanvasRenderCoordinator({ canvasRef: snapshotRef })
+    const controls = Object.fromEntries(['showFront', 'showSide', 'showBack', 'showRear', 'showBackground', 'showBaseLayer', 'showSecondBaseLayer', 'selectHeadOnly', 'selectNonHead'].filter(key => deps[key]).map(key => [key, ref(deps[key].value)]))
+    const renderer = useLayerTree({ ...deps, ...controls, canvasRef: snapshotRef, currentPsdData: shallowRef(currentPsdData.value),
+      layerTreeData: ref(treeData), renderCoordinator: coordinator })
+    const request = coordinator.begin()
+    await renderer.renderByLayerTree(request)
+    if (request.result?.status !== 'committed') throw new Error('模板快照渲染未完成')
+    return canvas
+  }
+
   // 2、组织树节点构造、交互同步和图像渲染流程。
   // ==================== 构建图层树 ====================
   
@@ -1645,6 +1663,7 @@ export function useLayerTree(deps) {
     syncLayerTreeFromParts, // 部件选择 → 图层树
     syncPartsFromLayerTree, // 图层树 → 部件选择（反向同步）
     updateSelectedLayersMap,
+    renderLayerTreeSnapshot,
     renderByLayerTree,
     syncBackgroundControlFromLayerTree // 同步背景控制状态
   }

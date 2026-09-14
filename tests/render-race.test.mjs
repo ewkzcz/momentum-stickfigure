@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { createCanvas } from '@napi-rs/canvas'
 import { setup, flush } from './helpers/render-race-fixture.mjs'
 
 for (const [firstKind, secondKind] of [['part', 'part'], ['tree', 'preset'], ['preset', 'tree']]) {
@@ -52,6 +53,25 @@ test('图层五秒超时后释放旧 onload 不得再写入上下文', async t =
   await image.release()
   assert.deepEqual(f.pixel(), before)
   assert.equal(buffers[0], null, '超时必须解除图片回调')
+})
+
+test('独立模板树快照复用像素算法且不触碰主画布和真实树', async t => {
+  const f = setup(t)
+  f.select('#0000ff')
+  const tree = f.tree.layerTreeData.value
+  const source = createCanvas(2, 1)
+  source.getContext('2d').fillStyle = '#ff0000'
+  source.getContext('2d').fillRect(0, 0, 2, 1)
+  f.deps.canvasRef.value.getContext('2d').drawImage(source, 0, 0)
+  const before = f.pixel()
+  const work = f.tree.renderLayerTreeSnapshot(JSON.parse(JSON.stringify(tree)))
+  await flush()
+  assert.equal(f.deps.isRendering.value, false)
+  await f.images.at(-1).release()
+  const snapshot = await work
+  assert.deepEqual(Array.from(snapshot.getContext('2d').getImageData(0, 0, 1, 1).data), [0, 0, 255, 255])
+  assert.deepEqual(f.pixel(), before)
+  assert.equal(f.tree.layerTreeData.value, tree)
 })
 
 test('连续三十次请求逆序完成保留最后选择', async t => {

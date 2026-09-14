@@ -1289,6 +1289,8 @@ const {
   renderTemplatePreview, renderAllTemplatesPreviews, renderTemplatesPreviewsRef,
   isRenderingTemplatePreview, isRenderingTemplate, canvasOpacity
 } = useTemplateRenderCoordinator({
+  renderLayerTreeSnapshot: tree => layerTreeInstance.renderLayerTreeSnapshot(tree),
+  getRenderCoordinator: () => renderCoordinator,
   currentPsdData, allPartsListsMap, dynamicExpressionTabs, selectedParts, currentTab, message,
   canvasRef, getCustomGroupNames, buildUniquePathMap, trimWhitespace,
   getActiveTemplateType: () => activeTemplateType,

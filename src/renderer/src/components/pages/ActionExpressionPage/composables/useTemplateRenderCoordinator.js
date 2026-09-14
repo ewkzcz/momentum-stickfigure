@@ -2,7 +2,7 @@
  * 模板应用与预览绘制编排：复用主画布算法，独占模板画布引用与绘制标记。
  * 页面在原应用函数位置创建；这里只建立函数和空状态，不读取业务数据、不调用依赖。
  * 已就绪的引用直接共享；后初始化或会替换的依赖由逐项 getter 在原使用点读取。
- * 模板数据、PSD、图层树与部件选择仍归原模块所有；只保留原预览生成时的图层备份。
+ * 模板数据、PSD、图层树与部件选择仍归原模块所有；产图仅使用独立图层树快照与离屏回调。
  * 列表监听、悬浮预览、生命周期及渲染回调赋值仍由页面按原顺序组装。
  */
 import { ref, nextTick } from 'vue'
@@ -14,9 +14,10 @@ export function useTemplateRenderCoordinator({
   selectedParts,
   currentTab,
   message,
-  canvasRef,
   getCustomGroupNames,
   buildUniquePathMap,
+  renderLayerTreeSnapshot,
+  getRenderCoordinator,
   trimWhitespace,
   getActiveTemplateType,
   getLayerTreeData,
@@ -247,196 +248,84 @@ export function useTemplateRenderCoordinator({
   }
 
   /**
-   * 生成模板预览图的 base64 数据
-   * 通过主画布渲染逻辑来确保剪切蒙版、图层蒙版等复杂逻辑的正确性
-   * 处理流程：
-   * 1、备份图层树，并按动作或表情模板筛选可见图层
-   * 2、等待主画布绘制稳定后复制图像
-   * 3、裁剪缩放并导出 JPEG 数据地址
-   * 4、无论生成结果如何，都恢复原始图层树与主画布
-   * @param {String} templateType - 模板类型 'actionTemplate' 或 'expressionTemplate'
-   * @returns {Promise<String>} 图片数据地址，缺少数据或生成失败时返回空值
+   * 从独立图层树快照生成模板 JPEG，不临时修改真实树或主画布。
+   * renderLayerTreeSnapshot(treeData) 必须在调用时捕获 PSD/控件状态，
+   * 仅离屏绘制，返回本次独占的完成画布；不得提交主画布或重新读取活动树。
+   * getRenderCoordinator 可选，用 generation 拒绝 A→B→A 及卸载后的迟到结果。
+   * 未接入离屏回调时返回 null，保留旧调用方的空结果契约而不回退到破坏性恢复。
    */
   const generateTemplatePreviewBase64 = async (templateType) => {
-    // 1、验证 PSD 并备份图层树，临时应用模板类型对应的可见性
     try {
-      if (!currentPsdData.value || !currentPsdData.value.layerHierarchy) {
-        console.warn('⚠️ 当前没有加载PSD数据，跳过预览图生成')
-        return null
-      }
-
+      const psd = currentPsdData.value
+      if (!psd?.layerHierarchy || typeof renderLayerTreeSnapshot !== 'function') return null
+      const coordinator = getRenderCoordinator?.()
+      const generation = coordinator?.generation
+      const isCurrentSession = () => currentPsdData.value === psd &&
+        (!coordinator || coordinator.generation === generation)
       const typeName = templateType === 'actionTemplate' ? '动作' : '表情'
-      console.log(`📸 开始生成${typeName}模板预览图（使用主画布渲染）...`)
-
-      // 🔧 保存当前状态
-      const originalLayerTreeData = JSON.parse(JSON.stringify(getLayerTreeData().value))
-
-      try {
-        // 获取系统配置的表情图组名称列表
-        const customGroupNames = getCustomGroupNames()
-        const expressionNames = customGroupNames.expression || []
-
-        /**
-         * 判断路径是否属于配置的表情分组。
-         * 处理流程：
-         * 1、遍历表情名称，检查路径中是否包含该名称
-         */
-        const isExpressionLayer = (layerPath) => {
-          // 1、复用用户配置的表情组名识别路径
-          return expressionNames.some(exprName =>
-            layerPath && (layerPath.includes(exprName) || layerPath.includes(`/${exprName}/`))
-          )
-        }
-
-        // 构建路径映射
-        const pathMap = buildUniquePathMap(currentPsdData.value.layerHierarchy)
-
-        /**
-         * 为当前模板预览临时筛选可见图层。
-         * 处理流程：
-         * 1、递归处理分组，叶子节点按路径判定是否属于表情
-         * 2、隐藏当前模板类型不需要的叶子，保留其他节点原有状态
-         */
-        const setLayerVisibility = (layers) => {
-          // 1、逐层遍历到可绘制节点，并查找其原始路径
-          for (const layer of layers) {
-            if (layer.children && layer.children.length > 0) {
-              setLayerVisibility(layer.children)
-            } else {
-              // 找到对应的原始图层
-              const originalLayer = currentPsdData.value.layerHierarchy
-              const fullPath = pathMap.get(layer)
-              if (!fullPath) continue
-
-              const isExpression = isExpressionLayer(fullPath)
-
-              // 2、根据模板类型决定图层可见性
-              if (templateType === 'actionTemplate') {
-                // 动作模板：隐藏表情图层，保留其他所有可见图层
-                if (isExpression) {
-                  layer.visible = false
-                  layer.userVisible = false
-                }
-                // 非表情图层保持原状
-              } else if (templateType === 'expressionTemplate') {
-                // 表情模板：只显示表情图层，隐藏其他图层
-                if (!isExpression) {
-                  layer.visible = false
-                  layer.userVisible = false
-                }
-                // 表情图层保持原状
-              }
+      const originalTree = getLayerTreeData().value
+      const treeSnapshot = JSON.parse(JSON.stringify(originalTree))
+      const expressionNames = [...(getCustomGroupNames().expression || [])]
+      const pathMap = buildUniquePathMap(psd.layerHierarchy)
+      // 保留原实现按对象身份找路径的行为；本轮仅隔离写入，不顺便修复类型筛选。
+      const filterSnapshot = (originals, copies) => {
+        originals.forEach((layer, index) => {
+          const copy = copies[index]
+          if (layer.children?.length) filterSnapshot(layer.children, copy.children)
+          else {
+            const fullPath = pathMap.get(layer)
+            if (!fullPath) return
+            const isExpression = expressionNames.some(name => fullPath.includes(name))
+            if ((templateType === 'actionTemplate' && isExpression) ||
+                (templateType === 'expressionTemplate' && !isExpression)) {
+              copy.visible = false
+              copy.userVisible = false
             }
           }
-        }
-
-        // 应用可见性设置
-        setLayerVisibility(getLayerTreeData().value)
-
-        // 2、调用主画布渲染逻辑，等待蒙版等绘制完成后复制图像
-        await nextTick()
-        await getRenderAllLayers()()
-
-        // 🔧 等待渲染完全完成（多次 nextTick + 额外延迟）
-        await nextTick()
-        await nextTick()
-        await new Promise(resolve => setTimeout(resolve, 100)) // 等待100ms确保渲染完成
-
-        // 🔧 再次确认画布已经稳定
-        await nextTick()
-
-        // 从主画布拷贝图像
-        const mainCanvas = canvasRef.value
-        if (!mainCanvas) {
-          console.warn('⚠️ 主画布未初始化，跳过预览图生成')
-          return null
-        }
-
-        console.log(`📸 主画布尺寸: ${mainCanvas.width} x ${mainCanvas.height}，准备拷贝图像...`)
-
-        // 创建临时 canvas
-        const tempCanvas = document.createElement('canvas')
-        tempCanvas.width = mainCanvas.width
-        tempCanvas.height = mainCanvas.height
-        const tempCtx = tempCanvas.getContext('2d', { alpha: true })
-
-        if (!tempCtx) {
-          console.warn('⚠️ 无法创建临时Canvas上下文')
-          return null
-        }
-
-        // 设置高质量渲染
-        tempCtx.imageSmoothingEnabled = true
-        tempCtx.imageSmoothingQuality = 'high'
-
-        // 清空画布
-        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height)
-
-        // 从主画布拷贝图像
-        tempCtx.drawImage(mainCanvas, 0, 0)
-
-        // 3、裁剪空白并限制预览尺寸，再编码为 JPEG
-        const trimmed = trimWhitespace(tempCanvas)
-
-        // 🔧 限制图片尺寸以减小base64大小
-        let finalCanvas = trimmed
-        const maxWidth = 800
-        const maxHeight = 800
-
-        if (trimmed.width > maxWidth || trimmed.height > maxHeight) {
-          const scale = Math.min(maxWidth / trimmed.width, maxHeight / trimmed.height)
-          const scaledWidth = Math.floor(trimmed.width * scale)
-          const scaledHeight = Math.floor(trimmed.height * scale)
-
-          const scaledCanvas = document.createElement('canvas')
-          scaledCanvas.width = scaledWidth
-          scaledCanvas.height = scaledHeight
-          const scaledCtx = scaledCanvas.getContext('2d', { alpha: true })
-
-          if (scaledCtx) {
-            scaledCtx.imageSmoothingEnabled = true
-            scaledCtx.imageSmoothingQuality = 'high'
-            scaledCtx.drawImage(trimmed, 0, 0, scaledWidth, scaledHeight)
-            finalCanvas = scaledCanvas
-            console.log(`📐 图片已缩放: ${trimmed.width}x${trimmed.height} -> ${scaledWidth}x${scaledHeight}`)
-          }
-        }
-
-        // 🔧 使用JPEG格式和适当的质量来减小文件大小
-        // 对于模板预览，0.8的质量已经足够好，同时能显著减小文件大小
-        const base64 = finalCanvas.toDataURL('image/jpeg', 0.8)
-
-        console.log(`✅ ${typeName}模板预览图生成完成，尺寸: ${finalCanvas.width}x${finalCanvas.height}，base64 长度: ${base64.length} (${(base64.length / 1024 / 1024).toFixed(2)}MB)`)
-
-        // 🔧 验证base64数据有效性
-        if (!base64 || !base64.startsWith('data:image/')) {
-          console.error('❌ 生成的base64数据无效')
-          return null
-        }
-
-        // 🔧 警告：如果数据太大（超过5MB），可能会导致存储问题
-        if (base64.length > 5 * 1024 * 1024) {
-          console.warn(`⚠️ base64数据过大 (${(base64.length / 1024 / 1024).toFixed(2)}MB)，可能会导致存储失败`)
-        }
-
-        return base64
-
-      } finally {
-        // 4、恢复原始图层树并重新绘制主画布
-        getLayerTreeData().value = originalLayerTreeData
-
-        // 重新渲染主画布以恢复原始显示
-        await nextTick()
-        await getRenderAllLayers()()
-
-        // 等待恢复渲染完成
-        await nextTick()
-        await nextTick()
-        await new Promise(resolve => setTimeout(resolve, 50))
+        })
       }
+      filterSnapshot(originalTree, treeSnapshot)
+      const renderedCanvas = await renderLayerTreeSnapshot(treeSnapshot)
+      if (!isCurrentSession() || !renderedCanvas?.width || !renderedCanvas?.height) return null
+
+      // 回调返回后同步复制、裁边和编码；后续不再读取主画布或当前页面树。
+      const tempCanvas = document.createElement('canvas')
+      tempCanvas.width = renderedCanvas.width
+      tempCanvas.height = renderedCanvas.height
+      const tempCtx = tempCanvas.getContext('2d', { alpha: true })
+      if (!tempCtx) return null
+      tempCtx.imageSmoothingEnabled = true
+      tempCtx.imageSmoothingQuality = 'high'
+      tempCtx.drawImage(renderedCanvas, 0, 0)
+
+      // 保留原裁边、800px 上限和 JPEG 质量设置。
+      const trimmed = trimWhitespace(tempCanvas)
+      let finalCanvas = trimmed
+      const maxWidth = 800
+      const maxHeight = 800
+      if (trimmed.width > maxWidth || trimmed.height > maxHeight) {
+        const scale = Math.min(maxWidth / trimmed.width, maxHeight / trimmed.height)
+        const scaledWidth = Math.floor(trimmed.width * scale)
+        const scaledHeight = Math.floor(trimmed.height * scale)
+        const scaledCanvas = document.createElement('canvas')
+        scaledCanvas.width = scaledWidth
+        scaledCanvas.height = scaledHeight
+        const scaledCtx = scaledCanvas.getContext('2d', { alpha: true })
+        if (scaledCtx) {
+          scaledCtx.imageSmoothingEnabled = true
+          scaledCtx.imageSmoothingQuality = 'high'
+          scaledCtx.drawImage(trimmed, 0, 0, scaledWidth, scaledHeight)
+          finalCanvas = scaledCanvas
+        }
+      }
+      const base64 = finalCanvas.toDataURL('image/jpeg', 0.8)
+      if (!base64 || !base64.startsWith('data:image/')) return null
+      if (base64.length > 5 * 1024 * 1024) {
+        console.warn(`⚠️ ${typeName}模板预览图超过5MB，可能会导致存储问题`)
+      }
+      return base64
     } catch (error) {
       console.error('❌ 生成预览图失败:', error)
-      // 返回 null 而不是抛出错误，让程序继续执行
       return null
     }
   }
