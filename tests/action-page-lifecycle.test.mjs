@@ -317,7 +317,21 @@ test('人物页生命周期：20轮缓存进出、尺寸重置、路径历史及
     const child = await opening
     await child.getByRole('button', { name: '关闭', exact: true }).waitFor()
     await observeImages(child)
-    const actual = await stableCanvas(child, '.canvas-wrapper canvas')
+    let actual
+    try {
+      actual = await stableCanvas(child, '.canvas-wrapper canvas')
+    } catch (error) {
+      const diagnostic = await child.evaluate(() => ({
+        url: location.href, ready: document.readyState,
+        bridge: Boolean(window.electronAPI), on: typeof window.electronAPI?.on,
+        invoke: typeof window.electronAPI?.invoke,
+        canvas: [...document.querySelectorAll('canvas')].map(c => ({ width: c.width, height: c.height })),
+        images: [...(window.__regressionImages || [])].map(i => ({ complete: i.complete, width: i.naturalWidth, src: i.src })),
+        html: document.querySelector('.canvas-preview-page')?.outerHTML
+      }))
+      await writeFile(path.join(root, 'preview-failure-diagnostic.json'), JSON.stringify(diagnostic, null, 2))
+      throw error
+    }
     await assertSamePixels(Buffer.from(actual.png, 'base64'), Buffer.from((await stableCanvas(page)).png, 'base64'), '独立预览与实际主画布')
     assert.equal(await windowCount(application), 2)
     return child
