@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "scope": "独立预览首次页面加载期间的状态暂存与真实订阅就绪确认；历史偶发空白仍未定位",
+  "baseline": "3a810a61fbd680ccfecf50c5f21ab22f5d3a7a04",
+  "commits": [
+    { "hash": "dd7f95ee0a24312d8512a2b44de42e66c91df532", "title": "fix: 等待预览订阅就绪再投递暂存状态" },
+    { "hash": "3c98054bd677948ca48e861c9d5880852073614e", "title": "test: 保留生命周期预览超时的窗口诊断" }
+  ],
+  "naturalObservation": {
+    "log": "temp/preview-natural-trace-close-verified.log",
+    "desktopId": "momentum-regression-MqWoG6",
+    "cycles": 100,
+    "failures": 0,
+    "description": "真实原生预览、二进制PNG发送及公开关闭按钮；添加初始化和主进程发送观测可能改变时序，此轮未复现历史自然超时，不据此声称无缺陷。"
+  },
+  "controlledReproduction": {
+    "test": "tests/preview-ready.test.mjs",
+    "boundary": "只控制原生window.loadFile调用的释放，保留真实预览脚本、桥接和图片解码；窗口原生创建但页面未载入时，复用接口与两次图片更新均返回成功，释放加载后旧版画布仍为空。",
+    "beforeLog": "temp/preview-ready-before-corrected.log",
+    "beforeDesktopId": "momentum-regression-bqq25k",
+    "before": { "tests": 1, "pass": 0, "fail": 1 },
+    "afterDirectory": "temp/preview-ready-acceptance-TqdsKh",
+    "after": { "tests": 5, "pass": 5, "fail": 0 },
+    "finalTargetedDirectory": "temp/preview-ready-final-acceptance-dq9EsU",
+    "finalTargeted": { "tests": 5, "pass": 5, "fail": 0 },
+    "checks": ["加载期间最新图片在订阅后RGBA零差异", "主窗口不能代替预览发送就绪确认", "加载期间主题补送", "新原生窗口不继承旧图片", "三种原图片载荷", "原画布输出10轮预览", "50轮真实关闭", "窗口生命周期10轮"],
+    "distinction": "受控用例证明首次加载期间发送会丢失这一协议缺口，不证明历史偶发超时的自然原因相同。修复后全量仍发生一次类似历史超时。"
+  },
+  "implementation": [
+    "WeakMap以原生窗口绑定就绪状态和待发送Map，每个通道只保存最新未投递状态；关闭时清理待发送数据。",
+    "预览组件同步安装图片、主题、文件名和视口监听后发canvas-preview-ready；主进程只接受当前预览webContents，随后投递并清空暂存。",
+    "新增IPC在窗口控制注销时使用removeHandler清理；既有IPC注销和其它安全策略不在本轮扩展。",
+    "原发送成功协议仍表示已接受或已发送，不表示图片已经绘制；没有增加绘制确认或自动重试，也未调整原300ms延迟。"
+  ],
+  "failuresPreserved": [
+    {
+      "directory": "temp/remaining-defects-acceptance-Xexj1l",
+      "log": "temp/preview-ready-full.log",
+      "head": "dd7f95ee0a24312d8512a2b44de42e66c91df532",
+      "tests": 264, "pass": 263, "fail": 1,
+      "desktopId": "momentum-regression-XnfsUJ",
+      "failure": "action-page-lifecycle在417行调用预览后stableCanvas超时。主帧完成、预览创建和图片编码发送成功，但新预览没有主题/文件名/图片渲染记录。说明首次加载暂存修复尚不能解决或解释全部历史空白。",
+      "followup": "只在原stableCanvas失败后保存桥接存在性、文档状态、图片及公开DOM，原超时和断言不变；带诊断生命周期复测及随后完整验收通过，未捕获新的失败窗口，根因仍未定位。",
+      "diagnosticDirectory": "temp/preview-lifecycle-diagnostic-acceptance-IUjDRA",
+      "diagnosticLog": "temp/preview-lifecycle-diagnostic.log"
+    }
+  ],
+  "diagnosticCorrections": [
+    "自然观测最初两次在关闭按钮返回前窗口已销毁而结束，改用已有closePreviewByButton因果验证辅助；不视为图片丢失证据。",
+    "主进程观测改为提前捕获webContents.id，避免销毁后访问。",
+    "首次受控测试误在放行loadFile前等待Playwright window事件而超时；改为等待受控真实loadFile入口的Promise。有效旧版业务失败为before-corrected。"
+  ],
+  "fullAcceptance": {
+    "passed": true,
+    "command": "node scripts/verify-remaining-defects.mjs all",
+    "head": "3c98054bd677948ca48e861c9d5880852073614e",
+    "directory": "temp/remaining-defects-acceptance-sCkxVH",
+    "log": "temp/preview-ready-full-diagnostic.log",
+    "tests": 264, "pass": 264, "fail": 0, "skipped": 0, "cancelled": 0,
+    "durationMs": 1354464.395208,
+    "finishedAt": "2026-09-14T09:08:28.856Z",
+    "manifestSha256": "bbef73a6fa37805c65946dc9ddf0f61b9455f9ff6951a2b2734461fb0e60c8ce",
+    "integrityErrors": [],
+    "referenceFiles": 266,
+    "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed",
+    "checks": ["源码及现行lint", "规模与工作区/暂存区差异检查", "生产构建", "输入/Git/产物逐文件清单冻结核验", "全量串行测试", "授权素材及266参考只读前后核验"]
+  },
+  "limits": [
+    "证据提交发生在验收后，完整264项属于3c98054。",
+    "历史偶发预览空白尚未修复，不能以最终全量通过抹去先前失败；本轮只证实并修复首次加载时的可控丢消息。",
+    "不覆盖同一预览webContents内重新导航/刷新后的再次就绪、订阅永久缺失、图片解码竞争、跨发送方命名和图像原子快照、渲染确认或崩溃恢复。",
+    "保持原快捷键、主题、图层合成和预设存储格式；未拓展预设手动保存及多窗口存储事务。",
+    "总规划其它安全、路径、Python进程树、跨平台安装及真实服务余项仍未完成；测试通过不证明整体性能提升。"
+  ]
+}
