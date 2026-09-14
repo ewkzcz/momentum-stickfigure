@@ -5,6 +5,7 @@
  * 默认仅接受洁净源码；MOMENTUM_ACTION_LIFECYCLE_BEFORE 指向原版证据目录进行只读前后对照。
  * 由外部串行构建和执行：本测试不构建、不更新参考、不改变原后台隔离保护或 Vue 私有状态。
  */
+import { installPreviewDeliveryTrace, readPreviewDeliveryTrace } from './helpers/preview-delivery-trace.mjs'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
@@ -281,6 +282,7 @@ test('人物页生命周期：20轮缓存进出、尺寸重置、路径历史及
   await verifyFixture(fixture.absolutePath, fixture.sha256)
   const desktop = await launchDesktop(undefined, 'software-layout')
   const { page, application, root } = desktop
+  await installPreviewDeliveryTrace(application)
   const result = { version: 1, mode, regression, provenance: source,
     fixture: { id: fixture.id, path: fixture.path, sha256: fixture.sha256 },
     scenes: {}, cycles: [], unmountCycles: [], memory: [], passed: false,
@@ -495,6 +497,7 @@ test('人物页生命周期：20轮缓存进出、尺寸重置、路径历史及
   } finally {
     // 所有异常路径也执行原 helper 关闭检查；只有关闭、素材和只读参考复核全部通过才标记成功。
     try {
+      await writeFile(path.join(root, 'preview-delivery-trace.json'), JSON.stringify(await readPreviewDeliveryTrace(application), null, 2))
       await desktop.close()
       await verifyFixture(fixture.absolutePath, fixture.sha256)
       assert.deepEqual(await references(), referenceBefore, '既有参考目录必须只读')
