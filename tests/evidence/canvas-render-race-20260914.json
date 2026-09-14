@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "scope": "主画布跨入口请求归属、超时终态、会话失效、在途输出快照与模板预览离屏隔离；不代表总优化规划完成",
+  "baseline": "4efe3c4e9f88864eab225f3febbf4e8ed98125b4",
+  "commits": [
+    { "prefix": "5d38af9", "title": "fix: 隔离主画布并发请求并清理超时图片任务" },
+    { "prefix": "8cf4c07", "title": "fix: 保留最新渲染请求并使旧会话失效" },
+    { "prefix": "613b507", "title": "fix: 保证在途渲染的输出快照一致" },
+    { "hash": "f3adc9535638e60aa918c64893800b5980d41fb9", "title": "fix: 隔离模板预览绘制并保护当前图层状态" }
+  ],
+  "failuresPreserved": [
+    { "log": "temp/render-race-before-pinned.log", "command": "MOMENTUM_RACE_REVISION=4efe3c4 node --test --test-concurrency=1 tests/render-race.test.mjs", "tests": 6, "fail": 6, "description": "Vite读取指定旧提交的真实源码，复现旧帧覆盖、错误busy、超时回调残留及三十次请求末帧错误。" },
+    { "log": "temp/render-page-queue-before.log", "description": "页面实际队列复用旧Promise，吞掉末次请求。" },
+    { "log": "temp/render-page-session-before.log", "description": "固定5d38af9旧源码验证会话清空和往返后旧图片仍可能提交。" },
+    { "log": "temp/render-control-before.log", "tests": 2, "fail": 2, "description": "旧控件异步续体在新请求或新会话后回写。" },
+    { "log": "/tmp/momentum-render-template-race-before.log", "description": "模板等待完成后恢复旧备份树，覆盖期间用户修改或新会话树。" },
+    { "description": "输出最初四项受控测试均失败：有效渲染提交前即编码旧红图，预览旧像素与新尺寸及命名混用。原始摘要保留在tests/render-output-race.test.mjs顶部；最终27项通过。" }
+  ],
+  "samplingInvestigation": {
+    "description": "部件取消后重选偶发20160个RGBA像素差异；真实单击事件detail均为1，失败采样之后预期图像自动出现。稳定旧帧被测试误认成离屏渲染完成。保留失败，不替换参考。",
+    "failedLogs": ["temp/render-part-selection-investigate-2.log", "temp/render-part-selection-events-3.log", "temp/render-part-selection-events-5.log"],
+    "evidenceId": "momentum-regression-eU6Tny",
+    "lateExpectedFrame": true,
+    "deterministicBefore": "temp/render-stable-barrier-before.log",
+    "fix": "主画布通过aria-busy暴露原共享isRendering，stableCanvas除像素与解码外也等待该公开状态。延迟业务onload但保留原生解码的用例断言旧帧稳定24帧仍不能提前采样。",
+    "after": "temp/render-stable-barrier-after.log",
+    "repeatLogs": ["temp/render-stable-barrier-repeat-1.log", "temp/render-stable-barrier-repeat-2.log"],
+    "afterTests": 2,
+    "additionalPartSelectionPasses": 2
+  },
+  "diagnosticCorrections": [
+    "早期Image subclass与缺失测试依赖、并行编辑中的瞬时语法错误不计为有效业务失败；有效核心旧源码基线以before-pinned日志为准。",
+    "独立暂存树提交脚本最初追加多余文件末尾空行，后修正且重新验证；未推送该错误。",
+    "单元参考检查最初误比较每次不同的evidenceId与durationMs；改为校验来源、HEAD、素材与参考摘要，保留原始日志。所有实际测试已通过且暂存树未变后才提交。",
+    "模板类型筛选保持旧对象身份映射的正常结果，本轮未顺手改成路径筛选。最终独立构建严格对照原模板产物通过。"
+  ],
+  "targeted": {
+    "core": { "contracts": 48, "log": "temp/render-race-unit-contracts.log", "pixels": "temp/render-race-unit-pixels.log", "desktop": "temp/render-race-unit-desktop.log" },
+    "session": { "contracts": 20, "desktop": 4, "result": "temp/render-unit-session.json", "commitLog": "temp/render-session-commit-final.log" },
+    "output": { "newContracts": 27, "result": "temp/render-unit-output.json", "commitLog": "temp/render-output-commit.log" },
+    "template": { "newContracts": 10, "result": "temp/render-unit-template.json", "commitLog": "temp/render-template-commit.log", "beforeLog": "temp/render-template-identity-before.log", "beforeDesktopId": "momentum-regression-UI0O1H", "afterDesktopId": "momentum-regression-4Zg26B", "beforeAfterDifferentPixels": 0, "comparison": "三种真实合成PSD的所有场景DOM、画布哈希、模板配置、JPEG文件及解码RGBA严格一致。基线来自session暂存树独立构建，模板生产实现仍为旧版。" }
+  },
+  "fullAcceptance": {
+    "passed": true,
+    "command": "node scripts/verify-remaining-defects.mjs all",
+    "head": "f3adc9535638e60aa918c64893800b5980d41fb9",
+    "directory": "temp/remaining-defects-acceptance-WOJFn5",
+    "log": "temp/render-race-full-acceptance.log",
+    "tests": 235,
+    "pass": 235,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 1321242.770416,
+    "finishedAt": "2026-09-14T01:26:14.313Z",
+    "manifestSha256": "eaee4550d2f31d52bc6a3ab95b663fb7f940541d9f1b47b52249675f7a313a32",
+    "integrityErrors": [],
+    "referenceFiles": 266,
+    "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed",
+    "checks": ["全源码lint", "现行lint", "规模检查", "工作区与暂存区差异检查", "生产构建", "源码/测试/配置/Git与产物逐文件清单前后核验", "全量串行测试", "素材与冻结参考前后核验"]
+  },
+  "limits": [
+    "本证据汇总在完整验收结束后新增；235项完整验收属于f3adc95，不声称新增证据后的提交树又完整执行一次。",
+    "超时与取消是逻辑终态和回调清理，不宣称物理终止浏览器解码或撤回已发送IPC。",
+    "三种受影响输出入口等待最新有效主画布并冻结像素/尺寸/命名；拖拽缓存、预设保存及并发发送busy归属未在本轮扩展。",
+    "模板产图隔离真实树和主画布；原类型筛选对象身份行为保持不变，模板应用的50ms续体未全量改造。",
+    "会话失效阻止已开始的旧渲染提交；解析器、预设/模板加载及将来才启动的全部旧业务回调未声称全部取消。",
+    "正常缓存离页保留原行为；真实作用域卸载结束旧请求。",
+    "核心契约使用真实业务模块、原生Canvas和受控Image/计时器；桌面另行覆盖公开DOM、实际鼠标、原生解码及绘制。",
+    "测试通过不等于整体性能提升；安全/IPC授权、路径边界、网页安全策略、进程树、跨平台安装及真实服务等总规划余项仍未完成。"
+  ]
+}
