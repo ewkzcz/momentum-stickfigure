@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url'
 import { protectPrivilegedNavigation } from './privileged-navigation.js'
 import { registerTrustedWindow, isTrustedIpcSender } from './ipc-sender-policy.js'
 // 导入快捷键存储
+import { assertEnum, assertText, assertHotkeys } from './ipc-parameter-policy.js'
 import { getHotkeysConfig, saveHotkeysConfig } from './hotkeys-storage.js'
 
 /**
@@ -167,6 +168,7 @@ export function createWindowController({ mainDirectory }) {
     ipcMain.handle('theme:setPreferredColorScheme', (event, scheme) => {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
+        assertEnum(scheme, ['dark', 'light', 'system'], '主题')
         if (scheme === 'dark' || scheme === 'light') {
           nativeTheme.themeSource = scheme
           return { success: true }
@@ -417,6 +419,7 @@ export function createWindowController({ mainDirectory }) {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
+          assertEnum(theme, ['dark', 'light'], '预览主题')
           sendPreviewState('theme-update', theme)
           return { success: true }
         }
@@ -432,6 +435,7 @@ export function createWindowController({ mainDirectory }) {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
+          assertText(fileName, 4096, '预览文件名')
           sendPreviewState('canvas-filename-update', fileName)
           return { success: true }
         }
@@ -462,6 +466,7 @@ export function createWindowController({ mainDirectory }) {
     ipcMain.handle('window-set-always-on-top', async (event, flag) => {
       if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的窗口操作来源' }
       try {
+        if (typeof flag !== 'boolean') throw new TypeError('置顶参数必须是布尔值')
         const window = BrowserWindow.fromWebContents(event.sender)
         if (window) {
           // 判断是否是预览窗口
@@ -506,6 +511,7 @@ export function createWindowController({ mainDirectory }) {
     ipcMain.handle('window-set-mode', async (event, mode) => {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
+        assertEnum(mode, ['plugin', 'software'], '窗口模式')
         const window = BrowserWindow.fromWebContents(event.sender)
         if (!window) {
           return { success: false, error: '窗口不存在' }
@@ -752,6 +758,7 @@ export function createWindowController({ mainDirectory }) {
     ipcMain.handle('hotkeys-update', async (event, hotkeysConfig) => {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
+        assertHotkeys(hotkeysConfig)
         console.log('[快捷键] 收到更新请求:', hotkeysConfig)
 
         // 保存配置到存储

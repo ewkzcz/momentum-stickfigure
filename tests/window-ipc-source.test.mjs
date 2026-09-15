@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { launchDesktop } from './helpers/desktop.mjs'
+import { closePreviewByButton } from './helpers/preview-close.mjs'
 
 test('窗口控制来源：预览不能更改主窗主题快捷键或发送预览状态，但可管理自身', { timeout: 60000 }, async () => {
   const desktop = await launchDesktop()
@@ -17,8 +18,6 @@ test('窗口控制来源：预览不能更改主窗主题快捷键或发送预�
     assert.equal((await preview.evaluate(() => window.electronAPI.invoke('window-get-always-on-top'))).success, true)
     assert.equal((await preview.evaluate(() => window.electronAPI.invoke('window-set-always-on-top', false))).success, true)
     assert.equal((await desktop.page.evaluate(() => window.electronAPI.invoke('theme:setPreferredColorScheme', 'system'))).success, true)
-    const closed = preview.waitForEvent('close')
-    await preview.getByRole('button', { name: '关闭', exact: true }).click()
-    await closed
+    await closePreviewByButton(desktop.application, preview)
   } finally { await desktop.close() }
 })
