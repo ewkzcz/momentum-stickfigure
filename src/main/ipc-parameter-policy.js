@@ -154,6 +154,17 @@ export function assertBrowserOptions(value) {
   }
 }
 
+export function assertBinaryPayload(value, maximum = 128 * 1024 * 1024) {
+  let bytes
+  if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) bytes = value.byteLength
+  else if (Array.isArray(value)) {
+    if (value.length > maximum) throw new TypeError('字节参数超过容量限制')
+    for (const byte of value) if (!Number.isInteger(byte) || byte < 0 || byte > 255) throw new TypeError('字节数组参数无效')
+    bytes = value.length
+  } else throw new TypeError('文件数据参数必须是字节数据')
+  if (bytes > maximum) throw new TypeError('字节参数超过容量限制')
+}
+
 export function assertHotkeys(value) {
   assertRecord(value, '快捷键')
   for (const key of Object.keys(value)) {

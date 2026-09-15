@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "unit": "file-payload-parameters",
+  "baseline": { "directory": "temp/file-payload-before-acceptance-lXmqiL", "passed": 0, "failed": 1, "failure": "write-file接受非法Base64并创建目标文件" },
+  "changes": ["write-file在mkdir前校验路径及裸Base64，单次解码字节上限128MiB，保留空文件导出", "save-dragged-file在目录创建和覆盖前校验有界名称及ArrayBuffer/视图/0到255整数数组", "视图按byteOffset和byteLength保留准确字节范围"],
+  "verification": { "directory": "temp/file-payload-after-acceptance-V1UrKa", "passed": 6, "failed": 0, "durationMs": 4186.698959, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "coverage": ["非法Base64无目标目录副作用", "错误字节类型/负数/小数/超255拒绝后合法数据恢复", "缩小预算的ArrayBuffer/视图/数组边界", "中文空格、重名后缀、真实ArrayBuffer、临时同名覆盖与重启回读", "来源拒绝及模板Base64回归"],
+  "limits": ["128MiB是保守接口预算，不是用户素材采样或进程RSS硬上限", "完整文件授权和拖拽临时符号链接保护仍需后续单元，参数校验不等于路径授权", "定向结果不等于累计全量"]
+}

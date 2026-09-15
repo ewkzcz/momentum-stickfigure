@@ -3,6 +3,8 @@ import { app, ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { assertText, assertBinaryPayload } from './ipc-parameter-policy.js'
+import { assertImageBase64 } from './template-image-parameters.js'
 
 /**
  * 注册图片写入与拖入文件落盘接口。
@@ -22,6 +24,12 @@ export function registerFileWriteHandler() {
   ipcMain.handle('write-file', async (event, filePath, base64Data) => {
     if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的文件操作来源' }
     try {
+      assertText(filePath, 32768, '文件路径')
+      // 通用写文件使用裸Base64；空串保留历史空文件导出契约。
+      if (base64Data !== '') {
+        if (typeof base64Data === 'string' && base64Data.startsWith('data:')) throw new TypeError('文件数据参数必须是裸base64')
+        assertImageBase64(base64Data, 128 * 1024 * 1024)
+      }
       console.log('写入文件:', filePath)
 
       // 1、确保文件的父目录存在。
@@ -78,6 +86,8 @@ export function registerFileWriteHandler() {
   ipcMain.handle('save-dragged-file', async (event, fileName, arrayBuffer) => {
     if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的文件操作来源' }
     try {
+      assertText(fileName, 255, '拖拽文件名')
+      assertBinaryPayload(arrayBuffer)
       console.log('保存拖拽文件到临时目录:', fileName)
 
       // 1、定位应用使用的拖入文件临时目录。
@@ -110,7 +120,9 @@ export function registerFileWriteHandler() {
       }
 
       // 3、将传入字节转换为缓冲区并写入临时文件。
-      const buffer = Buffer.from(arrayBuffer)
+      const buffer = ArrayBuffer.isView(arrayBuffer)
+        ? Buffer.from(arrayBuffer.buffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
+        : Buffer.from(arrayBuffer)
       fs.writeFileSync(filePath, buffer)
 
       console.log('拖拽文件已保存到:', filePath)
