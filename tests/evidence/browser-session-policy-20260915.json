@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "440e63c",
+  "scope": "BrowserView按初始HTTP(S)来源隔离实际session并默认拒绝危险权限",
+  "before": { "directory": "temp/browser-session-before-acceptance-QdDX9r", "passed": 0, "failed": 1, "failure": "不同本地HTTP来源使用同partition标签时实际session相同" },
+  "after": { "directory": "temp/browser-session-after-acceptance-NbIKoo", "tests": 7, "passed": 7, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["实际partition由标签和初始origin散列生成，保留persist选择且不同来源不共用session", "实际网页navigator.permissions查询地理位置为denied", "只对初始来源的fullscreen按来源判断，危险权限默认拒绝", "owner二十轮、加载失败、在途关闭、并发替换、主题和错误参数回归"],
+  "limits": ["分区改变意味着旧登录cookie不迁移，需要重新登录；真实第三方登录尚未验证", "本组只覆盖BrowserView，主窗/预览/webview会话及导航仍需后续实施", "仅本地受控HTTP网页，不冒充真实系统权限授权测试", "未在本组恢复webSecurity或sandbox"]
+}

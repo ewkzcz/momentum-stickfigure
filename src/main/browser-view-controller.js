@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertBrowserOptions } from './ipc-parameter-policy.js'
+import { sitePartition, webOrigin, installWebPermissions } from './web-session-policy.js'
 
 /**
  * 创建唯一网页控制器并复用入口的系统图片目录策略。
@@ -361,6 +362,8 @@ export function createBrowserViewController({ getPicturesDirectory }) {
       let openingRecord = null
       try {
         assertBrowserOptions(payload)
+        const actualPartition = sitePartition(partition, url)
+        const origin = webOrigin(url)
         // 1、每个视图通过分区和地址共同定位。
         const window = BrowserWindow.fromWebContents(event.sender)
         if (!window) return { success: false, error: '窗口不存在' }
@@ -373,7 +376,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         // 2、创建隔离的网页视图并挂载到调用窗口。
         const view = new BrowserView({
           webPreferences: {
-            partition,
+            partition: actualPartition,
             preload: undefined,
             sandbox: false,
             nodeIntegration: false,
@@ -384,6 +387,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         })
 
 
+        installWebPermissions(view.webContents.session, origin)
         const record = trackView(key, window, view, useNative)
         openingRecord = record
         addView(window, view)
