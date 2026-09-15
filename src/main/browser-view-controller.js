@@ -2,6 +2,7 @@
 import { app, BrowserWindow, BrowserView, ipcMain, nativeImage, nativeTheme, session } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 /**
  * 创建唯一网页控制器并复用入口的系统图片目录策略。
@@ -352,7 +353,9 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 2、创建视图、设置边界和浏览器兼容信息，登记在途实例后加载地址。
      * 3、确认记录未被关闭或替换，在导航和页面就绪后同步主题。
      */
-    ipcMain.handle('browserview:open', async (event, { url, partition = 'persist:doubao', bounds, enableDevTools = false, theme, nativeTheme: useNative } = {}) => {
+    ipcMain.handle('browserview:open', async (event, payload = {}) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
+      const { url, partition = 'persist:doubao', bounds, enableDevTools = false, theme, nativeTheme: useNative } = payload || {}
       // 仅在本次打开尚未成功时持有回收入口，避免加载失败遗留已挂载的网页。
       let openingRecord = null
       try {
@@ -434,7 +437,9 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 1、根据分区与地址查询记录。
      * 2、从窗口移除视图，销毁并删除缓存引用。
      */
-    ipcMain.handle('browserview:close', async (event, { partition = 'persist:doubao', url } = {}) => {
+    ipcMain.handle('browserview:close', async (event, payload = {}) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
+      const { partition = 'persist:doubao', url } = payload || {}
       try {
         // 1、使用与打开入口一致的键定位视图。
         const key = `${event.sender.id}:${partition}:${url || ''}`
@@ -452,7 +457,9 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 处理流程：
      * 1、定位视图，存在新边界时调用兼容接口更新。
      */
-    ipcMain.handle('browserview:setBounds', async (event, { partition = 'persist:doubao', url, bounds } = {}) => {
+    ipcMain.handle('browserview:setBounds', async (event, payload = {}) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
+      const { partition = 'persist:doubao', url, bounds } = payload || {}
       try {
         // 1、仅更新已创建视图的边界。
         const key = `${event.sender.id}:${partition}:${url || ''}`
@@ -471,7 +478,9 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 处理流程：
      * 1、保存主题注入选项并发起主题同步。
      */
-    ipcMain.handle('browserview:applyTheme', async (event, { partition = 'persist:doubao', url, scheme, nativeTheme: useNative } = {}) => {
+    ipcMain.handle('browserview:applyTheme', async (event, payload = {}) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
+      const { partition = 'persist:doubao', url, scheme, nativeTheme: useNative } = payload || {}
       try {
         // 1、未指定颜色方案时使用系统当前主题。
         const key = `${event.sender.id}:${partition}:${url || ''}`
@@ -494,7 +503,9 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 1、定位视图并优先忽略缓存刷新。
      * 2、延迟重新应用当前系统主题。
      */
-    ipcMain.handle('browserview:reload', async (event, { partition = 'persist:doubao', url } = {}) => {
+    ipcMain.handle('browserview:reload', async (event, payload = {}) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
+      const { partition = 'persist:doubao', url } = payload || {}
       try {
         // 1、视图不存在时返回明确错误。
         const key = `${event.sender.id}:${partition}:${url || ''}`
@@ -523,6 +534,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 3、调用宿主页面的系统拖拽接口并返回文件路径。
      */
     ipcMain.handle('doubao:drag-start', async (event, payload) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
       try {
         // 1、取得有效宿主并将网页图片解码落盘。
         const window = getOwningWindowForWebContents(event.sender)
@@ -571,7 +583,8 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 1、检查编码内容并确定文件名与图片目录。
      * 2、写入图片并返回路径及媒体类型。
      */
-    ipcMain.handle('doubao:prepare-file-async', async (_event, payload) => {
+    ipcMain.handle('doubao:prepare-file-async', async (event, payload) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
       try {
         // 1、将网页图片准备为后续同步拖拽可直接使用的文件。
         const { base64, fileName, mimeType } = payload || {}

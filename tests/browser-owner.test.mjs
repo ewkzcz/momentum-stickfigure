@@ -32,7 +32,7 @@ async function counts(application) {
   })
 }
 
-test('内嵌网页窗口隔离：拒绝越窗操作，同地址可独立共存和释放', { timeout: 120000 }, async () => {
+test('内嵌网页窗口隔离：预览拒绝越窗操作，主窗二十轮可用和释放', { timeout: 120000 }, async () => {
   // 1、页面仅由本地服务器提供，不使用真实网站、账号或系统弹窗。
   const server = createServer((_request, reply) => { reply.writeHead(200, { 'Content-Type': 'text/html' }); reply.end('<!doctype html><title>owner</title>') })
   server.listen(0, 'localhost')
@@ -49,16 +49,14 @@ test('内嵌网页窗口隔离：拒绝越窗操作，同地址可独立共存�
     for (let round = 0; round < 20; round++) {
       const input = { url: `http://localhost:${server.address().port}/owner-${round}`, partition: 'persist:regression-view-owner' }
       assert.deepEqual(await invoke(desktop.page, 'browserview:open', input), { success: true })
-      // 2、没有自己记录时，预览窗关闭维持幂等；其他查询仍返回原来的视图不存在。
-      assert.deepEqual(await invoke(other, 'browserview:close', input), { success: true })
+      // 2、预览没有网页控制角色；拒绝关闭和其它操作，主窗视图必须保留。
+      assert.deepEqual(await invoke(other, 'browserview:close', input), { success: false, error: '未授权的网页操作来源' })
       for (const channel of ['browserview:setBounds', 'browserview:applyTheme', 'browserview:reload']) {
-        assert.deepEqual(await invoke(other, channel, { ...input, bounds: { x: 0, y: 0, width: 100, height: 100 }, scheme: 'light' }), { success: false, error: '视图不存在' })
+        assert.deepEqual(await invoke(other, channel, { ...input, bounds: { x: 0, y: 0, width: 100, height: 100 }, scheme: 'light' }), { success: false, error: '未授权的网页操作来源' })
       }
       assert.deepEqual(await counts(desktop.application), { main: 1, preview: 0 })
-      // 3、相同分区和URL在两个窗口独立登记，关闭各自视图互不影响。
-      assert.deepEqual(await invoke(other, 'browserview:open', input), { success: true })
-      assert.deepEqual(await counts(desktop.application), { main: 1, preview: 1 })
-      assert.deepEqual(await invoke(other, 'browserview:close', input), { success: true })
+      // 3、相同分区和URL也不能绕过角色限制创建视图，拒绝后主窗仍可更新与释放。
+      assert.deepEqual(await invoke(other, 'browserview:open', input), { success: false, error: '未授权的网页操作来源' })
       assert.deepEqual(await counts(desktop.application), { main: 1, preview: 0 })
       assert.deepEqual(await invoke(desktop.page, 'browserview:setBounds', { ...input, bounds: { x: 0, y: 0, width: 200, height: 150 } }), { success: true })
       assert.deepEqual(await invoke(desktop.page, 'browserview:close', input), { success: true })
