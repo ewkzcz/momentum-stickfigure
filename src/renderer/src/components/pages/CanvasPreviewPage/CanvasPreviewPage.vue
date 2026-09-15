@@ -765,6 +765,8 @@ let unsubscribeResetViewport = null
  * 3、注册窗口尺寸监听，支持预览自适应
  */
 onMounted(async () => {
+  // 若预加载晚于页面挂载，保留当时的能力状态，避免把未订阅误判为解码失败。
+  if (!window.electronAPI?.on) console.warn('[预览窗口] 挂载时消息桥接尚未就绪', typeof window.electronAPI)
   // 1、保存取消订阅入口，供页面卸载时成对清理
   if (window.electronAPI?.on) {
     // 监听画布更新

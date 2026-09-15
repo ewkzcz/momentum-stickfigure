@@ -84,7 +84,13 @@ export default defineConfig({
     }
   },
   preload: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
+    // 同步预加载必须先于页面挂载完成桥接暴露；ESM 预加载存在异步加载竞态。
+    build: {
+      rollupOptions: {
+        output: { format: 'cjs', entryFileNames: '[name].cjs' }
+      }
+    }
   },
   renderer: {
     server: {

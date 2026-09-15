@@ -47,7 +47,7 @@ export function createWindowController({ mainDirectory }) {
       show: false,
       autoHideMenuBar: true,
       webPreferences: {
-        preload: path.join(mainDirectory, '../preload/index.mjs'),
+        preload: path.join(mainDirectory, '../preload/index.cjs'),
         sandbox: false,
         nodeIntegration: false,
         contextIsolation: true,
@@ -280,7 +280,7 @@ export function createWindowController({ mainDirectory }) {
           autoHideMenuBar: true,
           backgroundColor: '#1a1a1a',
           webPreferences: {
-            preload: path.join(mainDirectory, '../preload/index.mjs'),
+            preload: path.join(mainDirectory, '../preload/index.cjs'),
             sandbox: false,
             nodeIntegration: false,
             contextIsolation: true,
@@ -672,7 +672,7 @@ export function createWindowController({ mainDirectory }) {
                 autoHideMenuBar: true,
                 backgroundColor: '#1a1a1a',
                 webPreferences: {
-                  preload: path.join(mainDirectory, '../preload/index.mjs'),
+                  preload: path.join(mainDirectory, '../preload/index.cjs'),
                   sandbox: false,
                   nodeIntegration: false,
                   contextIsolation: true,
