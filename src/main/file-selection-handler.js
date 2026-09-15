@@ -11,6 +11,7 @@ import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertDialogOptions, assertFileName, assertText } from './ipc-parameter-policy.js'
 import { assertOwnedFilePath, writeOwnedFile } from './file-access-policy.js'
+import { assertImageBase64 } from './template-image-parameters.js'
 
 /**
  * 注册文件选择、临时图片保存与目录打开接口。
@@ -289,6 +290,8 @@ export function registerFolderSelectHandler() {
       }
       if (fileName !== undefined && fileName !== '') assertFileName(fileName)
       if (typeof base64Data !== 'string') throw new TypeError('图片数据参数必须是字符串')
+      if (base64Data.startsWith('data:')) throw new TypeError('图片数据参数必须是裸base64')
+      assertImageBase64(base64Data)
       
       // 创建临时目录
       const tempDir = assertOwnedFilePath(app.getPath('temp'), ['momentum-stickfigure-paste'])
