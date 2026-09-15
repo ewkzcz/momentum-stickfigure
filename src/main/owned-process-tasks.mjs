@@ -31,10 +31,20 @@ export async function runOwnedTask(owner, kind, execute, timeoutMs = 30 * 60 * 1
   return task.done
 }
 
+async function waitForTaskCleanup(selected) {
+  const results = await Promise.allSettled(selected.map(task => task.done))
+  const failures = results.filter(result => result.status === 'rejected' && result.reason?.code === 'PROCESS_CLEANUP_FAILED')
+  if (failures.length) {
+    const error = new AggregateError(failures.map(result => result.reason), '进程树清理失败')
+    error.code = 'PROCESS_CLEANUP_FAILED'
+    throw error
+  }
+}
+
 export async function cancelOwnedTasks(owner, kind) {
   const selected = [...tasks].filter(task => task.owner === owner && task.kind === kind)
   for (const task of selected) task.controller.abort(processAbortError())
-  await Promise.allSettled(selected.map(task => task.done))
+  await waitForTaskCleanup(selected)
   return { success: true, cancelled: selected.length }
 }
 
@@ -42,5 +52,5 @@ export async function stopOwnedTasks() {
   stopped = true
   const selected = [...tasks]
   for (const task of selected) task.controller.abort(processAbortError('应用正在退出'))
-  await Promise.allSettled(selected.map(task => task.done))
+  await waitForTaskCleanup(selected)
 }

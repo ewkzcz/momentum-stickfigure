@@ -32,7 +32,7 @@ export function runManagedProcess(command, args, { signal, timeoutMs = 30 * 60 *
   if (signal?.aborted) return Promise.reject(signal.reason || processAbortError())
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) return Promise.reject(new TypeError('无效进程超时'))
   return new Promise((resolve, reject) => {
-    let child, timer, escalation, failure, stdout = '', stderr = '', outputBytes = 0
+    let child, timer, escalation, failure, cleanupFailure, stdout = '', stderr = '', outputBytes = 0
     let killer = Promise.resolve()
     const terminate = force => {
       if (!child?.pid) return
@@ -41,12 +41,12 @@ export function runManagedProcess(command, args, { signal, timeoutMs = 30 * 60 *
           const taskkill = spawn('taskkill', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' })
           taskkill.once('error', fail)
           taskkill.once('close', done)
-        })).catch(error => { failure ||= error })
+        })).catch(error => { cleanupFailure ||= error })
       } else {
         try { process.kill(-child.pid, force ? 'SIGKILL' : 'SIGTERM') }
         catch (error) {
           // EPERM可能是macOS已消失的组；最终仍必须通过系统进程表确认，不能直接当作成功。
-          if (error.code !== 'ESRCH' && error.code !== 'EPERM') failure ||= error
+          if (error.code !== 'ESRCH' && error.code !== 'EPERM') cleanupFailure ||= error
         }
       }
     }
@@ -77,7 +77,11 @@ export function runManagedProcess(command, args, { signal, timeoutMs = 30 * 60 *
         // 父进程先退出时仍清理同组后代，避免关闭管道的后台子进程残留。
         terminate(true)
         await killer
-        try { await waitForProcessGroup(child.pid) } catch (error) { failure = error }
+        try { await waitForProcessGroup(child.pid) } catch (error) { cleanupFailure = error }
+        if (cleanupFailure) {
+          failure = new Error('进程树清理失败', { cause: cleanupFailure })
+          failure.code = 'PROCESS_CLEANUP_FAILED'
+        }
         if (!failure && code !== 0) failure = new Error(`子进程执行失败，退出码 ${code}，信号 ${exitSignal || '无'}`)
         if (failure) {
           failure.stdout = stdout; failure.stderr = stderr

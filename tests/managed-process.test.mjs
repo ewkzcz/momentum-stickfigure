@@ -3,6 +3,28 @@ import assert from 'node:assert/strict'
 import { once } from 'node:events'
 import { runManagedProcess } from '../src/main/managed-process.mjs'
 
+test('受控进程：退出确认错误具有稳定清理失败标识', { timeout: 10000 }, async () => {
+  const kill = process.kill
+  let pid
+  try {
+    process.kill = function (target, signal) {
+      if (target === -pid && signal === 0) throw Object.assign(new Error('受控退出确认失败'), { code: 'EIO' })
+      return kill.call(process, target, signal)
+    }
+    await assert.rejects(runManagedProcess(process.execPath, ['-e', 'process.stdout.write("done")'], {
+      onSpawn: child => { pid = child.pid }
+    }), error => {
+      assert.equal(error.code, 'PROCESS_CLEANUP_FAILED')
+      assert.equal(error.cause.code, 'EIO')
+      assert.equal(error.stdout, 'done')
+      return true
+    })
+  } finally {
+    process.kill = kill
+  }
+  assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' })
+})
+
 test('受控进程：真实成功失败、超时、取消及后续恢复', { timeout: 15000 }, async () => {
   assert.deepEqual(await runManagedProcess(process.execPath, ['-e', 'process.stdout.write("ok")']), { stdout: 'ok', stderr: '' })
   await assert.rejects(runManagedProcess(process.execPath, ['-e', 'process.exit(2)']), /退出码 2/)

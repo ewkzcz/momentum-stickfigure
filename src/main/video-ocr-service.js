@@ -20,6 +20,7 @@ const DEFAULT_OUTPUT_DIR = path.join(os.homedir(), 'Documents', 'VideoSubtitles'
 // ==================== Python 执行辅助 ====================
 
 function throwIfTaskCancelled(error) {
+  if (error?.code === 'PROCESS_CLEANUP_FAILED') throw error
   const signal = currentTaskSignal()
   if (signal?.aborted) throw signal.reason || processAbortError()
   if (error?.name === 'AbortError') throw error

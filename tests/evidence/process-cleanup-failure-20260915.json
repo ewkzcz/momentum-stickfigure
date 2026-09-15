@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "9aa46b86e2d0294a223aeccf4a433a2915ef7b8a",
+  "scope": "进程树清理异常向取消和应用停止入口传播",
+  "before": { "directory": "temp/process-cleanup-before-acceptance-dhT7My", "tests": 2, "passed": 0, "failed": 2, "failure": "cancelOwnedTasks和stopOwnedTasks吞掉PROCESS_CLEANUP_FAILED并返回成功" },
+  "after": { "directory": "temp/process-cleanup-after-acceptance-tBKjfq", "tests": 25, "passed": 25, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "changes": ["真实管理器退出确认异常保留cause并标记PROCESS_CLEANUP_FAILED", "取消与停止等待所有选中任务后汇总清理异常", "OCR及高清GPU回退优先传播清理异常", "高清取消保持success/message错误包络", "退出清理失败不进入成功退出分支"],
+  "limits": ["错误分支使用受控故障注入，不制造真实无法终止进程", "真实受控Node子进程退出已验证；不执行真实Python或修改其环境", "本组未验证Windows进程树或真实Electron在途进程退出", "首次脚本参数误含.test.mjs被路径检查阻止，未执行测试；修正后采集上述基线"]
+}

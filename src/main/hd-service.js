@@ -723,6 +723,7 @@ async function detectGPUMode(pythonExec, pythonHome) {
     await runPythonInline(pythonExec, pythonHome, detectScript, [])
     return 'gpu'
   } catch (error) {
+    if (error?.code === 'PROCESS_CLEANUP_FAILED') throw error
     currentTaskSignal()?.throwIfAborted()
     return 'cpu'
   }
@@ -1054,7 +1055,11 @@ export function registerHdServiceHandlers() {
 
   ipcMain.handle('hd:cancel', async event => {
     if (!isTrustedIpcSender(event)) return deniedSource()
-    return cancelOwnedTasks(event.sender, 'hd')
+    try {
+      return await cancelOwnedTasks(event.sender, 'hd')
+    } catch (error) {
+      return { success: false, message: error.message }
+    }
   })
   console.log('[HD Toolkit] IPC 处理器已注册')
 }

@@ -179,7 +179,7 @@ app.on('will-quit', (event) => {
       void Promise.all([stopPSDWorkers(), stopOwnedTasks()]).then(() => {
         psdShutdownComplete = true
         setImmediate(() => app.quit())
-      }).catch(error => console.error('等待PSD工作线程退出失败:', error))
+      }).catch(error => console.error('等待后台任务退出失败:', error))
     }
     return
   }
