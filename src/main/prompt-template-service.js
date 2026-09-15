@@ -7,6 +7,7 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { assertEnum, assertPromptTemplates } from './ipc-parameter-policy.js'
 
 const APP_NAME = 'momentum-stickfigure-open'
 const TEMPLATE_FILE = path.join(os.homedir(), '.config', APP_NAME, 'prompt-templates.json')
@@ -218,6 +219,7 @@ export function registerPromptTemplateHandlers() {
   ipcMain.handle('prompt-templates:get', async (event, type = 'image') => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的提示词模板操作来源')
+      assertEnum(type, ['image', 'video'], '模板类型')
       return { success: true, templates: getTemplates(type) }
     } catch (error) {
       console.error('[PromptTemplateService] 获取模板失败:', error)
@@ -228,6 +230,7 @@ export function registerPromptTemplateHandlers() {
   ipcMain.handle('prompt-templates:save', async (event, payload = {}) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的提示词模板操作来源')
+      assertPromptTemplates(payload)
       const { type = 'image', templates = [] } = payload
       setTemplates(type, templates)
       return { success: true }

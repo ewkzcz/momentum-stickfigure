@@ -52,6 +52,28 @@ export function assertPsdTaskOptions(value) {
   }
 }
 
+export function assertPromptTemplates(payload) {
+  assertRecord(payload, '提示词模板')
+  assertEnum(payload.type === undefined ? 'image' : payload.type, ['image', 'video'], '模板类型')
+  const templates = payload.templates === undefined ? [] : payload.templates
+  if (!Array.isArray(templates) || templates.length > 10000) throw new TypeError('模板列表参数无效')
+  let characters = 0
+  for (const item of templates) {
+    assertRecord(item, '模板项')
+    if (item.id !== undefined) assertText(item.id, 256, '模板ID')
+    if (item.content !== undefined) {
+      assertText(item.content, 1024 * 1024, '模板内容')
+      characters += item.content.length
+    }
+    if (characters > 16 * 1024 * 1024) throw new TypeError('模板内容总量参数超过限制')
+    if (item.type !== undefined) assertEnum(item.type, ['image', 'video'], '模板项类型')
+    if (item.isFavorite !== undefined && typeof item.isFavorite !== 'boolean') throw new TypeError('收藏参数必须是布尔值')
+    for (const key of ['createdAt', 'order']) {
+      if (item[key] !== undefined && (typeof item[key] !== 'number' || !Number.isFinite(item[key]))) throw new TypeError(`模板${key}参数无效`)
+    }
+  }
+}
+
 export function assertHotkeys(value) {
   assertRecord(value, '快捷键')
   for (const key of Object.keys(value)) {
