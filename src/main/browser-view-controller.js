@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertBrowserOptions } from './ipc-parameter-policy.js'
+import { assertBrowserDragParameters } from './browser-drag-parameters.js'
 import { sitePartition, webOrigin, installWebPermissions, protectWebNavigation } from './web-session-policy.js'
 
 /**
@@ -547,6 +548,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
     ipcMain.handle('doubao:drag-start', async (event, payload) => {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
       try {
+        assertBrowserDragParameters(payload, true)
         // 1、取得有效宿主并将网页图片解码落盘。
         const window = getOwningWindowForWebContents(event.sender)
         if (!window) return { success: false, error: '窗口不存在' }
@@ -597,6 +599,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
     ipcMain.handle('doubao:prepare-file-async', async (event, payload) => {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
       try {
+        assertBrowserDragParameters(payload)
         // 1、将网页图片准备为后续同步拖拽可直接使用的文件。
         const { base64, fileName, mimeType } = payload || {}
         if (!base64) return { success: false, error: 'base64 empty' }
