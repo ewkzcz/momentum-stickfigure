@@ -8,6 +8,7 @@ import fs from 'fs'
 import os from 'os'
 import { spawn } from 'child_process'
 import { buildApiUrl } from '../shared/api-url.js'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 // ==================== 常量定义 ====================
 
@@ -1528,8 +1529,9 @@ function callOpenAIAPI(apiKey, baseUrl, model, text) {
  */
 export function registerVideoOcrServiceHandlers() {
   // 1、为环境操作提供统一的成功与失败响应。
-  ipcMain.handle('video-ocr:check-environment', async (_event, pythonHome) => {
+  ipcMain.handle('video-ocr:check-environment', async (event, pythonHome) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的字幕识别操作来源')
       const envCheck = await checkEnvironment(pythonHome)
       return {
         success: true,
@@ -1546,6 +1548,7 @@ export function registerVideoOcrServiceHandlers() {
 
   ipcMain.handle('video-ocr:clean-environment', async (event, pythonHome) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的字幕识别操作来源')
       let lastProgress = { percentage: 0, message: '', log: '' }
       
       /**
@@ -1577,6 +1580,7 @@ export function registerVideoOcrServiceHandlers() {
 
   ipcMain.handle('video-ocr:install-environment', async (event, pythonHome, useMirror) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的字幕识别操作来源')
       let lastProgress = { percentage: 0, message: '', log: '' }
       
       /**
@@ -1609,6 +1613,7 @@ export function registerVideoOcrServiceHandlers() {
   // 2、处理视频任务，并沿原调用窗口返回进度。
   ipcMain.handle('video-ocr:process-video', async (event, payload) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的字幕识别操作来源')
       let lastProgress = { percentage: 0, message: '' }
       
       /**
