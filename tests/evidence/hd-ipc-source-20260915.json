@@ -1,0 +1,8 @@
+{
+  "scope": "批准项4：高清工具五IPC来源",
+  "before": { "evidence": "hd-ipc-before-acceptance-z7oWaw", "passed": false, "failure": "预览可读高清环境配置" },
+  "change": "配置查询保存、抠图、高清与图片预览均先检查可信main固定入口顶层frame；非可信来源返回success:false/message且不进入Python或文件逻辑",
+  "after": { "evidence": "hd-ipc-after-acceptance-mpNzL1", "passed": 3, "failed": 0, "skipped": 0, "durationMs": 167146.524666, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true },
+  "coverage": ["预览全部五通道拒绝，主窗口配置未改变", "高清设置真实保存备份与重启", "生图工作流页面及真实文件回归"],
+  "limits": ["工作流在五个服务边界使用受控结果，不证明Python实际执行或其正常任务授权", "未访问或修改用户Python环境", "任务参数、取消退出生命周期仍按批准清单继续"]
+}

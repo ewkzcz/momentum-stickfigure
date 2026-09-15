@@ -7,6 +7,9 @@ import path from 'path'
 import fs from 'fs'
 import os from 'os'
 import { spawn } from 'child_process'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
+
+const deniedSource = () => ({ success: false, message: '未授权的高清工具操作来源' })
 
 // ==================== 常量定义 ====================
 
@@ -993,7 +996,8 @@ function readImageAsDataUrl(imagePath) {
  */
 export function registerHdServiceHandlers() {
   // 1、注册配置查询和保存入口。
-  ipcMain.handle('hd:get-initial-data', async () => {
+  ipcMain.handle('hd:get-initial-data', async (event) => {
+    if (!isTrustedIpcSender(event)) return deniedSource()
     // 清除缓存，确保获取最新配置
     cachedConfig = null
     const config = getConfig()
@@ -1007,7 +1011,8 @@ export function registerHdServiceHandlers() {
     }
   })
 
-  ipcMain.handle('hd:save-config', async (_event, payload) => {
+  ipcMain.handle('hd:save-config', async (event, payload) => {
+    if (!isTrustedIpcSender(event)) return deniedSource()
     const merged = updateConfig(payload || {})
     return {
       success: true,
@@ -1016,7 +1021,8 @@ export function registerHdServiceHandlers() {
   })
 
   // 2、注册处理任务和预览入口，将异常转换为响应消息。
-  ipcMain.handle('hd:run-removebg', async (_event, payload) => {
+  ipcMain.handle('hd:run-removebg', async (event, payload) => {
+    if (!isTrustedIpcSender(event)) return deniedSource()
     try {
       const result = await handleRemoveBackground(payload || {})
       return {
@@ -1034,7 +1040,8 @@ export function registerHdServiceHandlers() {
     }
   })
 
-  ipcMain.handle('hd:run-highres', async (_event, payload) => {
+  ipcMain.handle('hd:run-highres', async (event, payload) => {
+    if (!isTrustedIpcSender(event)) return deniedSource()
     try {
       const result = await handleHighres(payload || {})
       return {
@@ -1052,7 +1059,8 @@ export function registerHdServiceHandlers() {
     }
   })
 
-  ipcMain.handle('hd:get-image-preview', async (_event, imagePath) => {
+  ipcMain.handle('hd:get-image-preview', async (event, imagePath) => {
+    if (!isTrustedIpcSender(event)) return deniedSource()
     try {
       const dataUrl = readImageAsDataUrl(imagePath)
       return {
