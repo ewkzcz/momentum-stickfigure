@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-15",
+  "unit": "psd-ui-resource-measurement",
+  "method": ["真实公开上传、两份指定素材标签切换、逐个移除，连续20轮", "每轮结算读取renderer堆、DOM、监听器及主进程RSS，不在周期内强制GC", "操作耗时包含Playwright驱动及stableCanvas连续12帧确认，不作为纯渲染计算耗时", "末尾分别执行GC和释放调试协议console对象后GC，分开保留诊断值，不覆盖原20轮读数"],
+  "runs": [
+    { "directory": "temp/psd-ui-resource-measurement-acceptance-mjWro7", "passed": 1, "failed": 0, "heapFirst": 15006468, "heapLast": 93219332 },
+    { "directory": "temp/psd-ui-resource-gc-diagnosis-acceptance-B73lIZ", "passed": 1, "failed": 0, "heapAfterGc": 92411912 },
+    { "directory": "temp/psd-ui-resource-console-diagnosis-acceptance-BWFjAD", "passed": 1, "failed": 0, "durationMs": 65421.479916, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" }
+  ],
+  "finalMetrics": { "importP50Ms": 1386.887625, "importP95Ms": 1471.016375, "importMaxMs": 1512.713166, "switchPairP50Ms": 1493.601208, "switchPairP95Ms": 1552.643625, "switchPairMaxMs": 1586.712125, "closeP50Ms": 303.239959, "closeP95Ms": 312.015042, "closeMaxMs": 317.395208, "mainRssFirst": 214843392, "mainRssLast": 221495296, "heapFirst": 15818944, "heapLast": 93247916, "heapAfterGc": 92398400, "heapAfterConsoleReleaseAndGc": 15849284, "domAfterConsoleRelease": { "documents": 2, "nodes": 791, "jsEventListeners": 506 }, "windowCountEveryRound": 1 },
+  "interpretation": "约77MiB堆增长在仅GC后保留、释放调试协议console对象后下降至约15MiB，主要观察到调试日志保留而非据此确认业务堆泄漏；本单元不修改产品渲染或缓存算法",
+  "rawResult": "temp/psd-ui-resource-measurement-result.json",
+  "limits": ["console诊断改变调试器保留状态，不能把清理后数值冒充正常运行读数", "未证明所有缓存无残留或无限轮长期稳定", "本测量不替代原RGBA逐像素回归，最终累计验收仍待进行", "长列表、重复解码重绘、大文件、冷启动和一般页面切换测量仍有余项"]
+}
