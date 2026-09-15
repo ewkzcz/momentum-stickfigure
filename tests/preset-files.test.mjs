@@ -59,7 +59,7 @@ test('预设文件：选择与写入分离、原文导入、取消和失败后�
     const blocked = path.join(root, '普通 文件')
     await writeFile(blocked, '保留')
     failure(await save(path.join(blocked, '预设.json'), content), false, /ENOTDIR/)
-    failure(await save(path.dirname(filePath), content), false, /EISDIR/)
+    failure(await save(path.dirname(filePath), content), false, /未授权/)
     assert.equal(await readFile(blocked, 'utf8'), '保留')
 
     // 4、导出对话框异常只在原生边界注入，并在 finally 恢复原方法。

@@ -21,6 +21,8 @@ test('预设文件来源：预览不能写文件或打开导入导出，主窗�
       assert.equal(response.success, false)
       assert.match(response.error, /未授权/)
     }
+    await desktop.application.evaluate((_, output) => { globalThis.__momentumTest.savePath = output }, output)
+    assert.equal((await desktop.page.evaluate(() => window.electronAPI.invoke('preset-export'))).success, true)
     const allowed = await desktop.page.evaluate(output => window.electronAPI.invoke('preset-save-file', output, '{"safe":true}'), output)
     assert.equal(allowed.success, true)
     assert.deepEqual(JSON.parse(await readFile(output, 'utf8')), { safe: true })

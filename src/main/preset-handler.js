@@ -3,6 +3,8 @@ import { BrowserWindow, dialog, ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { assertText } from './ipc-parameter-policy.js'
+import { grantSelectedWrite, assertSelectedWrite, writeOwnedFile } from './file-access-policy.js'
 
 /**
  * 注册预设文件导入导出接口。
@@ -32,6 +34,7 @@ export function registerPresetHandlers() {
       }
 
       const filePath = result.filePath
+      grantSelectedWrite(event.sender, filePath)
       console.log('导出预设到:', filePath)
 
       return {
@@ -94,6 +97,8 @@ export function registerPresetHandlers() {
   ipcMain.handle('preset-save-file', async (event, filePath, content) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的预设文件操作来源')
+      assertText(content, 64 * 1024 * 1024, '预设内容')
+      assertSelectedWrite(event.sender, filePath)
       console.log('保存预设到:', filePath)
 
       // 确保目录存在
@@ -103,7 +108,8 @@ export function registerPresetHandlers() {
       }
 
       // 写入文件（UTF-8编码）
-      fs.writeFileSync(filePath, content, 'utf-8')
+      assertSelectedWrite(event.sender, filePath)
+      writeOwnedFile(filePath, content)
 
       console.log('预设保存成功:', filePath)
       return {
