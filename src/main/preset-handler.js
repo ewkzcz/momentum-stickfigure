@@ -2,6 +2,7 @@
 import { BrowserWindow, dialog, ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 /**
  * 注册预设文件导入导出接口。
@@ -14,6 +15,7 @@ export function registerPresetHandlers() {
   // 1、选择预设导出位置，文件内容由后续保存入口写入。
   ipcMain.handle('preset-export', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的预设文件操作来源')
       const window = BrowserWindow.fromWebContents(event.sender)
 
       const result = await dialog.showSaveDialog(window, {
@@ -50,6 +52,7 @@ export function registerPresetHandlers() {
   // 2、选择预设文件并返回原始文本。
   ipcMain.handle('preset-import', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的预设文件操作来源')
       const window = BrowserWindow.fromWebContents(event.sender)
 
       const result = await dialog.showOpenDialog(window, {
@@ -90,6 +93,7 @@ export function registerPresetHandlers() {
   // 3、保存预设数据到文件。
   ipcMain.handle('preset-save-file', async (event, filePath, content) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的预设文件操作来源')
       console.log('保存预设到:', filePath)
 
       // 确保目录存在

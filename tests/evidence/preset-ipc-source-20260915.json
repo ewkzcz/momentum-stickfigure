@@ -1,0 +1,8 @@
+{
+  "scope": "批准项4：预设文件三IPC来源",
+  "before": { "evidence": "preset-ipc-before-acceptance-e7H148", "passed": false, "failure": "预览可以写入隔离预设文件" },
+  "change": "预设导入、导出选择、保存均先验证可信main固定入口顶层frame，保留失败响应结构",
+  "after": { "evidence": "preset-ipc-after-acceptance-R39lwS", "passed": 18, "failed": 0, "skipped": 0, "durationMs": 108626.903625, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true },
+  "coverage": ["预览三通道拒绝且未产生文件", "主窗保存真实JSON", "预设文件正常取消错误契约", "手动预设保存", "两指定三公开PSD图像与预设生命周期", "配置重启恢复"],
+  "limits": ["来源检查不等于可信选择路径授权，该项仍按批准项5处理", "不代表其他IPC全部完成"]
+}
