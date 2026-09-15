@@ -6,7 +6,8 @@ import { app, ipcMain } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import os from 'os'
-import { spawn } from 'child_process'
+import { runManagedProcess } from './managed-process.mjs'
+import { currentTaskSignal, runOwnedTask, cancelOwnedTasks } from './owned-process-tasks.mjs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 const deniedSource = () => ({ success: false, message: '未授权的高清工具操作来源' })
@@ -302,40 +303,12 @@ function buildPythonEnv(pythonHome, overrides = {}) {
  * 3、根据退出码返回结果或携带输出的错误。
  */
 function runPythonInline(pythonExec, pythonHome, code, args, envExtra = {}) {
-  // 1、将子进程生命周期转换为可等待的任务。
-  return new Promise((resolve, reject) => {
-    if (!pythonExec || !fs.existsSync(pythonExec)) {
-      reject(new Error('未找到可用的 Python 解释器，请在设置中配置正确路径'))
-      return
-    }
-    const env = buildPythonEnv(pythonHome, envExtra)
-    const child = spawn(pythonExec, ['-c', code, ...args], {
-      env,
-      stdio: ['ignore', 'pipe', 'pipe']
-    })
-    // 2、保留脚本诊断信息，供成功结果或错误展示使用。
-    let stdout = ''
-    let stderr = ''
-    child.stdout.on('data', (chunk) => {
-      stdout += chunk.toString()
-    })
-    child.stderr.on('data', (chunk) => {
-      stderr += chunk.toString()
-    })
-    child.on('error', (error) => {
-      reject(error)
-    })
-    // 3、以进程退出码判断脚本是否执行成功。
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolve({ stdout, stderr })
-      } else {
-        const error = new Error(`Python 脚本执行失败，退出码 ${code}`)
-        error.stdout = stdout
-        error.stderr = stderr
-        reject(error)
-      }
-    })
+  if (!pythonExec || !fs.existsSync(pythonExec)) {
+    return Promise.reject(new Error('未找到可用的 Python 解释器，请在设置中配置正确路径'))
+  }
+  return runManagedProcess(pythonExec, ['-c', code, ...args], {
+    env: buildPythonEnv(pythonHome, envExtra),
+    signal: currentTaskSignal()
   })
 }
 
@@ -1024,7 +997,7 @@ export function registerHdServiceHandlers() {
   ipcMain.handle('hd:run-removebg', async (event, payload) => {
     if (!isTrustedIpcSender(event)) return deniedSource()
     try {
-      const result = await handleRemoveBackground(payload || {})
+      const result = await runOwnedTask(event.sender, 'hd', () => handleRemoveBackground(payload || {}))
       return {
         success: true,
         data: result
@@ -1043,7 +1016,7 @@ export function registerHdServiceHandlers() {
   ipcMain.handle('hd:run-highres', async (event, payload) => {
     if (!isTrustedIpcSender(event)) return deniedSource()
     try {
-      const result = await handleHighres(payload || {})
+      const result = await runOwnedTask(event.sender, 'hd', () => handleHighres(payload || {}))
       return {
         success: true,
         data: result
@@ -1078,6 +1051,10 @@ export function registerHdServiceHandlers() {
     }
   })
 
+  ipcMain.handle('hd:cancel', async event => {
+    if (!isTrustedIpcSender(event)) return deniedSource()
+    return cancelOwnedTasks(event.sender, 'hd')
+  })
   console.log('[HD Toolkit] IPC 处理器已注册')
 }
 
@@ -1088,6 +1065,7 @@ export function registerHdServiceHandlers() {
  */
 export function unregisterHdServiceHandlers() {
   // 1、按注册通道逐个清理，避免重复注册。
+  ipcMain.removeHandler('hd:cancel')
   ipcMain.removeHandler('hd:get-initial-data')
   ipcMain.removeHandler('hd:save-config')
   ipcMain.removeHandler('hd:run-removebg')

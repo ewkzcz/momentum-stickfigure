@@ -240,6 +240,7 @@ contextBridge.exposeInMainWorld('falApi', {
 
 // 暴露抠图高清 API
 contextBridge.exposeInMainWorld('hdToolkit', {
+  cancel: () => ipcRenderer.invoke('hd:cancel'),
   /**
    * 获取高清工具的初始配置与模型列表。
    * 处理流程：

@@ -30,6 +30,7 @@ if (process.platform === 'win32') {
 import { registerFalApiHandlers, unregisterFalApiHandlers } from './gemini-image-api/gemini-image-ipc.js'
 // 导入 PSD 服务
 import { stopPSDWorkers } from './psd-worker-queue.mjs'
+import { stopOwnedTasks } from './owned-process-tasks.mjs'
 import { registerPSDApiHandlers, unregisterPSDApiHandlers } from './psd-service.js'
 // 导入Storage服务
 import { registerStorageHandlers, unregisterStorageHandlers } from './storage-handler.js'
@@ -175,7 +176,7 @@ app.on('will-quit', (event) => {
     event.preventDefault()
     if (!psdShutdownStarted) {
       psdShutdownStarted = true
-      void stopPSDWorkers().then(() => {
+      void Promise.all([stopPSDWorkers(), stopOwnedTasks()]).then(() => {
         psdShutdownComplete = true
         setImmediate(() => app.quit())
       }).catch(error => console.error('等待PSD工作线程退出失败:', error))
