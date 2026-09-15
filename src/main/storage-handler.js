@@ -6,6 +6,7 @@
 import { ipcMain } from 'electron'
 import storageManager from './storage-manager.js'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { assertText, assertStorageValue } from './ipc-parameter-policy.js'
 
 const unauthorized = () => new Error('未授权的配置操作来源')
 
@@ -22,6 +23,8 @@ export function registerStorageHandlers() {
   ipcMain.handle('storage:setItem', async (event, key, value) => {
     try {
       if (!isTrustedIpcSender(event)) throw unauthorized()
+      assertText(key, 4096, '存储键')
+      assertStorageValue(value)
       const success = storageManager.setItem(key, value)
       return { success }
     } catch (error) {
@@ -34,6 +37,7 @@ export function registerStorageHandlers() {
   ipcMain.handle('storage:getItem', async (event, key) => {
     try {
       if (!isTrustedIpcSender(event)) throw unauthorized()
+      assertText(key, 4096, '存储键')
       const value = storageManager.getItem(key)
       return { success: true, value }
     } catch (error) {
@@ -46,6 +50,7 @@ export function registerStorageHandlers() {
   ipcMain.handle('storage:removeItem', async (event, key) => {
     try {
       if (!isTrustedIpcSender(event)) throw unauthorized()
+      assertText(key, 4096, '存储键')
       const success = storageManager.removeItem(key)
       return { success }
     } catch (error) {

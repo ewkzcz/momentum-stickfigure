@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "e6eb383",
+  "scope": "共享存储键和值参数，修正本轮窗口参数校验漏掉页面快捷键字段",
+  "before": { "directory": "temp/storage-parameters-before-acceptance-g6kqdg", "passed": 0, "failed": 1, "failure": "storage:getItem接受null键并返回成功" },
+  "firstAfter": { "directory": "temp/storage-parameters-after-acceptance-cbpU8g", "tests": 9, "passed": 8, "failed": 1, "cause": "5ef95a1快捷键校验只列两个全局字段，真实设置保存还包含openSearch/toggleCanvasHover/togglePartHover；补回五字段并增强窗口参数正向回归" },
+  "recheck": { "directory": "temp/storage-parameters-recheck-acceptance-jO21bq", "tests": 10, "passed": 10, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["拒绝错误键及对象/数组/二进制值而保留已有数据", "兼容number/boolean/null/undefined历史String转换和中文字符串", "真实基础/生图/五项快捷键设置、备份及重启恢复", "共享存储实际磁盘原子替换、退出顺序、0600权限、来源广播"],
+  "limits": ["单键4096字符、单值64Mi字符为保守接口预算；本组原子性测试保留600万字符合法大数据，不限制旧磁盘加载", "未测全部存储键总量预算；其余任务参数仍未全部完成"]
+}

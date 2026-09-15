@@ -27,7 +27,7 @@ test('窗口参数：拒绝错误主题、模式、布尔和快捷键对象且�
       ['theme:setPreferredColorScheme', 'system'], ['canvas-preview-sync-theme', 'dark'],
       ['window-set-always-on-top', false], ['window-set-mode', 'software'],
       ['canvas-preview-update-filename', '中文 空格.psd'],
-      ['hotkeys-update', { toggleMainWindow: '', togglePreviewWindow: '' }]
+      ['hotkeys-update', { toggleMainWindow: '', togglePreviewWindow: '', openSearch: 'Ctrl+F', toggleCanvasHover: 'Alt+C', togglePartHover: 'Alt+P' }]
     ]) assert.equal((await invoke(channel, payload)).success, true, channel)
     const closed = preview.waitForEvent('close')
     assert.equal((await invoke('canvas-preview-close')).success, true)

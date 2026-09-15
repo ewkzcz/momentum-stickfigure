@@ -74,10 +74,16 @@ export function assertPromptTemplates(payload) {
   }
 }
 
+export function assertStorageValue(value) {
+  if (value !== null && !['string', 'number', 'boolean', 'undefined'].includes(typeof value)) throw new TypeError('存储值参数必须是字符串或标量')
+  // 保留历史标量String转换；64Mi字符为单项接口预算，不改变旧文件加载。
+  if (typeof value === 'string' && value.length > 64 * 1024 * 1024) throw new TypeError('存储值参数超过容量限制')
+}
+
 export function assertHotkeys(value) {
   assertRecord(value, '快捷键')
   for (const key of Object.keys(value)) {
-    assertEnum(key, ['toggleMainWindow', 'togglePreviewWindow'], '快捷键字段')
+    assertEnum(key, ['toggleMainWindow', 'togglePreviewWindow', 'openSearch', 'toggleCanvasHover', 'togglePartHover'], '快捷键字段')
     // 系统加速键表达式远小于256字符，空字符串保留禁用快捷键契约。
     assertText(value[key], 256, '快捷键')
   }
