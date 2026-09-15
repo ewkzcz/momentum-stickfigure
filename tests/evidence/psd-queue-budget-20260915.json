@@ -1,0 +1,10 @@
+{
+  "scope": "批准收尾项1：PSD等待队列预算",
+  "baseHead": "ffb8f032182de3b4666c24cb0fd27ccc8b7f04e1",
+  "policy": { "maxInputMiB": 50, "maxPendingMiB": 200, "maxPendingTasks": 8, "activeTasks": 1, "basis": "保留原50MiB输入上限，等待输入最多四个满额文件且限制小任务数量；本机16GiB，指定最大文件约6.4MiB。不声称此预算代表全部解析内存上限。" },
+  "before": { "evidence": "psd-queue-budget-before-corrected-acceptance-lArQoa", "passed": false, "failure": "同时10项全部进入队列，没有资源拒绝", "testDevelopment": "首轮UUtZqz因测试AbortController未声明而停于lint，改为globalThis后才完成业务复现" },
+  "after": { "evidence": "psd-queue-budget-after-acceptance-TWVDC8", "passed": 17, "failed": 0, "skipped": 0, "durationMs": 117330.81175, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true },
+  "coverage": ["单活动+8等待后拒绝第10项", "200MiB等待字节上限", "非法二进制类型及50MiB+1输入拒绝", "取消释放额度后真实PSD恢复", "20轮队列取消恢复、超时及关闭屏障", "跨sender取消边界", "两指定与三公开素材154场景RGBA零差异"],
+  "remainingWithinItem1": ["解析像素/图层/输出预算", "剩余性能指标测量"],
+  "limits": ["新增字节预算分支是修复后扩展验证；修复前业务复现仅针对任务数量", "不更改渲染算法、素材或冻结参考"]
+}

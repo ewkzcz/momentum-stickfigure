@@ -5,6 +5,25 @@ import { PSD_ERROR_MESSAGES } from './psd-api/psd-constants.mjs'
 const pending = []
 let active = null
 let stopped = false
+let pendingBytes = 0
+
+// 保留原单文件50MiB上限；等待输入最多200MiB，另限8项防止微小任务无限积压。
+// 本机16GiB、指定样本最大6.4MiB；预算为等待字节而非整个解析过程内存保证。
+const MAX_INPUT_BYTES = 50 * 1024 * 1024
+const MAX_PENDING_BYTES = 200 * 1024 * 1024
+const MAX_PENDING_TASKS = 8
+
+function resourceError(message) {
+  const error = new Error(message)
+  error.name = 'ResourceLimitError'
+  return error
+}
+
+function removePending(index) {
+  const [job] = pending.splice(index, 1)
+  pendingBytes -= job.inputBytes
+  return job
+}
 
 /**
  * 创建取消错误。
@@ -49,7 +68,7 @@ function settle(job, error, value) {
 function startNext() {
   // 1、关闭中的队列不接受新的活动任务。
   if (active || stopped || pending.length === 0) return
-  const job = pending.shift()
+  const job = removePending(0)
   active = job
   let worker
   let outcome = null
@@ -111,8 +130,16 @@ function startNext() {
 export function parsePSDInWorker(fileBuffer, options = {}, timeout = 30000, signal) {
   // 1、关闭后拒绝新任务，避免退出期间重新创建线程。
   if (stopped || signal?.aborted) return Promise.reject(cancellationError())
+  if (!(fileBuffer instanceof ArrayBuffer) && !ArrayBuffer.isView(fileBuffer)) {
+    return Promise.reject(new TypeError('PSD输入必须是二进制缓冲区'))
+  }
+  const inputBytes = fileBuffer.byteLength
+  if (inputBytes > MAX_INPUT_BYTES) return Promise.reject(resourceError('PSD输入超过50MiB限制'))
+  if (active && (pending.length >= MAX_PENDING_TASKS || pendingBytes + inputBytes > MAX_PENDING_BYTES)) {
+    return Promise.reject(resourceError('PSD等待队列资源不足，请等待当前任务完成'))
+  }
   return new Promise((resolve, reject) => {
-    const job = { fileBuffer, options, timeout, signal, resolve, reject, settled: false }
+    const job = { fileBuffer, inputBytes, options, timeout, signal, resolve, reject, settled: false }
     /**
      * 取消等待或运行中的本项任务。
      * 处理流程：
@@ -123,12 +150,13 @@ export function parsePSDInWorker(fileBuffer, options = {}, timeout = 30000, sign
       if (active === job) job.cancelActive?.()
       else {
         const index = pending.indexOf(job)
-        if (index >= 0) pending.splice(index, 1)
+        if (index >= 0) removePending(index)
         settle(job, cancellationError())
       }
     }
     // 2、任务先进入队列，取消回调始终可以找到所属记录。
     pending.push(job)
+    pendingBytes += inputBytes
     signal?.addEventListener('abort', job.abort, { once: true })
     startNext()
   })
@@ -142,7 +170,7 @@ export function parsePSDInWorker(fileBuffer, options = {}, timeout = 30000, sign
 export function stopPSDWorkers() {
   // 1、入口永久关闭；应用退出后无需复用队列。
   stopped = true
-  for (const job of pending.splice(0)) settle(job, cancellationError())
+  while (pending.length) settle(removePending(0), cancellationError())
   if (!active) return Promise.resolve()
   const job = active
   return new Promise(resolve => {
