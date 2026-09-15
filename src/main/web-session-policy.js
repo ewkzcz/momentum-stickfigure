@@ -1,5 +1,31 @@
 /** 内嵌网页会话：按初始来源隔离，危险系统权限默认拒绝。 */
 import { createHash } from 'node:crypto'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
+
+const privilegedSessions = new WeakSet()
+export function installPrivilegedPermissions(session) {
+  if (privilegedSessions.has(session)) return
+  privilegedSessions.add(session)
+  const permitted = (contents, permission) => {
+    if (!['clipboard-sanitized-write', 'fullscreen'].includes(permission)) return false
+    return isTrustedIpcSender({ sender: contents, senderFrame: contents?.mainFrame }, ['main', 'preview'])
+  }
+  session.setPermissionCheckHandler((contents, permission, requestingOrigin, details) => {
+    if (details?.isMainFrame === false) return false
+    return permitted(contents, permission) && (() => {
+      try { return new URL(requestingOrigin).origin === new URL(contents.getURL()).origin } catch { return false }
+    })()
+  })
+  session.setPermissionRequestHandler((contents, permission, callback, details) => {
+    callback(details?.isMainFrame !== false && permitted(contents, permission) && (() => {
+      try {
+        const requested = new URL(details?.requestingUrl)
+        const current = new URL(contents.getURL())
+        return requested.protocol === current.protocol && requested.host === current.host && requested.pathname === current.pathname
+      } catch { return false }
+    })())
+  })
+}
 
 export function webOrigin(url) {
   const parsed = new URL(url)

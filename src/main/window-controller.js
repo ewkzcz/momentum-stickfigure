@@ -10,6 +10,7 @@ import { protectPrivilegedNavigation } from './privileged-navigation.js'
 import { registerTrustedWindow, isTrustedIpcSender } from './ipc-sender-policy.js'
 // 导入快捷键存储
 import { assertEnum, assertText, assertHotkeys } from './ipc-parameter-policy.js'
+import { installPrivilegedPermissions } from './web-session-policy.js'
 import { getHotkeysConfig, saveHotkeysConfig } from './hotkeys-storage.js'
 
 /**
@@ -28,6 +29,7 @@ export function createWindowController({ mainDirectory }) {
     const entry = is.dev && process.env.ELECTRON_RENDERER_URL
       ? (preview ? `${process.env.ELECTRON_RENDERER_URL}/canvas-preview.html` : process.env.ELECTRON_RENDERER_URL)
       : pathToFileURL(path.join(mainDirectory, preview ? '../renderer/canvas-preview.html' : '../renderer/index.html')).href
+    installPrivilegedPermissions(window.webContents.session)
     protectPrivilegedNavigation(window.webContents, entry)
     registerTrustedWindow(window.webContents, entry, preview ? 'preview' : 'main')
   }
@@ -180,15 +182,7 @@ export function createWindowController({ mainDirectory }) {
       }
     })
 
-    // 处理 webview 权限请求
-    mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
-      const allowedPermissions = ['media', 'geolocation', 'notifications', 'fullscreen']
-      if (allowedPermissions.includes(permission)) {
-        callback(true)
-      } else {
-        callback(false)
-      }
-    })
+    // 主窗和预览会话权限由protectWindow统一安装，默认拒绝系统敏感权限。
 
     // 监听 webview 附加事件，为每个 webview 设置权限
     if (!webContentsCreatedHandler) {
@@ -202,11 +196,8 @@ export function createWindowController({ mainDirectory }) {
             return { action: 'deny' }
           })
 
-          // 设置 webview 权限
-          contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
-            const allowedPermissions = ['media', 'notifications', 'geolocation', 'fullscreen']
-            callback(allowedPermissions.includes(permission))
-          })
+          // 独立webview未获应用身份，不能覆盖默认会话或按权限类别自动授权。
+          installPrivilegedPermissions(contents.session)
 
         }
       }

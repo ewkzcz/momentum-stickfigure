@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "78e283d",
+  "scope": "主窗预览实际会话权限请求/检查统一策略，webview不得覆盖",
+  "before": { "directory": "temp/window-permissions-before-acceptance-sdV5oc", "passed": 0, "failed": 1, "failure": "主窗口地理位置权限查询不是denied" },
+  "after": { "directory": "temp/window-permissions-after-acceptance-duW9V7", "tests": 4, "passed": 4, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["主窗和预览实际navigator.permissions地理位置为denied", "敏感系统权限默认拒绝，仅已登记固定入口可申请净化剪贴板写入和全屏", "webview不再按权限名直接允许或覆盖已安装会话策略", "主窗重建、预览十轮、BrowserView独立会话与沙箱策略回归"],
+  "limits": ["真实系统剪贴板/全屏权限仍未做系统交互验收", "webview附加配置与初始来源分区仍需后续收尾", "主窗与预览仍共享默认session但权限按窗口身份和请求来源判断"]
+}
