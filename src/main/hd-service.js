@@ -723,6 +723,7 @@ async function detectGPUMode(pythonExec, pythonHome) {
     await runPythonInline(pythonExec, pythonHome, detectScript, [])
     return 'gpu'
   } catch (error) {
+    currentTaskSignal()?.throwIfAborted()
     return 'cpu'
   }
 }

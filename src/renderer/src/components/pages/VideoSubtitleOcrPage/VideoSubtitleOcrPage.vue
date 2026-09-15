@@ -6,6 +6,7 @@
         <div class="loading-spinner"></div>
         <div class="loading-text">正在检查环境...</div>
         <div class="loading-hint">请稍候</div>
+        <n-button :loading="cancelling" :disabled="cancelling" @click="cancelTask">取消检查</n-button>
       </div>
     </div>
     
@@ -31,6 +32,7 @@
                     size="small"
                     type="primary"
                     :loading="envStatus.installing"
+                    :disabled="isProcessing || envStatus.cleaning || envStatus.installing || cancelling"
                     @click="installEnvironment"
                   >
                     {{ envStatus.installing ? '安装中...' : '一键安装环境' }}
@@ -41,6 +43,7 @@
                     type="error"
                     ghost
                     :loading="envStatus.cleaning"
+                    :disabled="isProcessing || envStatus.cleaning || envStatus.installing || cancelling"
                     @click="cleanAndReinstall"
                   >
                     {{ envStatus.cleaning ? '清理中...' : '清理环境' }}
@@ -168,10 +171,16 @@
             <div class="workspace-header-title">视频字幕高精度提取</div>
             <n-space>
               <n-button
+                v-if="isProcessing || envStatus.installing || envStatus.cleaning"
+                :loading="cancelling"
+                :disabled="cancelling"
+                @click="cancelTask"
+              >取消当前任务</n-button>
+              <n-button
                 type="primary"
                 size="large"
                 :loading="isProcessing"
-                :disabled="!selectedVideo || !envStatus.installed"
+                :disabled="!selectedVideo || !envStatus.installed || isProcessing || envStatus.installing || envStatus.cleaning || cancelling"
                 @click="startProcess"
               >
                 {{ isProcessing ? '处理中...' : '开始提取字幕' }}
@@ -282,6 +291,7 @@
 
 <script setup>
 /** 视频字幕提取页面：复用 Python 环境，管理依赖安装、OCR 进度及 AI 纠错输出。 */
+import { useProcessCancellation } from '@renderer/utils/composables/useProcessCancellation.js'
 import { normalizeApiBaseUrl } from '@shared/api-url.js'
 import { ref, reactive, onMounted, onActivated, onBeforeUnmount } from 'vue'
 import { 
@@ -297,6 +307,7 @@ import './VideoSubtitleOcrPage.css'
 const { currentTheme } = useTheme()
 
 const message = useMessage()
+const { cancelling, cancel: cancelTask } = useProcessCancellation(() => window.videoOcr, message)
 const router = useRouter()
 
 // 环境状态

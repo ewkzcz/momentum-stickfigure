@@ -24,6 +24,12 @@ test('受控进程：父进程结束时清理真实后代进程组', { timeout: 
   assert.throws(() => process.kill(Number(result.stdout), 0), { code: 'ESRCH' })
 })
 
+test('受控进程：父进程退出后不等待继承管道的后代自行结束', { timeout: 10000 }, async () => {
+  const script = 'const {spawn}=require("node:child_process");const c=spawn(process.execPath,["-e","setInterval(()=>{},1000)"],{stdio:["ignore",1,2]});process.stdout.write(String(c.pid));c.unref()'
+  const result = await runManagedProcess(process.execPath, ['-e', script], { timeoutMs: 2000 })
+  assert.throws(() => process.kill(Number(result.stdout), 0), { code: 'ESRCH' })
+})
+
 test('受控进程：输出有界及忽略SIGTERM时强制退出', { timeout: 10000 }, async () => {
   await assert.rejects(runManagedProcess(process.execPath, ['-e', 'process.stdout.write("a".repeat(4096))'], { maxOutputBytes: 1024 }), /输出超过限制/)
   let child

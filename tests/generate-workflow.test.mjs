@@ -286,13 +286,15 @@ test('GeneratePage：原任务持久化、共享输入输出、生成编辑恢�
       if (await prompt.count()) assert.equal(await prompt.isDisabled(), true)
       for (const control of await panel.locator('.media-remove').all()) assert.equal(await control.isDisabled(), true)
       const beforeCalls = await calls(application)
-      await button(label).click({ force: true })
+      await assert.rejects(button(label).click({ timeout: 300 }), /Timeout/, '真实点击应被禁用按钮阻止')
       // 1、等待真实主进程与页面完成两轮事件循环，不以固定长延迟代替确认。
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
       assert.deepEqual(await calls(application), beforeCalls, '同模式忙碌时不得重复调用服务')
       const tasks = await diskTasks(root, taskCount, status)
-      assert.equal(await panel.getByRole('button', { name: /取消|停止/ }).count(), 0)
-      evidence.busy.push({ channel, state: normalize(await publicState(page), root), tasks: normalizeTasks(tasks, root), calls: normalize(beforeCalls, root), cancelButtonCount: 0 })
+      const cancelButtonCount = channel.startsWith('hd:') ? 1 : 0
+      assert.equal(await panel.getByRole('button', { name: /取消|停止/ }).count(), cancelButtonCount)
+      if (cancelButtonCount) assert.equal(await button('取消本地处理').isEnabled(), true)
+      evidence.busy.push({ channel, state: normalize(await publicState(page), root), tasks: normalizeTasks(tasks, root), calls: normalize(beforeCalls, root), cancelButtonCount })
     }
 
     // 3、空提示不建任务；缺 Key 建立原失败任务，但不触发服务。

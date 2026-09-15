@@ -726,6 +726,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 // 暴露视频字幕OCR API
 contextBridge.exposeInMainWorld('videoOcr', {
+  cancel: () => ipcRenderer.invoke('video-ocr:cancel'),
   /**
    * 检查字幕识别环境。
    * 处理流程：

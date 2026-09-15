@@ -44,7 +44,10 @@ export function runManagedProcess(command, args, { signal, timeoutMs = 30 * 60 *
         })).catch(error => { failure ||= error })
       } else {
         try { process.kill(-child.pid, force ? 'SIGKILL' : 'SIGTERM') }
-        catch (error) { if (error.code !== 'ESRCH') failure ||= error }
+        catch (error) {
+          // EPERM可能是macOS已消失的组；最终仍必须通过系统进程表确认，不能直接当作成功。
+          if (error.code !== 'ESRCH' && error.code !== 'EPERM') failure ||= error
+        }
       }
     }
     const abort = reason => {
@@ -65,6 +68,8 @@ export function runManagedProcess(command, args, { signal, timeoutMs = 30 * 60 *
       child.stdout.on('data', chunk => append('stdout', chunk))
       child.stderr.on('data', chunk => append('stderr', chunk))
       child.once('error', error => { failure ||= error })
+      // 后代可能继承stdout/stderr；父进程退出后立即清理，不能等后代关闭管道才触发close。
+      child.once('exit', () => terminate(true))
       child.once('close', async (code, exitSignal) => {
         clearTimeout(timer)
         clearTimeout(escalation)

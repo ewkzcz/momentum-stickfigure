@@ -15,7 +15,7 @@ test('高清工具来源：预览拒绝配置、任务与图片读取，主窗�
     const read = await preview.evaluate(() => window.electronAPI.invoke('hd:get-initial-data'))
     assert.equal(read.success, false, '预览不得读取高清环境配置')
     assert.equal(read.data, undefined)
-    for (const channel of ['hd:save-config', 'hd:run-removebg', 'hd:run-highres', 'hd:get-image-preview']) {
+    for (const channel of ['hd:save-config', 'hd:run-removebg', 'hd:run-highres', 'hd:get-image-preview', 'hd:cancel']) {
       const response = await preview.evaluate(channel => window.electronAPI.invoke(channel, {}), channel)
       assert.equal(response.success, false)
       assert.match(response.message, /未授权/)

@@ -6,7 +6,9 @@ import { app, ipcMain } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import os from 'os'
-import { spawn } from 'child_process'
+import { StringDecoder } from 'node:string_decoder'
+import { runManagedProcess, processAbortError } from './managed-process.mjs'
+import { currentTaskSignal, runOwnedTask, cancelOwnedTasks } from './owned-process-tasks.mjs'
 import { buildApiUrl } from '../shared/api-url.js'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
@@ -15,6 +17,23 @@ import { isTrustedIpcSender } from './ipc-sender-policy.js'
 const DEFAULT_OUTPUT_DIR = path.join(os.homedir(), 'Documents', 'VideoSubtitles')
 
 // ==================== Python 执行辅助 ====================
+
+function throwIfTaskCancelled(error) {
+  const signal = currentTaskSignal()
+  if (signal?.aborted) throw signal.reason || processAbortError()
+  if (error?.name === 'AbortError') throw error
+}
+
+/** 只旁听输出，进程终止、超时与结算全部交给共享管理器。 */
+function runOcrProcess(command, args, options = {}) {
+  throwIfTaskCancelled()
+  return runManagedProcess(command, args, { ...options, signal: currentTaskSignal() })
+}
+
+// 普通非零退出仍允许原来的结果标记回退；取消、超时与输出超限不能当成功。
+function isProcessExitFailure(error) {
+  return error?.code === 'PROCESS_EXIT_FAILED' || /^子进程执行失败，退出码 /.test(error?.message || '')
+}
 
 /**
  * 解析用户指定的 Python 文件或安装目录。
@@ -377,57 +396,22 @@ async function checkEnvironment(pythonHome) {
     const results = {}
     
     for (const pkg of packagesToCheck) {
-      await Promise.race([
-        new Promise((resolve, reject) => {
-          const child = spawn(pythonExec, ['-m', 'pip', 'show', pkg], {
-            env,
-            stdio: ['ignore', 'pipe', 'pipe']
-          })
-          
-          let stdout = ''
-          child.stdout.on('data', (chunk) => {
-            stdout += chunk.toString()
-          })
-          
-          child.on('close', (code) => {
-            if (code === 0 && stdout.includes(`Name: ${pkg}`)) {
-              // 提取版本号
-              const versionMatch = stdout.match(/Version:\s*([^\s]+)/)
-              const version = versionMatch ? versionMatch[1] : 'unknown'
-              
-              console.log(`[Video OCR] ${pkg}包已安装，版本: ${version}`)
-              
-              // 对于 paddleocr，检查是否是 2.7.0.0 版本
-              if (pkg === 'paddleocr') {
-                if (version === '2.7.0.0') {
-                  results[pkg] = { installed: true, version, correct: true }
-                } else {
-                  results[pkg] = { installed: true, version, correct: false }
-                  console.warn(`[Video OCR] 警告：PaddleOCR 版本不匹配，当前: ${version}，期望: 2.7.0.0`)
-                }
-              } else {
-                results[pkg] = { installed: true, version, correct: true }
-              }
-              resolve()
-            } else {
-              console.log(`[Video OCR] ${pkg}未安装`)
-              results[pkg] = { installed: false, version: null, correct: false }
-              resolve()
-            }
-          })
-          
-          child.on('error', (error) => {
-            console.error(`[Video OCR] 检查${pkg}失败:`, error)
-            results[pkg] = { installed: false, version: null, correct: false }
-            resolve()
-          })
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error(`检查${pkg}超时`)), 3000)
-        )
-      ]).catch(() => {
+      try {
+        const { stdout } = await runOcrProcess(pythonExec, ['-m', 'pip', 'show', pkg], { env, timeoutMs: 3000 })
+        if (stdout.includes(`Name: ${pkg}`)) {
+          const versionMatch = stdout.match(/Version:\s*([^\s]+)/)
+          const version = versionMatch ? versionMatch[1] : 'unknown'
+          const correct = pkg !== 'paddleocr' || version === '2.7.0.0'
+          results[pkg] = { installed: true, version, correct }
+          console.log(`[Video OCR] ${pkg}包已安装，版本: ${version}`)
+          if (!correct) console.warn(`[Video OCR] 警告：PaddleOCR 版本不匹配，当前: ${version}，期望: 2.7.0.0`)
+        } else {
+          results[pkg] = { installed: false, version: null, correct: false }
+        }
+      } catch (error) {
+        throwIfTaskCancelled(error)
         results[pkg] = { installed: false, version: null, correct: false }
-      })
+      }
     }
     
     // 3、结合识别工具版本与引擎安装状态生成最终结论。
@@ -454,6 +438,7 @@ async function checkEnvironment(pythonHome) {
       details: results
     }
   } catch (error) {
+    throwIfTaskCancelled(error)
     return { installed: false, message: error.message }
   }
 }
@@ -496,27 +481,16 @@ async function cleanEnvironment(pythonHome, progressCallback) {
     })
     
     try {
-      await new Promise((resolve) => {
-        const child = spawn(pythonExec, ['-m', 'pip', 'uninstall', '-y', item.pkg], {
-          env,
-          stdio: ['ignore', 'pipe', 'pipe']
-        })
-        
-        child.stdout.on('data', (chunk) => {
-          // 不输出详细信息
-        })
-        
-        child.on('close', () => {
-          progressCallback?.({ percentage: progress, message: `正在卸载旧版本...`, log: `  ✓ ${item.displayName}卸载完成` })
-          resolve()
-        })
-      })
+      await runOcrProcess(pythonExec, ['-m', 'pip', 'uninstall', '-y', item.pkg], { env })
+      progressCallback?.({ percentage: progress, message: `正在卸载旧版本...`, log: `  ✓ ${item.displayName}卸载完成` })
     } catch (e) {
+      throwIfTaskCancelled(e)
       console.log(`[Video OCR] 跳过卸载 ${item.pkg}`)
     }
   }
   
   // 3、清理缓存，并在删除工具不可用时使用文件系统接口。
+  throwIfTaskCancelled()
   progressCallback?.({ percentage: 50, message: '正在清理缓存...', log: '\n[清理] 正在清理缓存文件' })
   
   const paddlexCachePath = path.join(os.homedir(), '.paddlex', 'official_models')
@@ -525,14 +499,18 @@ async function cleanEnvironment(pythonHome, progressCallback) {
       // 尝试使用 rimraf 清理
       try {
         const { rimraf } = await import('rimraf')
+        throwIfTaskCancelled()
         await rimraf(paddlexCachePath)
+        throwIfTaskCancelled()
         progressCallback?.({ percentage: 70, message: '正在清理缓存...', log: '  ✓ 缓存已清理' })
       } catch (rimrafError) {
+        throwIfTaskCancelled(rimrafError)
         // rimraf 失败，使用 fs 递归删除
         fs.rmSync(paddlexCachePath, { recursive: true, force: true })
         progressCallback?.({ percentage: 70, message: '正在清理缓存...', log: '  ✓ 缓存已清理' })
       }
     } catch (e) {
+      throwIfTaskCancelled(e)
       console.error('[Video OCR] 清理缓存失败:', e)
       progressCallback?.({ percentage: 70, message: '正在清理缓存...', log: '  ! 缓存清理失败' })
     }
@@ -579,59 +557,23 @@ async function installEnvironment(pythonHome, useMirror, progressCallback) {
 
   // 2、先升级安装工具，再清理旧版识别依赖。
   progressCallback?.({ percentage: 5, message: '正在准备环境...', log: '[1/5] 正在检查安装工具' })
-  await new Promise((resolve, reject) => {
+  try {
     const pipArgs = ['-m', 'pip', 'install', '--upgrade', 'pip', ...mirrorArgs]
-    const child = spawn(pythonExec, pipArgs, {
-      env,
-      stdio: ['ignore', 'pipe', 'pipe']
-    })
-
-    let stdout = ''
-    let stderr = ''
-    
-    child.stdout.on('data', (chunk) => {
-      const text = chunk.toString()
-      stdout += text
-      // 不输出详细日志
-    })
-    
-    child.stderr.on('data', (chunk) => {
-      const text = chunk.toString()
-      stderr += text
-      // 不输出详细日志
-    })
-
-    child.on('close', (code) => {
-      if (code === 0) {
-        progressCallback?.({ percentage: 5, message: '正在准备环境...', log: '  ✓ 安装工具就绪' })
-        resolve()
-      } else {
-        console.warn('pip升级失败:', stderr)
-        progressCallback?.({ percentage: 5, message: '正在准备环境...', log: '  ✓ 安装工具就绪' })
-        resolve() // 继续执行，即使pip升级失败
-      }
-    })
-  })
+    await runOcrProcess(pythonExec, pipArgs, { env })
+  } catch (error) {
+    throwIfTaskCancelled(error)
+    console.warn('pip升级失败:', error.stderr || error.message)
+    // 普通升级失败仍继续，保持原有行为。
+  }
+  progressCallback?.({ percentage: 5, message: '正在准备环境...', log: '  ✓ 安装工具就绪' })
 
   // 先卸载旧版本（如果存在）
   progressCallback?.({ percentage: 10, message: '正在检查环境...', log: '\n[2/5] 正在检查旧版本' })
   try {
-    await new Promise((resolve) => {
-      const uninstall = spawn(pythonExec, ['-m', 'pip', 'uninstall', '-y', 'paddleocr', 'paddlex'], {
-        env,
-        stdio: ['ignore', 'pipe', 'pipe']
-      })
-      
-      uninstall.stdout.on('data', (chunk) => {
-        // 不输出详细信息
-      })
-      
-      uninstall.on('close', () => {
-        progressCallback?.({ percentage: 10, message: '正在检查环境...', log: '  ✓ 环境检查完成' })
-        resolve()
-      })
-    })
+    await runOcrProcess(pythonExec, ['-m', 'pip', 'uninstall', '-y', 'paddleocr', 'paddlex'], { env })
+    progressCallback?.({ percentage: 10, message: '正在检查环境...', log: '  ✓ 环境检查完成' })
   } catch (e) {
+    throwIfTaskCancelled(e)
     console.log('[Video OCR] 跳过卸载步骤')
     progressCallback?.({ percentage: 10, message: '正在检查环境...', log: '  ✓ 环境检查完成' })
   }
@@ -702,64 +644,27 @@ async function installEnvironment(pythonHome, useMirror, progressCallback) {
       })
       
       try {
-        await new Promise((resolve, reject) => {
-          // 使用 python -m pip install 方式
-          const args = ['-m', 'pip', 'install', ...source.args]
-          
-          const child = spawn(pythonExec, args, {
-            env,
-            stdio: ['ignore', 'pipe', 'pipe']
-          })
-
-          let stdout = ''
-          let stderr = ''
-          
-          child.stdout.on('data', (chunk) => {
-            const text = chunk.toString()
-            stdout += text
-            // 不输出详细的stdout信息，避免暴露技术细节
-          })
-          
-          child.stderr.on('data', (chunk) => {
-            const text = chunk.toString()
-            stderr += text
-            // pip的输出通常在stderr，简化输出避免暴露技术细节
-            const lines = text.split('\n').filter(line => line.trim())
-            lines.forEach(line => {
-              // 只显示关键信息：成功安装
-              const shouldShow = 
-                line.includes('Successfully installed') ||
-                line.includes('Requirement already satisfied')
-              
-              if (shouldShow) {
-                progressCallback?.({ 
-                  percentage: stepPercentage, 
-                  message: `正在安装${displayName}...`,
-                  log: `      安装中...`
-                })
+        await runOcrProcess(pythonExec, ['-m', 'pip', 'install', ...source.args], {
+          env,
+          onSpawn(child) {
+            child.stderr.on('data', (chunk) => {
+              const lines = chunk.toString().split('\n').filter(line => line.trim())
+              for (const line of lines) {
+                if (line.includes('Successfully installed') || line.includes('Requirement already satisfied')) {
+                  progressCallback?.({ percentage: stepPercentage, message: `正在安装${displayName}...`, log: '      安装中...' })
+                }
               }
             })
-          })
-
-          child.on('close', (code) => {
-            if (code === 0) {
-              progressCallback?.({ 
-                percentage: stepPercentage, 
-                message: `正在安装${displayName}...`,
-                log: `    ✓ ${displayName}安装成功`
-              })
-              resolve()
-            } else {
-              reject(new Error(`${displayName}安装失败`))
-            }
-          })
+          }
         })
+        progressCallback?.({ percentage: stepPercentage, message: `正在安装${displayName}...`, log: `    ✓ ${displayName}安装成功` })
         
         // 安装成功，跳出循环
         installed = true
         break
         
       } catch (error) {
+        throwIfTaskCancelled(error)
         lastError = error
         progressCallback?.({ 
           percentage: stepPercentage, 
@@ -794,51 +699,36 @@ async function installEnvironment(pythonHome, useMirror, progressCallback) {
   progressCallback?.({ percentage: 90, message: '下载模型文件...', log: '\n[5/5] 初始化模型...' })
   
   // 4、首次初始化会自动下载模型，并将下载信息发送给页面。
-  await new Promise((resolve, reject) => {
-    const initScript = 'from paddleocr import PaddleOCR; import warnings; warnings.filterwarnings("ignore"); ocr = PaddleOCR(use_angle_cls=True, lang="ch", use_gpu=False, show_log=False); print("OK")'
-    const child = spawn(pythonExec, ['-c', initScript], {
+  const initScript = 'from paddleocr import PaddleOCR; import warnings; warnings.filterwarnings("ignore"); ocr = PaddleOCR(use_angle_cls=True, lang="ch", use_gpu=False, show_log=False); print("OK")'
+  progressCallback?.({ percentage: 90, message: '下载模型文件...', log: '  正在初始化...' })
+  try {
+    await runOcrProcess(pythonExec, ['-c', initScript], {
       env,
-      stdio: ['ignore', 'pipe', 'pipe']
-    })
-    
-    progressCallback?.({ percentage: 90, message: '下载模型文件...', log: '  正在初始化...' })
-
-    let stdout = ''
-    let stderr = ''
-    
-    child.stdout.on('data', (chunk) => {
-      const text = chunk.toString()
-      stdout += text
-      const lines = text.split('\n').filter(line => line.trim())
-      lines.forEach(line => {
-        if (line.length > 0) {
-          progressCallback?.({ percentage: 90, message: '下载模型文件...', log: `  ${line}` })
-        }
-      })
-    })
-    
-    child.stderr.on('data', (chunk) => {
-      const text = chunk.toString()
-      stderr += text
-      const lines = text.split('\n').filter(line => line.trim())
-      lines.forEach(line => {
-        // PaddleOCR的下载进度信息
-        if (line.includes('download') || line.includes('model') || line.includes('%')) {
-          progressCallback?.({ percentage: 90, message: '下载模型文件...', log: `  ${line}` })
-        }
-      })
-    })
-
-    child.on('close', (code) => {
-      if (code === 0 || stdout.includes('OK')) {
-        progressCallback?.({ percentage: 95, message: '下载模型文件...', log: '  ✓ 模型初始化完成' })
-        resolve()
-      } else {
-        progressCallback?.({ percentage: 95, message: '下载模型文件...', log: `  ✗ 模型下载失败: ${stderr}` })
-        reject(new Error('模型下载失败: ' + stderr))
+      onSpawn(child) {
+        child.stdout.on('data', (chunk) => {
+          for (const line of chunk.toString().split('\n').filter(line => line.trim())) {
+            progressCallback?.({ percentage: 90, message: '下载模型文件...', log: `  ${line}` })
+          }
+        })
+        child.stderr.on('data', (chunk) => {
+          for (const line of chunk.toString().split('\n').filter(line => line.trim())) {
+            if (line.includes('download') || line.includes('model') || line.includes('%')) {
+              progressCallback?.({ percentage: 90, message: '下载模型文件...', log: `  ${line}` })
+            }
+          }
+        })
       }
     })
-  })
+  } catch (error) {
+    throwIfTaskCancelled(error)
+    if (!isProcessExitFailure(error) || !error.stdout?.includes('OK')) {
+      const detail = error.stderr || error.message
+      progressCallback?.({ percentage: 95, message: '下载模型文件...', log: `  ✗ 模型下载失败: ${detail}` })
+      throw new Error('模型下载失败: ' + detail)
+    }
+  }
+  throwIfTaskCancelled()
+  progressCallback?.({ percentage: 95, message: '下载模型文件...', log: '  ✓ 模型初始化完成' })
 
   progressCallback?.({ percentage: 100, message: '安装完成', log: '\n✓ 全部安装完成！' })
   progressCallback?.({ 
@@ -886,6 +776,7 @@ async function processVideo(payload, progressCallback) {
   }
 
   // 2、创建输出目录，并准备本次任务的文件路径与临时脚本。
+  throwIfTaskCancelled()
   const finalOutputDir = outputDir || DEFAULT_OUTPUT_DIR
   if (!fs.existsSync(finalOutputDir)) {
     fs.mkdirSync(finalOutputDir, { recursive: true })
@@ -909,7 +800,7 @@ async function processVideo(payload, progressCallback) {
     const env = buildPythonEnv(pythonHome)
 
     // 3、按脚本约定的标记收集正文、完成状态和阶段进度。
-    const { lineCount, ocrResultLines } = await new Promise((resolve, reject) => {
+    const { lineCount, ocrResultLines } = await (async () => {
       const args = [
         tempScriptPath,
         videoPath,
@@ -923,84 +814,60 @@ async function processVideo(payload, progressCallback) {
         message: '初始化模型...' 
       })
 
-      const child = spawn(pythonExec, args, {
-        env,
-        stdio: ['ignore', 'pipe', 'pipe']
-      })
-
-      let stdout = ''
-      let stderr = ''
       let lineCount = 0
       let ocrResultLines = []  // 在内存中收集OCR结果
       let isCollectingResult = false
 
-      child.stdout.on('data', (chunk) => {
-        const data = chunk.toString()
-        stdout += data
-        
-        const lines = data.split('\n')
-        for (const line of lines) {
-          const trimmed = line.trim()
-          if (!trimmed) continue
-          
-          // 开始收集OCR结果
-          if (trimmed === 'OCR_RESULT_START') {
-            isCollectingResult = true
-            console.log('[Video OCR] 开始接收OCR结果（内存）')
-            continue
-          }
-          
-          // 结束收集OCR结果
-          if (trimmed === 'OCR_RESULT_END') {
-            isCollectingResult = false
-            lineCount = ocrResultLines.length
-            console.log(`[Video OCR] OCR结果接收完成（内存），共${lineCount}行`)
-            continue
-          }
-          
-          // 收集OCR结果行
-          if (isCollectingResult) {
-            ocrResultLines.push(trimmed)
-            continue
-          }
-          
-          // 其他日志输出
-          console.log('[Video OCR] Python stdout:', trimmed)
+      // 按完整行解码，避免进度标记及中文字幕跨数据块时被截断。
+      const onStdoutLine = (line) => {
+        const trimmed = line.trim()
+        if (!trimmed) return
 
-          // 解析进度信息
-          const progressMatch = trimmed.match(/PROGRESS:(\d+)/)
-          if (progressMatch) {
-            const pythonPercentage = parseInt(progressMatch[1])
-            // Python 的进度映射到 5-90% 区间（0-2% 用于AI测试，90-100% 用于AI纠错）
-            const percentage = 5 + Math.floor(pythonPercentage * 0.85)
-            console.log(`[Video OCR] 进度更新: ${percentage}%`)
-            
-            // 根据进度阶段显示不同的消息
-            let message = ''
-            if (percentage <= 30) {
-              message = `正在对视频进行预处理... ${percentage}%`
-            } else {
-              message = `正在识别字幕... ${percentage}%`
-            }
-            
-            progressCallback?.({ percentage, message })
-          }
-
-          // 解析成功信息
-          const successMatch = trimmed.match(/SUCCESS:(\d+)/)
-          if (successMatch) {
-            lineCount = parseInt(successMatch[1])
-            console.log(`[Video OCR] 识别完成，共${lineCount}行`)
-          }
+        // 开始收集OCR结果
+        if (trimmed === 'OCR_RESULT_START') {
+          isCollectingResult = true
+          console.log('[Video OCR] 开始接收OCR结果（内存）')
+          return
         }
-      })
+
+        // 结束收集OCR结果
+        if (trimmed === 'OCR_RESULT_END') {
+          isCollectingResult = false
+          lineCount = ocrResultLines.length
+          console.log(`[Video OCR] OCR结果接收完成（内存），共${lineCount}行`)
+          return
+        }
+
+        if (isCollectingResult) {
+          ocrResultLines.push(trimmed)
+          return
+        }
+
+        console.log('[Video OCR] Python stdout:', trimmed)
+        const progressMatch = trimmed.match(/PROGRESS:(\d+)/)
+        if (progressMatch) {
+          const pythonPercentage = parseInt(progressMatch[1])
+          // Python 进度映射到 5-90%，其余区间留给 AI 测试和纠错。
+          const percentage = 5 + Math.floor(pythonPercentage * 0.85)
+          console.log(`[Video OCR] 进度更新: ${percentage}%`)
+          const message = percentage <= 30
+            ? `正在对视频进行预处理... ${percentage}%`
+            : `正在识别字幕... ${percentage}%`
+          progressCallback?.({ percentage, message })
+        }
+
+        const successMatch = trimmed.match(/SUCCESS:(\d+)/)
+        if (successMatch) {
+          lineCount = parseInt(successMatch[1])
+          console.log(`[Video OCR] 识别完成，共${lineCount}行`)
+        }
+      }
 
       let modelInitialized = false
       let lastProgressTime = Date.now()
       
-      child.stderr.on('data', (chunk) => {
+      const onStderr = (chunk) => {
         const text = chunk.toString()
-        stderr += text
         
         // 实时输出stderr日志（PaddleOCR的初始化信息在这里）
         const lines = text.split('\n').filter(line => line.trim())
@@ -1050,25 +917,44 @@ async function processVideo(payload, progressCallback) {
             })
           }
         })
-      })
+      }
 
-      child.on('error', (error) => {
-        console.error('[Video OCR] Python进程错误:', error)
-        reject(error)
-      })
-
-      child.on('close', (code) => {
-        console.log(`[Video OCR] Python进程结束，退出码: ${code}`)
-        if (code === 0 || stdout.includes('SUCCESS') || ocrResultLines.length > 0) {
-          resolve({ lineCount, ocrResultLines })
-        } else {
+      const decoder = new StringDecoder('utf8')
+      let pendingLine = ''
+      const flushStdout = () => {
+        pendingLine += decoder.end()
+        if (pendingLine) onStdoutLine(pendingLine)
+        pendingLine = ''
+      }
+      try {
+        await runOcrProcess(pythonExec, args, {
+          env,
+          onSpawn(child) {
+            child.stdout.on('data', (chunk) => {
+              pendingLine += decoder.write(chunk)
+              const lines = pendingLine.split('\n')
+              pendingLine = lines.pop()
+              lines.forEach(onStdoutLine)
+            })
+            child.stdout.on('end', flushStdout)
+            child.stderr.on('data', onStderr)
+          }
+        })
+      } catch (error) {
+        throwIfTaskCancelled(error)
+        flushStdout()
+        if (!isProcessExitFailure(error) || (!error.stdout?.includes('SUCCESS') && ocrResultLines.length === 0)) {
+          const stderr = error.stderr || ''
           const errorMatch = stderr.match(/ERROR:(.+)/)
           const errorMsg = errorMatch ? errorMatch[1] : stderr
-          console.error('[Video OCR] 处理失败:', errorMsg)
-          reject(new Error(errorMsg || '视频处理失败'))
+          console.error('[Video OCR] 处理失败:', errorMsg || error.message)
+          throw new Error(errorMsg || (isProcessExitFailure(error) ? '视频处理失败' : error.message) || '视频处理失败')
         }
-      })
-    })
+      }
+      throwIfTaskCancelled()
+      flushStdout()
+      return { lineCount, ocrResultLines }
+    })()
 
     // 4、在内存中合并识别结果，并在可选纠错完成后写入文件。
     let finalContent = ocrResultLines.join('\n')
@@ -1092,6 +978,7 @@ async function processVideo(payload, progressCallback) {
     }
 
     // 只有最终结果才写入文件
+    throwIfTaskCancelled()
     fs.writeFileSync(outputPath, finalContent, 'utf-8')
     console.log(`[Video OCR] 最终结果已保存: ${outputPath}`)
 
@@ -1532,7 +1419,7 @@ export function registerVideoOcrServiceHandlers() {
   ipcMain.handle('video-ocr:check-environment', async (event, pythonHome) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的字幕识别操作来源')
-      const envCheck = await checkEnvironment(pythonHome)
+      const envCheck = await runOwnedTask(event.sender, 'ocr', () => checkEnvironment(pythonHome))
       return {
         success: true,
         data: envCheck
@@ -1560,10 +1447,10 @@ export function registerVideoOcrServiceHandlers() {
         // 1、同步当前进度与页面展示数据。
         lastProgress = progress
         // 发送进度和日志到渲染进程
-        event.sender.send('video-ocr:progress', progress)
+        if (!event.sender.isDestroyed()) event.sender.send('video-ocr:progress', progress)
       }
 
-      await cleanEnvironment(pythonHome, progressCallback)
+      await runOwnedTask(event.sender, 'ocr', () => cleanEnvironment(pythonHome, progressCallback))
       
       return {
         success: true,
@@ -1592,10 +1479,10 @@ export function registerVideoOcrServiceHandlers() {
         // 1、向当前任务页面同步安装进度和日志。
         lastProgress = progress
         // 发送进度和日志到渲染进程
-        event.sender.send('video-ocr:progress', progress)
+        if (!event.sender.isDestroyed()) event.sender.send('video-ocr:progress', progress)
       }
 
-      await installEnvironment(pythonHome, useMirror !== false, progressCallback)
+      await runOwnedTask(event.sender, 'ocr', () => installEnvironment(pythonHome, useMirror !== false, progressCallback))
       
       return {
         success: true,
@@ -1625,10 +1512,10 @@ export function registerVideoOcrServiceHandlers() {
         // 1、同步视频处理和可选纠错阶段的进度。
         lastProgress = progress
         // 发送进度到渲染进程
-        event.sender.send('video-ocr:progress', progress)
+        if (!event.sender.isDestroyed()) event.sender.send('video-ocr:progress', progress)
       }
 
-      const result = await processVideo(payload, progressCallback)
+      const result = await runOwnedTask(event.sender, 'ocr', () => processVideo(payload, progressCallback))
       
       return {
         success: true,
@@ -1640,6 +1527,15 @@ export function registerVideoOcrServiceHandlers() {
         success: false,
         message: error.message
       }
+    }
+  })
+
+  ipcMain.handle('video-ocr:cancel', async (event) => {
+    try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的字幕识别操作来源')
+      return await cancelOwnedTasks(event.sender, 'ocr')
+    } catch (error) {
+      return { success: false, message: error.message }
     }
   })
 
@@ -1657,5 +1553,6 @@ export function unregisterVideoOcrServiceHandlers() {
   ipcMain.removeHandler('video-ocr:clean-environment')
   ipcMain.removeHandler('video-ocr:install-environment')
   ipcMain.removeHandler('video-ocr:process-video')
+  ipcMain.removeHandler('video-ocr:cancel')
   console.log('[Video OCR] IPC 处理器已移除')
 }

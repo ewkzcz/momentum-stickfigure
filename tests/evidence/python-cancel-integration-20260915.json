@@ -1,0 +1,9 @@
+{
+  "scope": "批准项3：OCR受管进程与页面取消入口",
+  "baseline": "原OCR七处spawn及Promise.race检查超时不终止子进程，页面无取消入口；以源码基线和既有工作流作为基线，未执行用户Python环境。",
+  "changes": ["OCR检查、卸载、升级、安装、模型与识别统一受管进程，保持实时日志和普通失败回退", "取消后停止后续安装、缓存删除及最终字幕写入", "主窗口与预览的取消来源隔离", "两个高清入口及OCR页面提供取消，等待后端响应，原finally释放忙碌状态", "父进程exit即清理继承管道的后代，close后确认组消失"],
+  "firstAcceptance": {"directory": "temp/python-cancel-integration-acceptance-raMWnL", "passed": 26, "failed": 2, "failures": ["原工作流断言高清无取消按钮，与批准新增功能冲突", "父进程exit已清理后，close重复kill返回EPERM"]},
+  "resolutions": ["工作流明确要求高清有一个可用取消按钮，AI生成仍无取消按钮；新增真实点击取消与恢复测试，不改图像参考", "终止阶段EPERM交最终系统进程表确认；存在成员仍拒绝，不直接认定成功", "原测试force点击改为真实点击必须因禁用而超时，保留调用次数断言"],
+  "after": {"directory": "temp/python-cancel-recheck-acceptance-a1iSfb", "passed": 29, "failed": 0, "skipped": 0, "durationMs": 251100.963708, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true},
+  "limits": ["进程生命周期使用隔离真实Node替代Python边界，未执行pip或真实模型", "页面取消使用受控服务；进程退出由独立真实handler测试验证", "Windows taskkill未实测", "OCR后续AI网络阶段取消仍待接入；实际应用退出运行任务场景仍待补充", "本轮不是累计完整验收，Python计划项仍在进行"]
+}

@@ -62,7 +62,7 @@
             :type="activeMode === 'remove' ? 'primary' : 'default'"
             :ghost="activeMode !== 'remove'"
             :loading="removeState.isProcessing"
-            :disabled="removeState.isProcessing || !isToolkitAvailable"
+            :disabled="removeState.isProcessing || highresState.isProcessing || cancelling || !isToolkitAvailable"
             @click="executeMode('remove')"
           >
             开始抠图
@@ -74,11 +74,17 @@
             :type="activeMode === 'highres' ? 'primary' : 'default'"
             :ghost="activeMode !== 'highres'"
             :loading="highresState.isProcessing"
-            :disabled="highresState.isProcessing || !isToolkitAvailable"
+            :disabled="removeState.isProcessing || highresState.isProcessing || cancelling || !isToolkitAvailable"
             @click="executeMode('highres')"
           >
             开始高清
           </n-button>
+          <n-button
+            v-if="removeState.isProcessing || highresState.isProcessing"
+            :loading="cancelling"
+            :disabled="cancelling"
+            @click="cancelLocalTask"
+          >取消本地处理</n-button>
         </div>
         <div class="mode-toolbar-right">
           <n-button
@@ -411,8 +417,10 @@ import { useTaskStore } from '@renderer/stores/taskStore.js'
 import { buildGeminiDragConfig } from '@renderer/utils/geminiOutputConfig.js'
 import PromptTemplateTrigger from '@renderer/components/shared/PromptTemplateTrigger.vue'
 import { useGenerateWorkflow } from './composables/useGenerateWorkflow.js'
+import { useProcessCancellation } from '@renderer/utils/composables/useProcessCancellation.js'
 
 const message = useMessage()
+const { cancelling, cancel: cancelLocalTask } = useProcessCancellation(() => window.hdToolkit, message)
 const dialog = useDialog()
 const router = useRouter()
 const taskStore = useTaskStore()

@@ -107,10 +107,12 @@
                 </div>
                 <div class="hd-action-row">
                   <n-space :size="12">
+                    <n-button v-if="removeState.isProcessing || highresState.isProcessing" :loading="cancelling" :disabled="cancelling" @click="cancelLocalTask">取消本地处理</n-button>
                     <n-button
                       type="primary"
                       size="large"
                       :loading="removeState.isProcessing"
+                      :disabled="removeState.isProcessing || highresState.isProcessing || cancelling"
                       @click="runRemoveTask"
                     >
                       {{ removeState.isProcessing ? '正在抠图...' : '开始抠图' }}
@@ -245,10 +247,12 @@
                 </div>
                 <div class="hd-action-row">
                   <n-space :size="12">
+                    <n-button v-if="removeState.isProcessing || highresState.isProcessing" :loading="cancelling" :disabled="cancelling" @click="cancelLocalTask">取消本地处理</n-button>
                     <n-button
                       type="primary"
                       size="large"
                       :loading="highresState.isProcessing"
+                      :disabled="removeState.isProcessing || highresState.isProcessing || cancelling"
                       @click="runHighresTask"
                     >
                       {{ highresState.isProcessing ? '正在高清放大...' : '开始高清放大' }}
@@ -311,9 +315,11 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount, onActivated, watch, nextTick } from 'vue'
 import { useMessage, NTabs, NTabPane, NCard, NSpace, NText, NButton, NSelect, NCheckbox, NInputNumber, NTag } from 'naive-ui'
 import { useRouter } from 'vue-router'
+import { useProcessCancellation } from '@renderer/utils/composables/useProcessCancellation.js'
 import { buildGeminiDragConfig } from '@renderer/utils/geminiOutputConfig.js'
 
 const message = useMessage()
+const { cancelling, cancel: cancelLocalTask } = useProcessCancellation(() => window.hdToolkit, message)
 const router = useRouter()
 
 const ACTIVE_TABS = ['remove', 'highres']
