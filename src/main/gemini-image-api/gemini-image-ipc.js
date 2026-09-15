@@ -6,6 +6,7 @@
 
 import { ipcMain } from 'electron';
 import path from 'path';
+import { isTrustedIpcSender } from '../ipc-sender-policy.js';
 
 // 直接从 ESM 模块中按需导入需要的函数
 import { apiWrapper } from './gemini-image-service.js';
@@ -32,6 +33,7 @@ export function registerFalApiHandlers() {
   // 1、注册图像生成入口，校验配置后调用业务服务。
   ipcMain.handle('fal-generate-image', async (event, options) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
       const config = getConfig(options);
       const validation = validateConfig(config);
 
@@ -75,6 +77,7 @@ export function registerFalApiHandlers() {
   // 2、注册图像编辑入口，额外检查每张原始图片。
   ipcMain.handle('fal-edit-image', async (event, options) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
       const config = getConfig(options);
       const validation = validateConfig(config);
 
@@ -134,6 +137,7 @@ export function registerFalApiHandlers() {
   // 3、注册配置合并及有效性查询。
   ipcMain.handle('fal-get-config', async (event, userConfig = {}) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
       const config = getConfig(userConfig);
       const validation = validateConfig(config);
 
@@ -158,6 +162,7 @@ export function registerFalApiHandlers() {
   // 4、注册单张图片校验及信息查询。
   ipcMain.handle('fal-validate-image', async (event, imagePath) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
       const isValid = validateImageFile(imagePath);
       let imageInfo = null;
 
@@ -185,6 +190,7 @@ export function registerFalApiHandlers() {
   // 5、注册批量图片校验。
   ipcMain.handle('fal-validate-images', async (event, imagePaths) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
       const results = [];
 
       for (const imagePath of imagePaths) {
@@ -219,6 +225,7 @@ export function registerFalApiHandlers() {
   // 6、注册输出和日志目录创建入口。
   ipcMain.handle('fal-create-directories', async (event, config = {}) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
       const fullConfig = getConfig(config);
       createDefaultDirectories(fullConfig);
 
