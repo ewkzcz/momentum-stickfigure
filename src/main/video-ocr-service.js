@@ -9,6 +9,7 @@ import os from 'os'
 import { StringDecoder } from 'node:string_decoder'
 import { runManagedProcess, processAbortError } from './managed-process.mjs'
 import { currentTaskSignal, runOwnedTask, cancelOwnedTasks } from './owned-process-tasks.mjs'
+import { requestTaskResponse } from './task-http-request.mjs'
 import { buildApiUrl } from '../shared/api-url.js'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
@@ -1210,7 +1211,6 @@ function testAIConnection(apiKey, baseUrl, model) {
   return new Promise((resolve, reject) => {
     const url = buildApiUrl(baseUrl, 'v1/chat/completions')
     const isHttps = url.protocol === 'https:'
-    const httpModule = isHttps ? require('https') : require('http')
     
     const postData = JSON.stringify({
       model: model,
@@ -1238,61 +1238,14 @@ function testAIConnection(apiKey, baseUrl, model) {
     }
 
     // 2、读取完整响应后验证状态码和对话结果结构。
-    const req = httpModule.request(options, (res) => {
-      let data = ''
-
-      res.on('data', (chunk) => {
-        data += chunk
-      })
-
-      res.on('end', () => {
-        try {
-          if (res.statusCode === 401) {
-            reject(new Error('API密钥无效，请检查您的密钥是否正确'))
-            return
-          }
-          
-          if (res.statusCode === 403) {
-            reject(new Error('API访问被拒绝，请检查您的权限'))
-            return
-          }
-          
-          if (res.statusCode === 404) {
-            reject(new Error('API地址错误或模型不存在'))
-            return
-          }
-
-          if (res.statusCode !== 200) {
-            reject(new Error(`API连接失败: HTTP ${res.statusCode}`))
-            return
-          }
-
-          const response = JSON.parse(data)
-          
-          if (response.choices && response.choices.length > 0) {
-            console.log('[Video OCR] AI连通性测试成功')
-            resolve(true)
-          } else {
-            reject(new Error('API返回格式异常'))
-          }
-        } catch (error) {
-          reject(new Error(`API响应解析失败: ${error.message}`))
-        }
-      })
-    })
-
-    // 3、统一转交网络错误，并在超时后销毁请求。
-    req.on('error', (error) => {
-      reject(new Error(`网络连接失败: ${error.message}`))
-    })
-
-    req.on('timeout', () => {
-      req.destroy()
-      reject(new Error('连接超时，请检查网络或API地址'))
-    })
-
-    req.write(postData)
-    req.end()
+    requestTaskResponse(url, options, postData, { signal: currentTaskSignal() }).then(({ statusCode, data }) => {
+      const errors = { 401: 'API密钥无效，请检查您的密钥是否正确', 403: 'API访问被拒绝，请检查您的权限', 404: 'API地址错误或模型不存在' }
+      if (statusCode !== 200) throw new Error(errors[statusCode] || `API连接失败: HTTP ${statusCode}`)
+      let response
+      try { response = JSON.parse(data) } catch (error) { throw new Error(`API响应解析失败: ${error.message}`) }
+      if (!response.choices?.length) throw new Error('API返回格式异常')
+      return true
+    }).then(resolve, reject)
   })
 }
 
@@ -1309,7 +1262,6 @@ function callOpenAIAPI(apiKey, baseUrl, model, text) {
     // 解析URL
     const url = buildApiUrl(baseUrl, 'v1/chat/completions')
     const isHttps = url.protocol === 'https:'
-    const httpModule = isHttps ? require('https') : require('http')
     
     const systemPrompt = `# 这是一段OCR识别的结果，请帮助我完成以下文本处理任务。
 
@@ -1364,45 +1316,13 @@ function callOpenAIAPI(apiKey, baseUrl, model, text) {
       timeout: 60000 // 60秒超时
     }
 
-    const req = httpModule.request(options, (res) => {
-      let data = ''
-
-      res.on('data', (chunk) => {
-        data += chunk
-      })
-
-      res.on('end', () => {
-        try {
-          if (res.statusCode !== 200) {
-            reject(new Error(`API返回错误: ${res.statusCode} - ${data}`))
-            return
-          }
-
-          const response = JSON.parse(data)
-          
-          if (response.choices && response.choices.length > 0) {
-            const correctedText = response.choices[0].message.content.trim()
-            resolve(correctedText)
-          } else {
-            reject(new Error('API返回格式错误'))
-          }
-        } catch (error) {
-          reject(new Error(`解析响应失败: ${error.message}`))
-        }
-      })
-    })
-
-    req.on('error', (error) => {
-      reject(new Error(`请求失败: ${error.message}`))
-    })
-
-    req.on('timeout', () => {
-      req.destroy()
-      reject(new Error('请求超时'))
-    })
-
-    req.write(postData)
-    req.end()
+    requestTaskResponse(url, options, postData, { signal: currentTaskSignal() }).then(({ statusCode, data }) => {
+      if (statusCode !== 200) throw new Error(`API返回错误: ${statusCode}`)
+      let response
+      try { response = JSON.parse(data) } catch (error) { throw new Error(`解析响应失败: ${error.message}`) }
+      if (!response.choices?.length) throw new Error('API返回格式错误')
+      return response.choices[0].message.content.trim()
+    }).then(resolve, reject)
   })
 }
 
