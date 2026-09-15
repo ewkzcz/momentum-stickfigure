@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "unit": "file-operation-measurement",
+  "method": ["renderer内预生成六百万字符与8MiB数据，不通过调试协议反复传大数组", "真实storage.setItem、writeFile、readFile各20次，每次紧随storage.length探针", "核对读取长度和首尾字节，使用隔离目录及专用存储键，完成后删除测试键"],
+  "verification": { "directory": "temp/file-operation-measurement-acceptance-NzJ8mX", "passed": 1, "failed": 0, "durationMs": 1901.2255, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed", "rawResult": "temp/file-operation-measurement-result.json" },
+  "metricsMs": { "storage": { "p50": 4.3, "p95": 13.6, "max": 14.7, "ipcP50": 1.9, "ipcP95": 11, "ipcMax": 11.5 }, "write": { "p50": 20.3, "p95": 25.9, "max": 33.5, "ipcP50": 15.4, "ipcP95": 21.3, "ipcMax": 29.1 }, "read": { "p50": 12, "p95": 14.6, "max": 14.8, "ipcP50": 12.3, "ipcP95": 14.8, "ipcMax": 15 } },
+  "interpretation": "8MiB写入使紧随IPC最大等待29.1ms，记录这一可见阻塞；此范围未复现长时间卡顿，不据此扩大为全部文件操作异步化",
+  "limits": ["存储服务存在延迟合并写入，此值是公开API响应，不是fsync或真实磁盘持久化时长", "写读受系统缓存影响，未清系统缓存", "128MiB上限不是本次实测载荷，不能外推其延迟", "通用文件授权完成后测量必须接入可信选择流程", "相关原子落盘与退出持久化复用已有独立回归，不由本性能测试替代"]
+}
