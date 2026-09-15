@@ -1,0 +1,445 @@
+{
+  "schema": 1,
+  "scope": "模板路径、文件IPC来源及累计验收发现的窗口崩溃和预加载竞态",
+  "head": "6bd09d4503fc53d169d2fac856d184929a50005b",
+  "templatePaths": {
+    "commit": "b82655d",
+    "before": "temp/template-storage-paths-before.log",
+    "beforeTests": 8,
+    "beforeFailures": 7,
+    "after": "temp/template-storage-paths-acceptance-E9wBWn",
+    "limits": [
+      "仅检查已存在符号链接，不消除TOCTOU；未收紧全部文件服务"
+    ]
+  },
+  "fileIpc": {
+    "commit": "f53e795",
+    "before": "temp/file-ipc-source-before-acceptance-hoSuqo",
+    "after": "temp/file-ipc-source-after-acceptance-qu7zIP",
+    "channels": [
+      "check-file-exists",
+      "read-file",
+      "write-file",
+      "save-dragged-file"
+    ],
+    "limits": [
+      "尚未按用户选择结果限制合法主窗口文件路径；其它IPC仍需单独授权"
+    ]
+  },
+  "originalFullFailure": {
+    "head": "f53e795",
+    "directory": "temp/remaining-defects-acceptance-Gw01lX",
+    "tests": 332,
+    "pass": 331,
+    "fail": 1,
+    "desktop": "momentum-regression-nNowxL",
+    "pid": 17679,
+    "signal": "SIGSEGV",
+    "isolationRecordPresent": false
+  },
+  "nativeCrash": {
+    "fix": "ee9e97f",
+    "runtime": "Electron 35.7.5 darwin arm64",
+    "frameworkUuid": "4c4c44a9-5555-3144-a154-9e21ebfc5957",
+    "symbols": "https://github.com/electron/electron/releases/download/v35.7.5/electron-v35.7.5-darwin-arm64-symbols.zip",
+    "imageOffset": 39205844,
+    "function": "electron::InspectableWebContents::IsDevToolsViewShowing()",
+    "stack": [
+      "gin_helper::Dispatcher<bool (electron::api::WebContents const*)>",
+      "v8_inspector callFunctionOn",
+      "node::Environment::RunAndClearInterrupts",
+      "electron::api::WebContents::RenderViewDeleted",
+      "electron::InspectableWebContents::~InspectableWebContents",
+      "electron::api::WebContents::~WebContents"
+    ],
+    "cause": "inspector求值在原生析构回调内重入窗口状态查询",
+    "change": "在setImmediate正常事件循环中采集真实原生状态，保留全部后台断言；不覆盖查询方法或伪造false"
+  },
+  "previewRace": {
+    "fix": "6bd09d4",
+    "failures": [
+      "momentum-regression-7ZW232",
+      "momentum-regression-zyDFk1",
+      "momentum-regression-8kPsSC",
+      "momentum-regression-UT4Vn3"
+    ],
+    "decisiveFailure": "momentum-regression-UT4Vn3",
+    "observed": "自然首轮失败：页面onMounted时electronAPI为undefined，之后桥接存在但无canvas-preview-ready，图片仍暂存；进程正常退出",
+    "change": "三个生产窗口路径改为index.cjs，preload构建明确使用CommonJS，保证页面脚本执行前同步安装桥接",
+    "fixedWaitAdded": false,
+    "referencesChanged": false
+  },
+  "targeted": {
+    "directory": "temp/preload-sync-after-acceptance-UfeokM",
+    "tests": 9,
+    "pass": 9,
+    "fail": 0,
+    "manifestSha256": "d1fea35937ccab14b4f5bbfa6cc88c04f7c1798bd72357eb225e0fb4b1bd3b3f",
+    "provenance": "提交前工作区组合修改；之后拆分提交ee9e97f及6bd09d4"
+  },
+  "stress": {
+    "runs": [
+      {
+        "directory": "momentum-regression-0txo3W",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "eb29153b94721b148dddc212c91ef4470bab68dc383932a61486db92fe89a7c7",
+        "processExit": {
+          "pid": 61984,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-Ik9QbQ",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "677b0acf1d4e0a90b00ae84c722885041fb37ded57894429d737294e17a8b7f3",
+        "processExit": {
+          "pid": 62308,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-XIiqCZ",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "77230c30113c2b2a5c43ef853c5001aaef26b0e06a3c620d01a956e9cc8b87cf",
+        "processExit": {
+          "pid": 62604,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-MSxFri",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "4b7ebcda37c79ff8f836034335f4594041d5b4953d1325c914e640fad010fe64",
+        "processExit": {
+          "pid": 62922,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-nYaUlg",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "4684ce97cd258b16cfa27077489a39aae7386207187d3d27c972f2f08faf858b",
+        "processExit": {
+          "pid": 63219,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-5Ek8wJ",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "c3cac0cd71cfc690b1bc0a43af7956a6540ce3dbf124faed6c3afa892655ca09",
+        "processExit": {
+          "pid": 63515,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-AB6ou2",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "590a8b6ec2c00ddb397c5c328f738fd69076231272f22fa02e8a7ceb12ef28e3",
+        "processExit": {
+          "pid": 63831,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-QR06uU",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "761d244bc802ea82ccc2e4ba8c9788da296a3f6c380a58b3508c979656d48640",
+        "processExit": {
+          "pid": 64130,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-BHs5GD",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "11506c840df89ce999d168ac4caa86072897d570640802be92e7b81f958922a0",
+        "processExit": {
+          "pid": 64447,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-CkFscY",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "7fd9722dd8cea561fa5176f3649115d1b00da0b285df4da7f0a1b11859db3395",
+        "processExit": {
+          "pid": 64762,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-cT6RNs",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "104d0de03d9c1b854eecbbc26349fb2df0cded678cfe4942f2b8265ba4651474",
+        "processExit": {
+          "pid": 65075,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-PD3BfX",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "cac56aed03d2883985138d47fd461a153a176b79c3f0eb41c10ee1ac362847c7",
+        "processExit": {
+          "pid": 65419,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-O0jmkq",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "f80e70d8cc11875362312fef6758d0b8b3e3ec62e3d84f78a22664e8686f4303",
+        "processExit": {
+          "pid": 65792,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-CNER5W",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "c947baf586d2b7ae26cb075e34d682b1afc69f56726f3bfa6817fb9a348e647c",
+        "processExit": {
+          "pid": 66238,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-dc0C4v",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "d87078199b0511abba1783485c9629e6cbb3aa7a8d258cb99c5ce0ea8332f9ef",
+        "processExit": {
+          "pid": 66656,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-QfaDgh",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "868435e0367c3dae86877f416027714dbd32f26a626b0968d7255b7be4bf1896",
+        "processExit": {
+          "pid": 67012,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-Jde4aE",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "64dfb5cf0d7d086b99b34f0f6a908af234b1c49cf49aa112b4d20855bb30eb22",
+        "processExit": {
+          "pid": 67351,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-hto5hi",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "8cb5f9cdcdd4f3beb7baeed09aadeb40ad0273e5bd79c8eeef833d6eca8722a2",
+        "processExit": {
+          "pid": 67705,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-AYJ9Tl",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "41b37c9886aaf53660414d9960fa1716fca827cc4ae4fd7a46f96d81a780a350",
+        "processExit": {
+          "pid": 68031,
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "directory": "momentum-regression-fSg367",
+        "passed": true,
+        "previewCycles": 10,
+        "mainRecreationCycles": 20,
+        "resultSha256": "92eb607d02ede0fe0d3e39bf527edc2cac4c66af493b79b91ac9e9673886d97a",
+        "processExit": {
+          "pid": 68355,
+          "code": 0,
+          "signal": null
+        }
+      }
+    ],
+    "previewCycles": 200,
+    "mainRecreationCycles": 400,
+    "passed": true
+  },
+  "fullAcceptance": {
+    "testSummary": { "reportedTests": 332, "pass": 331, "fail": 1, "skipped": 0, "cancelled": 0 },
+    "failure": "action-shared-refs.test.mjs文件级失败：Node 24.11.1测试运行器Unable to deserialize cloned data；窗口生命周期与预加载测试通过。独立原同例随后30轮、每轮6项通过；未据此标记累计通过。",
+    "directory": "temp/remaining-defects-acceptance-f4CfKC",
+    "head": "6bd09d4503fc53d169d2fac856d184929a50005b",
+    "passed": false,
+    "startedAt": "2026-09-15T02:53:27.596Z",
+    "finishedAt": "2026-09-15T03:18:38.201Z",
+    "commands": [
+      {
+        "label": "source-lint",
+        "command": [
+          "npx",
+          "eslint",
+          "src"
+        ],
+        "status": 0,
+        "signal": null,
+        "durationMs": 2166
+      },
+      {
+        "label": "lint",
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "status": 0,
+        "signal": null,
+        "durationMs": 1103
+      },
+      {
+        "label": "size",
+        "command": [
+          "npm",
+          "run",
+          "check:size"
+        ],
+        "status": 0,
+        "signal": null,
+        "durationMs": 128
+      },
+      {
+        "label": "whitespace",
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "status": 0,
+        "signal": null,
+        "durationMs": 6
+      },
+      {
+        "label": "staged-whitespace",
+        "command": [
+          "git",
+          "diff",
+          "--cached",
+          "--check"
+        ],
+        "status": 0,
+        "signal": null,
+        "durationMs": 4
+      },
+      {
+        "label": "references-before",
+        "command": [
+          "/usr/local/bin/node",
+          "tests/verify-layer-render-completion.mjs",
+          "references"
+        ],
+        "status": 0,
+        "signal": null,
+        "durationMs": 633
+      },
+      {
+        "label": "build",
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "status": 0,
+        "signal": null,
+        "durationMs": 3676
+      },
+      {
+        "label": "all",
+        "command": [
+          "/usr/local/bin/node",
+          "tests/verify-layer-render-completion.mjs",
+          "all"
+        ],
+        "status": 1,
+        "signal": null,
+        "durationMs": 1501925
+      },
+      {
+        "label": "references-after",
+        "command": [
+          "/usr/local/bin/node",
+          "tests/verify-layer-render-completion.mjs",
+          "references"
+        ],
+        "status": 0,
+        "signal": null,
+        "durationMs": 556
+      }
+    ],
+    "integrityErrors": []
+  },
+  "limits": [
+    "自然失败根因有实际挂载日志，尚未证明所有历史空画布均为同一原因。",
+    "原生故障发生在测试调试器状态采集路径，不据此声称业务IPC引发原生崩溃。",
+    "无真实系统快捷键、前台显示、Windows/macOS安装包、第三方登录或用户Python环境验收。",
+    "总规划仍有安全、存储、Python进程管理与性能测量缺口；本证据不代表总规划完成。"
+  ]
+}
