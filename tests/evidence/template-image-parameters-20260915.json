@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-15",
+  "unit": "template-image-parameters",
+  "baseline": { "directory": "temp/template-image-parameters-before-acceptance-EgaAmF", "passed": 0, "failed": 1, "failure": "cleanup接受字符串validTemplateIds并返回成功，而非在删除前拒绝" },
+  "changes": ["七个有载荷的图片接口先判来源，再校验普通对象与有界列表", "清理要求显式有效ID数组，拒绝缺失、字符串及错误项，合法空数组继续显式清空", "单图解码前64MiB、批量128MiB、一万项预算及Base64结构检查", "整个批量载荷预检后才进入原四项并发操作，避免前项写删后才发现后项类型错误"],
+  "firstAfter": { "directory": "temp/template-image-parameters-after-acceptance-UofvBk", "passed": 32, "failed": 1, "cause": "原路径单测拼接源码删除import，未注入新增校验函数；真实IPC及模板应用通过。补入真实模块依赖，保留原断言" },
+  "verification": { "directory": "temp/template-image-parameters-final-acceptance-Cmu2HR", "passed": 33, "failed": 0, "durationMs": 33572.133334, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "coverage": ["错误清理及混合批量参数明确拒绝，已有图片字节不变", "拒绝后读图和显式清理恢复", "真实动作表情模板应用与画布回归", "模板九接口来源、中文空格、遍历和符号链接回归", "缩小预算验证精确字节边界与有无Base64填充兼容"],
+  "limits": ["容量为保守IPC预算而非用户配置采样", "Base64仅结构校验，不验证解码后一定为PNG", "旧磁盘加载和缓存总字节预算未改变", "不是对磁盘运行期错误的整批事务保证", "定向回归不替代当前累计全量验收"]
+}

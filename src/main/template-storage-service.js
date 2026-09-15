@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import { isTrustedIpcSender } from './ipc-sender-policy.js';
+import { assertTemplateImagePayload } from './template-image-parameters.js';
 import { assertTemplateSegment, assertTemplateType, checkedTemplatePath, resolveTemplateImagePath } from './template-storage-paths.js';
 
 const writeFile = promisify(fs.writeFile);
@@ -126,7 +127,7 @@ async function saveTemplateImage(templateType, templateId, base64Data) {
     }
     
     // 移除base64前缀（如果存在）
-    const base64Content = base64Data.replace(/^data:image\/\w+;base64,/, '');
+    const base64Content = base64Data.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '');
     
     // 将base64转换为Buffer
     const imageBuffer = Buffer.from(base64Content, 'base64');
@@ -528,6 +529,7 @@ export function registerTemplateStorageHandlers() {
   ipcMain.handle('template-storage-save-image', async (event, payload) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      assertTemplateImagePayload('save', payload);
       const { templateType, templateId, base64Data } = payload;
       const filePath = await saveTemplateImage(templateType, templateId, base64Data);
       return { success: true, filePath };
@@ -540,6 +542,7 @@ export function registerTemplateStorageHandlers() {
   ipcMain.handle('template-storage-load-image', async (event, payload) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      assertTemplateImagePayload('path', payload);
       const { relativePath } = payload;
       const base64Data = await loadTemplateImage(relativePath);
       return { success: true, base64Data };
@@ -552,6 +555,7 @@ export function registerTemplateStorageHandlers() {
   ipcMain.handle('template-storage-batch-save', async (event, payload) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      assertTemplateImagePayload('batch-save', payload);
       const { templateType, imagePreviews } = payload;
       const results = await batchSaveTemplateImages(templateType, imagePreviews);
       return { success: true, results };
@@ -564,6 +568,7 @@ export function registerTemplateStorageHandlers() {
   ipcMain.handle('template-storage-batch-load', async (event, payload) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      assertTemplateImagePayload('batch-path', payload);
       const { filePathsData } = payload;
       const results = await batchLoadTemplateImages(filePathsData);
       return { success: true, results };
@@ -576,6 +581,7 @@ export function registerTemplateStorageHandlers() {
   ipcMain.handle('template-storage-delete-image', async (event, payload) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      assertTemplateImagePayload('path', payload);
       const { relativePath } = payload;
       const success = await deleteTemplateImage(relativePath);
       return { success };
@@ -588,6 +594,7 @@ export function registerTemplateStorageHandlers() {
   ipcMain.handle('template-storage-batch-delete', async (event, payload) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      assertTemplateImagePayload('batch-path', payload);
       const { filePathsData } = payload;
       const deleteCount = await batchDeleteTemplateImages(filePathsData);
       return { success: true, deleteCount };
@@ -600,6 +607,7 @@ export function registerTemplateStorageHandlers() {
   ipcMain.handle('template-storage-cleanup', async (event, payload) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      assertTemplateImagePayload('cleanup', payload);
       const { templateType, validTemplateIds } = payload;
       const cleanCount = await cleanupUnusedTemplateImages(templateType, validTemplateIds);
       return { success: true, cleanCount };

@@ -5,6 +5,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import { promisify } from 'node:util'
+import { assertTemplateImagePayload } from '../src/main/template-image-parameters.js'
 
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'momentum-template-path-'))
@@ -19,7 +20,7 @@ async function fixture(t) {
   const sender = { mainFrame: { url: 'file:///isolated/index.html' }, isDestroyed: () => false, once: () => {} }
   const event = { sender, senderFrame: sender.mainFrame }
   const body = (senderPolicy + '\n' + policy + '\n' + source).replace(/^import .*\n/gm, '').replace(/export function /g, 'function ')
-  new Function('ipcMain', 'app', 'fs', 'path', 'promisify', 'sender', `${body}\nregisterTrustedWindow(sender, sender.mainFrame.url, 'main')\nregisterTemplateStorageHandlers()`)(ipcMain, app, fs, path, promisify, sender)
+  new Function('ipcMain', 'app', 'fs', 'path', 'promisify', 'sender', 'assertTemplateImagePayload', `${body}\nregisterTrustedWindow(sender, sender.mainFrame.url, 'main')\nregisterTemplateStorageHandlers()`)(ipcMain, app, fs, path, promisify, sender, assertTemplateImagePayload)
   return { root, userData, outside, invoke: (name, args) => handlers.get(`template-storage-${name}`)(event, args) }
 }
 
