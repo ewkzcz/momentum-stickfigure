@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "unit": "psd-direct-parameters",
+  "baseline": { "directory": "temp/psd-direct-parameters-before-acceptance-Z2sX9D", "passed": 0, "failed": 1, "failure": "psd-get-config接受数组配置" },
+  "changes": ["render/detect/info/validate/config在模块加载和业务处理前校验普通对象", "info/validate字节载荷按既有50MiB单输入预算校验", "render/detect选项和数据必须普通对象，配置解析选项复用布尔校验"],
+  "verification": { "directory": "temp/psd-direct-parameters-after-acceptance-jJ6pNQ", "passed": 4, "failed": 0, "durationMs": 2968.924292, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "coverage": ["数组配置/null/错误嵌套选项/非字节载荷明确拒绝", "合法配置查询恢复", "未登记窗口来源拒绝及合法预览取消", "原两层PSD成功响应与失败传播"],
+  "limits": ["复杂psdData内部图层树和render/detect全部字段预算尚未完整校验", "psd-get-config自定义temp/cache/output路径授权仍待接入，类型检查不是路径授权", "未宣称PSD全部IPC能力已完成", "定向通过不等于累计全量"]
+}

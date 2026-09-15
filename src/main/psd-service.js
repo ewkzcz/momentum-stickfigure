@@ -6,7 +6,7 @@
 import { app, ipcMain } from 'electron';
 import path from 'path';
 import { isTrustedIpcSender } from './ipc-sender-policy.js';
-import { assertPsdTaskOptions } from './ipc-parameter-policy.js';
+import { assertPsdTaskOptions, assertRecord, assertBinaryPayload } from './ipc-parameter-policy.js';
 
 function deniedPsdSource(requestId, startTime) {
     return { success: false, status: 'error', message: '未授权的PSD操作来源', timestamp: new Date().toISOString(), requestId, processingTime: Date.now() - startTime };
@@ -151,6 +151,9 @@ async function registerPSDApiHandlers() {
         if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
+            assertRecord(options, 'PSD渲染');
+            assertRecord(options.psdData, 'PSD数据');
+            if (options.renderOptions !== undefined) assertRecord(options.renderOptions, 'PSD渲染选项');
             const api = await loadPSDApi();
             console.log('收到PSD渲染请求:', requestId);
             
@@ -191,6 +194,9 @@ async function registerPSDApiHandlers() {
         if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
+            assertRecord(options, 'PSD检测');
+            assertRecord(options.psdData, 'PSD数据');
+            if (options.detectionOptions !== undefined) assertRecord(options.detectionOptions, 'PSD检测选项');
             const api = await loadPSDApi();
             console.log('收到PSD组件检测请求:', requestId);
             
@@ -231,6 +237,8 @@ async function registerPSDApiHandlers() {
         if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
+            assertRecord(options, 'PSD信息');
+            assertBinaryPayload(options.fileBuffer, 50 * 1024 * 1024);
             const api = await loadPSDApi();
             console.log('收到PSD信息请求:', requestId);
             
@@ -268,6 +276,8 @@ async function registerPSDApiHandlers() {
         if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
+            assertRecord(options, 'PSD验证');
+            assertBinaryPayload(options.fileBuffer, 50 * 1024 * 1024);
             const api = await loadPSDApi();
             console.log('收到PSD验证请求:', requestId);
             
@@ -305,6 +315,9 @@ async function registerPSDApiHandlers() {
         if (!isTrustedIpcSender(event)) return deniedPsdSource(requestId, startTime);
         
         try {
+            assertRecord(options, 'PSD配置');
+            assertPsdTaskOptions(options);
+            if (options.composeOptions !== undefined) assertRecord(options.composeOptions, 'PSD合成选项');
             const api = await loadPSDApi();
             console.log('收到PSD配置请求:', requestId);
             
