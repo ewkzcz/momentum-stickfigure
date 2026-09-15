@@ -33,6 +33,11 @@ export function preflightPsdResources(input, parseImages) {
   const documentPixels = pixels(header.getUint32(18), header.getUint32(14))
   if (documentPixels > PSD_RESOURCE_LIMITS.documentPixels) limit('文档像素超过限制')
   const metadata = readPsd(bytes, { skipLayerImageData: true, skipCompositeImageData: true, skipThumbnail: true, logMissingFeatures: false, throwForMissingFeatures: false })
+  return validatePsdMetadata(metadata, parseImages, documentPixels)
+}
+
+export function validatePsdMetadata(metadata, parseImages, documentPixels = pixels(metadata.width, metadata.height)) {
+  if (documentPixels > PSD_RESOURCE_LIMITS.documentPixels) limit('文档像素超过限制')
   const stack = (metadata.children || []).map(layer => ({ layer, depth: 1 }))
   let layers = 0, decodedPixels = documentPixels
   while (stack.length) {

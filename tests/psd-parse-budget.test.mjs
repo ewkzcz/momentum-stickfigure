@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 import { writePsdBuffer, initializeCanvas } from 'ag-psd'
 import { createCanvas } from '@napi-rs/canvas'
 import { launchDesktop, repository } from './helpers/desktop.mjs'
-import { preflightPsdResources, assertPsdOutputBudget, PSD_RESOURCE_LIMITS } from '../src/main/psd-api/psd-resource-budget.mjs'
+import { preflightPsdResources, validatePsdMetadata, assertPsdOutputBudget, PSD_RESOURCE_LIMITS } from '../src/main/psd-api/psd-resource-budget.mjs'
 
 initializeCanvas(createCanvas)
 test('PSD预算边界：巨幅头部在解码前拒绝，输出累计有界', () => {
@@ -19,6 +19,13 @@ test('PSD预算边界：巨幅头部在解码前拒绝，输出累计有界', ()
   assert.throws(() => assertPsdOutputBudget(Array(129).fill(block)), /解析输出超过限制/)
   assert.ok(assertPsdOutputBudget({ data: block }) < PSD_RESOURCE_LIMITS.outputBytes)
   assert.equal(preflightPsdResources(bytes, true).documentPixels, 1)
+  const bigLayer = { left: 0, top: 0, right: 8192, bottom: 8192 }
+  assert.throws(() => validatePsdMetadata({ width: 1, height: 1, children: [bigLayer, bigLayer] }, true), /累计图层像素超过限制/)
+  assert.throws(() => validatePsdMetadata({ width: 1, height: 1, children: [{ ...bigLayer, mask: bigLayer }] }, true), /累计图层像素超过限制/)
+  let nested = { children: [] }
+  for (let depth = 0; depth < 129; depth++) nested = { children: [nested] }
+  assert.throws(() => validatePsdMetadata({ width: 1, height: 1, children: [nested] }, false), /嵌套超过限制/)
+  assert.equal(validatePsdMetadata({ width: 1, height: 1, children: [bigLayer, bigLayer] }, false).decodedPixels, 1)
 })
 test('PSD解析预算：超多图层明确拒绝，正常小文件继续解析', { timeout: 60000 }, async () => {
   const excessive = writePsdBuffer({ width: 1, height: 1, children: Array.from({ length: 8193 }, (_, index) => ({ name: `layer-${index}` })) })
