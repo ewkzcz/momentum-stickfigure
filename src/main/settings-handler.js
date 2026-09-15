@@ -4,6 +4,7 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { redactSettingsForSharing } from './settings-sharing-policy.js'
 
 /**
  * 获取用户文档目录下的配置备份路径
@@ -42,7 +43,7 @@ function getSettingsBackupPath() {
  */
 export function registerSettingsHandlers() {
   // 1、通过系统对话框选择文件，导出或导入 JSON 设置。
-  ipcMain.handle('settings-export', async (event, settings) => {
+  ipcMain.handle('settings-export', async (event, settings, options = {}) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的设置归档来源')
       const window = BrowserWindow.fromWebContents(event.sender)
@@ -70,7 +71,8 @@ export function registerSettingsHandlers() {
       }
 
       // 写入文件（格式化JSON，便于阅读）
-      fs.writeFileSync(filePath, JSON.stringify(settings, null, 2), 'utf-8')
+      const exported = options?.includeSecrets === true ? settings : redactSettingsForSharing(settings)
+      fs.writeFileSync(filePath, JSON.stringify(exported, null, 2), 'utf-8')
 
       console.log('✅ 设置导出成功:', filePath)
       return {

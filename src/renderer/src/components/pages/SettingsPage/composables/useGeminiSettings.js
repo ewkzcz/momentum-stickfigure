@@ -256,7 +256,7 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
       const imported = importedGeminiConfig
 
       // 更新所有属性
-      geminiConfig.apiKey = imported.apiKey || ''
+      if (Object.prototype.hasOwnProperty.call(imported, 'apiKey')) geminiConfig.apiKey = imported.apiKey || ''
       geminiConfig.baseUrl = imported.baseUrl || ''
       geminiConfig.projectRoot = imported.projectRoot || getDefaultProjectRoot()
       geminiConfig.outputDir = imported.outputDir || 'output'

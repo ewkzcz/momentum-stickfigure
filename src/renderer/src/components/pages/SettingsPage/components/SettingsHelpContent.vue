@@ -9,7 +9,7 @@
               <div class="settings-actions">
                 <n-button
                   type="primary"
-                  @click="$emit('export-settings')"
+                  @click="$emit('export-settings', includeSecrets)"
                   :loading="isExportingSettings"
                 >
                   <template #icon>
@@ -36,6 +36,10 @@
                   导入设置
                 </n-button>
               </div>
+              <n-checkbox v-model:checked="includeSecrets" style="margin-top: 12px;">
+                完整备份（包含 API 密钥，请勿分享）
+              </n-checkbox>
+              <div>默认导出不含密钥；导入分享配置会保留本机已有密钥。</div>
             </n-card>
           </div>
       </div>
@@ -158,6 +162,8 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+const includeSecrets = ref(false)
 /** 设置帮助内容：按路由展示应用信息、教程与交流群，配置操作交给父页面。 */
 defineProps({
   activeTab: { type: String, required: true },

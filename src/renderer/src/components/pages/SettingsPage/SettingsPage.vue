@@ -477,7 +477,7 @@ const handleImportSettings = async () => {
     if (result.success && result.settings) {
       const importedSettings = result.settings
 
-      console.log('[设置页] 配置已读取:', importedSettings)
+      console.log('[设置页] 配置已读取')
 
       // 2、版本号用于配置兼容提示，不涉及软件更新或授权校验。
       if (importedSettings.version && importedSettings.version !== appVersion.value) {

@@ -149,7 +149,7 @@ export function createSettingsArchive({
    * 2、请求主进程选择保存位置并导出，成功后另外写入自动备份。
    * 3、区分取消与失败，结束时恢复导出按钮状态。
    */
-  const handleExportSettings = async () => {
+  const handleExportSettings = async (includeSecrets = false) => {
     // 1、当前导出集合明确列出下方四类配置，包含用户填写的 API 密钥。
     try {
       isExportingSettings.value = true
@@ -169,7 +169,7 @@ export function createSettingsArchive({
       console.log('[设置页] 配置已收集')
 
       // 2、文件选择和磁盘写入由主进程完成。
-      const result = await window.electronAPI.settings.exportSettings(allSettings)
+      const result = await window.electronAPI.settings.exportSettings(allSettings, { includeSecrets: includeSecrets === true })
 
       if (result.success) {
         message.success(`配置已导出到: ${result.filePath}`, {

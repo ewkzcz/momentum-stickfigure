@@ -681,7 +681,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
      * 处理流程：
      * 1、提交设置，由主进程选择文件并保存。
      */
-    exportSettings: (settings) => ipcRenderer.invoke('settings-export', settings),
+    exportSettings: (settings, options) => ipcRenderer.invoke('settings-export', settings, options),
     /**
      * 导入应用设置。
      * 处理流程：

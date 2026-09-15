@@ -1,0 +1,8 @@
+{
+  "scope": "批准项8：默认脱敏分享与显式完整备份",
+  "before": { "evidence": "settings-sharing-before-acceptance-ZzXVWL", "passed": false, "failure": "默认导出保留隔离测试API密钥" },
+  "changes": ["主进程默认递归删除API密钥、token、密码等命名字段", "preload转发显式includeSecrets选项", "帮助页默认不勾选完整备份，选项明确提示含密钥不可分享", "导入缺失apiKey保留现有值，显式空值仍清空，旧falConfig保持兼容", "移除导入成功日志的完整配置对象"],
+  "after": { "evidence": "settings-sharing-final-acceptance-lRn3az", "passed": 19, "failed": 0, "skipped": 0, "durationMs": 54951.18125, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true },
+  "coverage": ["真实文件默认无新旧API密钥及嵌套token", "显式完整备份真实磁盘内容完整", "真实界面勾选与导出", "分享配置导入保留已有密钥", "旧falConfig密钥恢复与显式清空", "设置文件取消错误备份重启", "基础生图帮助与版本确认五路径"],
+  "limits": ["已批准新增复选框改变帮助页布局，本项不声称about旧截图一致；原冻结图像参考未更新", "现有自动本机备份保持完整，默认脱敏针对手动分享导出", "按敏感字段名脱敏，不声称识别任意自由文本或自定义URL内嵌密钥", "真实AI调用未验证，仅使用隔离假密钥", "导入日志移除经源码核对及桌面回归，未单独建立日志修复前失败用例"]
+}
