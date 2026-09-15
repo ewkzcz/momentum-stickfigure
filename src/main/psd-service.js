@@ -5,6 +5,11 @@
 
 import { app, ipcMain } from 'electron';
 import path from 'path';
+import { isTrustedIpcSender } from './ipc-sender-policy.js';
+
+function deniedPsdSource(requestId, startTime) {
+    return { success: false, status: 'error', message: '未授权的PSD操作来源', timestamp: new Date().toISOString(), requestId, processingTime: Date.now() - startTime };
+}
 
 // 动态导入PSD API
 let psdApi = null;
@@ -61,6 +66,7 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-parse-file', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-parse-${Date.now()}`;
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         const controller = new globalThis.AbortController();
         const taskId = options?.taskId;
         const taskKey = typeof taskId === 'string' && taskId.length <= 128
@@ -125,6 +131,7 @@ async function registerPSDApiHandlers() {
      * 1、仅按发送窗口和任务标识查找，活动线程由队列真实终止。
      */
     ipcMain.handle('psd-cancel-parse', (event, taskId) => {
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, message: '未授权的PSD操作来源' };
         // 1、不允许按任意窗口编号或服务生成的请求标识跨窗口取消。
         if (typeof taskId !== 'string' || taskId.length > 128) return { success: false };
         const task = parseTasks.get(`${event.sender.id}:${taskId}`);
@@ -136,6 +143,7 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-render-layers', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-render-${Date.now()}`;
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
             const api = await loadPSDApi();
@@ -175,6 +183,7 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-detect-components', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-detect-${Date.now()}`;
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
             const api = await loadPSDApi();
@@ -214,6 +223,7 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-get-info', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-info-${Date.now()}`;
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
             const api = await loadPSDApi();
@@ -250,6 +260,7 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-validate-file', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-validate-${Date.now()}`;
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
             const api = await loadPSDApi();
@@ -286,6 +297,7 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-get-config', async (event, options = {}) => {
         const startTime = Date.now();
         let requestId = `psd-config-${Date.now()}`;
+        if (!isTrustedIpcSender(event)) return deniedPsdSource(requestId, startTime);
         
         try {
             const api = await loadPSDApi();

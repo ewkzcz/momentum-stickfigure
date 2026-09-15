@@ -6,6 +6,7 @@ import { ipcMain, BrowserWindow } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 const APP_NAME = 'momentum-stickfigure-open'
 const TEMPLATE_FILE = path.join(os.homedir(), '.config', APP_NAME, 'prompt-templates.json')
@@ -133,7 +134,7 @@ function setTemplates(type = 'image', templates = []) {
     order: index,
     type
   }))
-  // 2、保存到共享文件后通知全部窗口。
+  // 2、保存到共享文件后通知可信主窗口。
   saveToDisk()
   broadcastChange(type)
 }
@@ -150,10 +151,12 @@ function broadcastChange(type) {
     type,
     templates: getTemplates(type)
   }
-  // 2、将快照发送到各个窗口。
+  // 2、将快照仅发送到可信主窗口。
   BrowserWindow.getAllWindows().forEach((win) => {
     try {
-      win.webContents.send('prompt-templates-updated', payload)
+      const contents = win.webContents
+      if (!isTrustedIpcSender({ sender: contents, senderFrame: contents.mainFrame })) return
+      contents.send('prompt-templates-updated', payload)
     } catch (error) {
       // 忽略发送失败（窗口可能已关闭）
     }
@@ -212,8 +215,9 @@ export function registerPromptTemplateHandlers() {
   watchTemplateFile()
 
   // 2、为渲染进程提供统一的读写结果结构。
-  ipcMain.handle('prompt-templates:get', async (_event, type = 'image') => {
+  ipcMain.handle('prompt-templates:get', async (event, type = 'image') => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的提示词模板操作来源')
       return { success: true, templates: getTemplates(type) }
     } catch (error) {
       console.error('[PromptTemplateService] 获取模板失败:', error)
@@ -221,8 +225,10 @@ export function registerPromptTemplateHandlers() {
     }
   })
 
-  ipcMain.handle('prompt-templates:save', async (_event, { type = 'image', templates = [] } = {}) => {
+  ipcMain.handle('prompt-templates:save', async (event, payload = {}) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的提示词模板操作来源')
+      const { type = 'image', templates = [] } = payload
       setTemplates(type, templates)
       return { success: true }
     } catch (error) {

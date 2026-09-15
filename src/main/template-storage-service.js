@@ -7,6 +7,7 @@ import { ipcMain, app } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import { isTrustedIpcSender } from './ipc-sender-policy.js';
 import { assertTemplateSegment, assertTemplateType, checkedTemplatePath, resolveTemplateImagePath } from './template-storage-paths.js';
 
 const writeFile = promisify(fs.writeFile);
@@ -524,8 +525,10 @@ export function registerTemplateStorageHandlers() {
   console.log('注册模板存储服务 IPC 处理器...');
   
   // 1、注册单个模板图片保存接口。
-  ipcMain.handle('template-storage-save-image', async (event, { templateType, templateId, base64Data }) => {
+  ipcMain.handle('template-storage-save-image', async (event, payload) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      const { templateType, templateId, base64Data } = payload;
       const filePath = await saveTemplateImage(templateType, templateId, base64Data);
       return { success: true, filePath };
     } catch (error) {
@@ -534,8 +537,10 @@ export function registerTemplateStorageHandlers() {
   });
   
   // 2、注册单个模板图片加载接口。
-  ipcMain.handle('template-storage-load-image', async (event, { relativePath }) => {
+  ipcMain.handle('template-storage-load-image', async (event, payload) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      const { relativePath } = payload;
       const base64Data = await loadTemplateImage(relativePath);
       return { success: true, base64Data };
     } catch (error) {
@@ -544,8 +549,10 @@ export function registerTemplateStorageHandlers() {
   });
   
   // 3、注册批量模板图片保存接口。
-  ipcMain.handle('template-storage-batch-save', async (event, { templateType, imagePreviews }) => {
+  ipcMain.handle('template-storage-batch-save', async (event, payload) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      const { templateType, imagePreviews } = payload;
       const results = await batchSaveTemplateImages(templateType, imagePreviews);
       return { success: true, results };
     } catch (error) {
@@ -554,8 +561,10 @@ export function registerTemplateStorageHandlers() {
   });
   
   // 4、注册批量模板图片加载接口。
-  ipcMain.handle('template-storage-batch-load', async (event, { filePathsData }) => {
+  ipcMain.handle('template-storage-batch-load', async (event, payload) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      const { filePathsData } = payload;
       const results = await batchLoadTemplateImages(filePathsData);
       return { success: true, results };
     } catch (error) {
@@ -564,8 +573,10 @@ export function registerTemplateStorageHandlers() {
   });
   
   // 5、注册单个模板图片删除接口。
-  ipcMain.handle('template-storage-delete-image', async (event, { relativePath }) => {
+  ipcMain.handle('template-storage-delete-image', async (event, payload) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      const { relativePath } = payload;
       const success = await deleteTemplateImage(relativePath);
       return { success };
     } catch (error) {
@@ -574,8 +585,10 @@ export function registerTemplateStorageHandlers() {
   });
   
   // 6、注册批量模板图片删除接口。
-  ipcMain.handle('template-storage-batch-delete', async (event, { filePathsData }) => {
+  ipcMain.handle('template-storage-batch-delete', async (event, payload) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      const { filePathsData } = payload;
       const deleteCount = await batchDeleteTemplateImages(filePathsData);
       return { success: true, deleteCount };
     } catch (error) {
@@ -584,8 +597,10 @@ export function registerTemplateStorageHandlers() {
   });
   
   // 7、注册未使用图片清理接口。
-  ipcMain.handle('template-storage-cleanup', async (event, { templateType, validTemplateIds }) => {
+  ipcMain.handle('template-storage-cleanup', async (event, payload) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
+      const { templateType, validTemplateIds } = payload;
       const cleanCount = await cleanupUnusedTemplateImages(templateType, validTemplateIds);
       return { success: true, cleanCount };
     } catch (error) {
@@ -594,8 +609,9 @@ export function registerTemplateStorageHandlers() {
   });
   
   // 8、注册存储统计查询。
-  ipcMain.handle('template-storage-stats', async () => {
+  ipcMain.handle('template-storage-stats', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
       const stats = await getStorageStats();
       return { success: true, stats };
     } catch (error) {
@@ -604,8 +620,9 @@ export function registerTemplateStorageHandlers() {
   });
   
   // 9、注册模板根目录查询。
-  ipcMain.handle('template-storage-get-dir', async () => {
+  ipcMain.handle('template-storage-get-dir', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的模板存储操作来源');
       const dir = getTemplateStorageDir();
       return { success: true, dir };
     } catch (error) {

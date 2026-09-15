@@ -15,9 +15,12 @@ async function fixture(t) {
   for (const name of ['log', 'warn', 'error']) t.mock.method(console, name, () => {})
   const source = await readFile(new URL('../src/main/template-storage-service.js', import.meta.url), 'utf8')
   const policy = await readFile(new URL('../src/main/template-storage-paths.js', import.meta.url), 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error })
-  const body = (policy + '\n' + source).replace(/^import .*\n/gm, '').replace(/export function /g, 'function ')
-  new Function('ipcMain', 'app', 'fs', 'path', 'promisify', `${body}\nregisterTemplateStorageHandlers()`)(ipcMain, app, fs, path, promisify)
-  return { root, userData, outside, invoke: (name, args) => handlers.get(`template-storage-${name}`)({}, args) }
+  const senderPolicy = await readFile(new URL('../src/main/ipc-sender-policy.js', import.meta.url), 'utf8')
+  const sender = { mainFrame: { url: 'file:///isolated/index.html' }, isDestroyed: () => false, once: () => {} }
+  const event = { sender, senderFrame: sender.mainFrame }
+  const body = (senderPolicy + '\n' + policy + '\n' + source).replace(/^import .*\n/gm, '').replace(/export function /g, 'function ')
+  new Function('ipcMain', 'app', 'fs', 'path', 'promisify', 'sender', `${body}\nregisterTrustedWindow(sender, sender.mainFrame.url, 'main')\nregisterTemplateStorageHandlers()`)(ipcMain, app, fs, path, promisify, sender)
+  return { root, userData, outside, invoke: (name, args) => handlers.get(`template-storage-${name}`)(event, args) }
 }
 
 for (const kind of ['traversal', 'directory-symlink', 'file-symlink']) test(`模板图片读删${kind}不得越过存储目录`, async t => {
