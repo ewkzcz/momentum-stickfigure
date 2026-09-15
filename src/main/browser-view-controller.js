@@ -335,23 +335,6 @@ export function createBrowserViewController({ getPicturesDirectory }) {
       return all && all.length > 0 ? all[0] : null
     }
 
-    // 放宽 CSP：为第三方站点允许 media/worker/socket/子帧等
-    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-      try {
-        const headers = details.responseHeaders || {}
-        const cspKey = Object.keys(headers).find(k => k.toLowerCase() === 'content-security-policy')
-        if (cspKey) {
-          const val = Array.isArray(headers[cspKey]) ? headers[cspKey][0] : headers[cspKey]
-          // 追加 connect-src / img-src / media-src 的放宽，保持其它指令不变
-          const extra = " connect-src * blob: data: ws: wss:; img-src * data: blob:; media-src * data: blob:; worker-src * blob: data:;"
-          headers[cspKey] = [String(val || '').replace(/;\s*$/,'') + ';' + extra]
-        }
-        callback({ responseHeaders: headers })
-      } catch (_) {
-        callback({ responseHeaders: details.responseHeaders })
-      }
-    })
-
     // 2、创建、显示并管理内嵌网页视图。
     /**
      * 为调用窗口打开指定分区的内嵌网页。

@@ -82,48 +82,20 @@ export function createWindowController({ mainDirectory }) {
 
     protectWindow(mainWindow)
 
-    // 处理 OPTIONS 预检请求（CORS 预检）
-    mainWindow.webContents.session.webRequest.onBeforeRequest((details, callback) => {
-      // 如果是 OPTIONS 请求（CORS 预检），直接通过
-      if (details.method === 'OPTIONS') {
-        callback({})
+    // 仅自有HTTP开发入口可以设置应用策略；第三方页面、媒体和预检保留原响应。
+    mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+      const developmentEntry = is.dev && process.env.ELECTRON_RENDERER_URL
+      const appEntries = developmentEntry
+        ? [new URL(developmentEntry).href, new URL('canvas-preview.html', `${developmentEntry.replace(/\/$/, '')}/`).href]
+        : []
+      const responseUrl = new URL(details.url)
+      responseUrl.hash = ''
+      responseUrl.search = ''
+      if (!appEntries.includes(responseUrl.href) || details.resourceType !== 'mainFrame') {
+        callback({ responseHeaders: details.responseHeaders })
         return
       }
-      callback({})
-    })
-
-    // 设置 Content Security Policy 和 CORS 头 (通过 HTTP 头设置，支持所有指令包括 frame-ancestors)
-    mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
       const responseHeaders = { ...details.responseHeaders || {} }
-
-      // 添加 CORS 头，允许视频播放
-      const url = details.url
-      const isVideo = url && (
-        url.includes('.mp4') ||
-        url.includes('.webm') ||
-        url.includes('.ogg') ||
-        url.includes('.mov') ||
-        url.includes('video') ||
-        (details.responseHeaders && details.responseHeaders['content-type']?.some(type => type.includes('video/')))
-      )
-
-      if (isVideo || details.method === 'OPTIONS') {
-        // 为视频文件添加 CORS 头
-        responseHeaders['Access-Control-Allow-Origin'] = ['*']
-        responseHeaders['Access-Control-Allow-Methods'] = ['GET', 'HEAD', 'OPTIONS', 'POST']
-        responseHeaders['Access-Control-Allow-Headers'] = ['Range', 'Content-Type', 'Accept', 'Origin', 'X-Requested-With']
-        responseHeaders['Access-Control-Expose-Headers'] = ['Content-Length', 'Content-Range', 'Accept-Ranges']
-        responseHeaders['Access-Control-Max-Age'] = ['86400'] // 24小时
-
-        // 如果是 OPTIONS 请求，返回 204 状态码
-        if (details.method === 'OPTIONS') {
-          callback({
-            responseHeaders,
-            statusCode: 204
-          })
-          return
-        }
-      }
 
       // 设置 Content Security Policy
       responseHeaders['Content-Security-Policy'] = [
