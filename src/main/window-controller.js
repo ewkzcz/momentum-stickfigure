@@ -11,6 +11,7 @@ import { protectPrivilegedNavigation } from './privileged-navigation.js'
 import { registerTrustedWindow, isTrustedIpcSender } from './ipc-sender-policy.js'
 // 导入快捷键存储
 import { assertEnum, assertText, assertHotkeys } from './ipc-parameter-policy.js'
+import { protectWebviewAttachment } from './webview-attachment-policy.js'
 import { installPrivilegedPermissions } from './web-session-policy.js'
 import { getHotkeysConfig, saveHotkeysConfig } from './hotkeys-storage.js'
 
@@ -41,8 +42,6 @@ export function createWindowController({ mainDirectory }) {
     }
   }
   ipcMain.on('environment:sync', environmentHandler)
-  // 应用级监听由唯一控制器持有，主窗口重建时复用，退出时按同一引用解除。
-  let webContentsCreatedHandler = null
   const protectWindow = (window, preview = false) => {
     const entry = is.dev && process.env.ELECTRON_RENDERER_URL
       ? (preview ? `${process.env.ELECTRON_RENDERER_URL}/canvas-preview.html` : process.env.ELECTRON_RENDERER_URL)
@@ -50,6 +49,7 @@ export function createWindowController({ mainDirectory }) {
     installPrivilegedPermissions(window.webContents.session)
     protectPrivilegedNavigation(window.webContents, entry)
     registerTrustedWindow(window.webContents, entry, preview ? 'preview' : 'main')
+    protectWebviewAttachment(window.webContents)
   }
 
   /**
@@ -201,26 +201,6 @@ export function createWindowController({ mainDirectory }) {
     })
 
     // 主窗和预览会话权限由protectWindow统一安装，默认拒绝系统敏感权限。
-
-    // 监听 webview 附加事件，为每个 webview 设置权限
-    if (!webContentsCreatedHandler) {
-      webContentsCreatedHandler = (event, contents) => {
-        if (contents.getType() === 'webview') {
-          console.log('[Webview] 新的 webview 已创建')
-
-          // 允许 webview 导航
-          contents.setWindowOpenHandler((details) => {
-            void openExternalUrl(details.url).catch(error => console.warn('外部链接未打开:', error.message))
-            return { action: 'deny' }
-          })
-
-          // 独立webview未获应用身份，不能覆盖默认会话或按权限类别自动授权。
-          installPrivilegedPermissions(contents.session)
-
-        }
-      }
-      app.on('web-contents-created', webContentsCreatedHandler)
-    }
 
     // 4、开发环境加载开发服务，打包环境加载本地入口。
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -609,10 +589,6 @@ export function createWindowController({ mainDirectory }) {
     }
 
     // 2、移除预览同步与窗口控制监听。
-    if (webContentsCreatedHandler) {
-      app.removeListener('web-contents-created', webContentsCreatedHandler)
-      webContentsCreatedHandler = null
-    }
     ipcMain.removeHandler('canvas-preview-ready')
     ipcMain.removeHandler('canvas-preview-create')
     ipcMain.removeHandler('canvas-preview-close')

@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-15",
+  "unit": "webview-attachment-policy",
+  "baseline": { "directory": "temp/webview-attachment-before-acceptance-92KHkd", "passed": 0, "failed": 1, "scope": "原生产代码无will-attach-webview校验；实际测试先被后台保护的无条件拒绝截断，不能把这次失败称为真实webview漏洞复现" },
+  "changes": ["可信主窗附加前要求无凭据HTTP(S)入口与有界partition", "创建前移除preload并强制sandbox、webSecurity、contextIsolation，禁用Node子frame/worker、嵌套webview、混合内容和弹窗", "按标签与初始来源派生实际会话并安装网页权限，替代旧全局webContents创建监听覆盖权限", "附加后复用HTTP(S)导航与弹窗拒绝策略，宿主销毁释放监听"],
+  "diagnosis": ["temp/webview-attachment-after-acceptance-XE4Qt5：4通过1失败", "temp/webview-attachment-diagnosis-acceptance-fuPWIu和temp/webview-attachment-listeners-acceptance-Xa0Fot：后台保护额外监听先preventDefault，生产策略已正确覆盖首选项", "保留全部后台、网络和系统副作用保护；将测试明确限定为直接调用已注册生产附加处理器及实际session检查，真实webview加载未验证"],
+  "verification": { "directory": "temp/webview-attachment-final-acceptance-Vu4Wad", "passed": 6, "failed": 0, "durationMs": 16187.458833, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "coverage": ["生产附加处理器首选项强制覆盖", "不同localhost端口实际session分离，固定来源跨路径复用，均非默认session", "file/data/带凭据URL/错误partition拒绝", "预览宿主拒绝后主窗IPC可用", "BrowserView实际沙箱权限导航、主窗预览沙箱权限及窗口生命周期回归"],
+  "limits": ["强制后台保护不允许真实webview，因此其创建、加载、媒体、拖拽及导航端到端均未验证", "Electron35.7.5官方guest-view-manager源码确认will-attach-webview修改发生在guest创建前，但源码核对不能替代桌面验收", "新来源分区不迁移旧cookie，需要重新登录；弹窗登录可能受影响", "跨HTTP(S)来源登录重定向仍允许，权限保留初始来源约束", "主窗webSecurity、全局CORS/CSP和存储分区禁用尚未完成", "定向通过不等于当前累计全量"]
+}
