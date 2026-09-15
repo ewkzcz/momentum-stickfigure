@@ -10,6 +10,7 @@ import path from 'path'
 import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertDialogOptions, assertFileName, assertText } from './ipc-parameter-policy.js'
+import { assertOwnedFilePath, writeOwnedFile } from './file-access-policy.js'
 
 /**
  * 注册文件选择、临时图片保存与目录打开接口。
@@ -290,17 +291,17 @@ export function registerFolderSelectHandler() {
       if (typeof base64Data !== 'string') throw new TypeError('图片数据参数必须是字符串')
       
       // 创建临时目录
-      const tempDir = path.join(app.getPath('temp'), 'momentum-stickfigure-paste')
+      const tempDir = assertOwnedFilePath(app.getPath('temp'), ['momentum-stickfigure-paste'])
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true })
       }
       
       // 2、生成临时文件路径，解码后写入图片。
-      const tempFilePath = path.join(tempDir, fileName || `pasted_${Date.now()}.png`)
+      const tempFilePath = assertOwnedFilePath(app.getPath('temp'), ['momentum-stickfigure-paste', fileName || `pasted_${Date.now()}.png`])
       
       // 将base64转换为buffer并保存
       const buffer = Buffer.from(base64Data, 'base64')
-      fs.writeFileSync(tempFilePath, buffer)
+      writeOwnedFile(tempFilePath, buffer)
       
       // 3、向页面返回后续处理所需的本地路径。
       console.log('临时图片已保存:', tempFilePath)
