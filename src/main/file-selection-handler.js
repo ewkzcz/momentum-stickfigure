@@ -9,6 +9,7 @@ import { app, BrowserWindow, shell, dialog, ipcMain } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { assertDialogOptions, assertFileName, assertText } from './ipc-parameter-policy.js'
 
 /**
  * 注册文件选择、临时图片保存与目录打开接口。
@@ -108,6 +109,7 @@ export function registerFolderSelectHandler() {
   ipcMain.handle('select-file', async (event, options = {}) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的文件选择操作来源')
+      assertDialogOptions(options)
       // 1、从调用参数构造文件选择选项。
       const window = BrowserWindow.fromWebContents(event.sender)
       const dialogOptions = {
@@ -154,6 +156,7 @@ export function registerFolderSelectHandler() {
   ipcMain.handle('show-save-dialog', async (event, options = {}) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的文件选择操作来源')
+      assertDialogOptions(options)
       // 1、绑定调用窗口，保留默认位置与文件筛选条件。
       const window = BrowserWindow.fromWebContents(event.sender)
       const dialogOptions = {
@@ -283,6 +286,8 @@ export function registerFolderSelectHandler() {
       if (!base64Data) {
         return { success: false, error: '图片数据为空' }
       }
+      if (fileName !== undefined && fileName !== '') assertFileName(fileName)
+      if (typeof base64Data !== 'string') throw new TypeError('图片数据参数必须是字符串')
       
       // 创建临时目录
       const tempDir = path.join(app.getPath('temp'), 'momentum-stickfigure-paste')
@@ -326,6 +331,7 @@ export function registerFolderSelectHandler() {
       if (!folderPath) {
         return { success: false, error: '文件夹路径为空' }
       }
+      assertText(folderPath, 32768, '目录路径')
       
       console.log('打开文件夹:', folderPath)
       

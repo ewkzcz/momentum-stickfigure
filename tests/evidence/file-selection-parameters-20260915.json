@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "5ef95a1",
+  "scope": "文件选择选项、目录参数与临时文件名单段约束",
+  "before": { "directory": "temp/file-parameters-before-acceptance-Vhhs04", "passed": 0, "failed": 1, "failure": "save-temp-image接受../escaped.png并写到粘贴专属目录外（仍在强制测试隔离根内）" },
+  "after": { "directory": "temp/file-parameters-after-acceptance-VyRofK", "passed": 2, "failed": 0 },
+  "compat": { "directory": "temp/file-parameters-compat-acceptance-iimZLt", "passed": 3, "failed": 1, "generateWorkflowPassed": true, "cause": "旧测试要求错误filters类型被静默忽略；按批准参数拒绝目标改为显式失败断言。目录型临时名称也改为副作用前参数失败，原磁盘未改动断言保留。" },
+  "final": { "directory": "temp/file-parameters-final-acceptance-G34pWa", "tests": 3, "passed": 3, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "compatibility": ["保留undefined/null/空字符串的图片数据为空和目录路径为空返回", "合法选择结果、对话框完整选项、中文空格、默认名称和覆盖字节通过原回归", "筛选最多64组，每组64扩展名，单扩展名64字符；名称256字符；对话框文本及路径32768字符；文件名255字符"],
+  "limits": ["文件名校验不替代符号链接检查及可信路径授权，后续固定任务仍需实施", "图片容量及编码内容校验尚未在本组完成", "Generate流程在compat候选通过；最终仅调整空值错误优先级及旧参数拒绝断言，未重复运行Generate", "一次Cursor启动包装器停在cat，尚无测试进程或日志；终止33604/33605后重启，非产品失败"]
+}

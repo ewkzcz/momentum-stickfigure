@@ -144,7 +144,7 @@ test('文件选择：完整返回、选项透传、真实图片与临时落盘�
       assert.deepEqual(await call(desktop, 'select-file', { ...options, multiple }), { success: true, canceled: false, paths, path: multiple ? null : paths[0] })
       await checkDialog(desktop, 'open', { properties: multiple ? ['openFile', 'multiSelections'] : ['openFile'], ...options })
     }
-    for (const input of [undefined, { title: '', filters: '错误类型' }]) {
+    for (const input of [undefined, { title: '' }]) {
       await prepare(desktop, [paths[0]])
       assert.deepEqual(await call(desktop, 'select-file', input), { success: true, canceled: false, paths: [paths[0]], path: paths[0] })
       await checkDialog(desktop, 'open', { properties: ['openFile'], title: '选择文件', defaultPath: undefined, filters: undefined, message: undefined })
@@ -152,6 +152,9 @@ test('文件选择：完整返回、选项透传、真实图片与临时落盘�
       assert.deepEqual(await call(desktop, 'show-save-dialog', input), { success: true, canceled: false, filePath: paths[0] })
       await checkDialog(desktop, 'save', { title: '保存文件', defaultPath: undefined, filters: undefined, message: undefined })
     }
+    // 错误类型现在在原生对话框之前拒绝，不再静默丢弃筛选条件。
+    assert.deepEqual(await call(desktop, 'select-file', { filters: '错误类型' }), { success: false, error: 'filters参数无效', canceled: false, paths: [] })
+    assert.deepEqual(await call(desktop, 'show-save-dialog', { filters: '错误类型' }), { success: false, error: 'filters参数无效', canceled: false })
     await prepare(desktop, [], null, paths[1])
     assert.deepEqual(await call(desktop, 'show-save-dialog', options), { success: true, canceled: false, filePath: paths[1] })
     await checkDialog(desktop, 'save', options)
@@ -185,7 +188,7 @@ test('文件选择：完整返回、选项透传、真实图片与临时落盘�
     const blocked = path.join(tempDir, '父目录是文件')
     await writeFile(blocked, '占位 内容')
     const badPath = path.join(blocked, '子.png')
-    assert.deepEqual(await call(desktop, 'save-temp-image', png.toString('base64'), '父目录是文件/子.png'), { success: false, error: `ENOTDIR: not a directory, open '${badPath}'` })
+    assert.deepEqual(await call(desktop, 'save-temp-image', png.toString('base64'), '父目录是文件/子.png'), { success: false, error: '文件名参数必须是单段名称' })
     assert.equal(await readFile(blocked, 'utf8'), '占位 内容')
     await assert.rejects(stat(badPath), { code: 'ENOTDIR' })
     results.push({ tempPath, defaultSaved })
