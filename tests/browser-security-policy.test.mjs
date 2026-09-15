@@ -27,7 +27,10 @@ test('内嵌网页安全：实际启用webSecurity与沙箱，阻止文件导航
       return event.prevented
     }, input.url)
     assert.equal(denied, true)
-    await page.goto(input.url + '?normal=1')
+    await Promise.all([
+      page.waitForURL(input.url + '?normal=1'),
+      page.evaluate(url => { location.href = url }, input.url + '?normal=1')
+    ])
     assert.equal(await page.title(), 'safe')
     assert.equal((await desktop.page.evaluate(input => window.electronAPI.invoke('browserview:close', input), input)).success, true)
   } finally { await desktop.close(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)) }

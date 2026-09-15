@@ -42,7 +42,7 @@ export function sitePartition(label, url) {
 
 export function protectWebNavigation(contents) {
   const guard = (event, destination) => {
-    try { webOrigin(typeof destination === 'string' ? destination : destination?.url) }
+    try { webOrigin(typeof destination === 'string' ? destination : (destination?.url ?? event?.url)) }
     catch { event.preventDefault() }
   }
   contents.on('will-navigate', guard)
