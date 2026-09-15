@@ -3,7 +3,7 @@ import { app, BrowserWindow, BrowserView, ipcMain, nativeImage, nativeTheme, ses
 import path from 'path'
 import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
-import { assertBrowserOptions } from './ipc-parameter-policy.js'
+import { assertBrowserOptions, assertRecord, assertText } from './ipc-parameter-policy.js'
 import { assertBrowserDragParameters } from './browser-drag-parameters.js'
 import { assertOwnedFilePath, writeOwnedFile } from './file-access-policy.js'
 import { sitePartition, webOrigin, installWebPermissions, protectWebNavigation } from './web-session-policy.js'
@@ -17,6 +17,8 @@ import { sitePartition, webOrigin, installWebPermissions, protectWebNavigation }
 export function createBrowserViewController({ getPicturesDirectory }) {
   // 索引同时包含调用方webContents标识、分区和地址，窗口之间不能操作对方视图。
   const globalBrowserViews = new Map()
+  // 同步拖拽仅消费该调用窗口经图片准备入口实际写出的单文件。
+  const preparedDragFiles = new WeakMap()
 
   // ==================== BrowserView 嵌入处理器 ====================
   let __doubaoDragging = false // 防止并发/重复 startDrag 造成崩溃
@@ -617,6 +619,10 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         // 2、写入图片字节并返回本地文件定位信息。
         const buffer = Buffer.from(base64, 'base64')
         writeOwnedFile(finalPath, buffer)
+        let prepared = preparedDragFiles.get(event.sender)
+        if (!prepared) { prepared = new Set(); preparedDragFiles.set(event.sender, prepared) }
+        prepared.add(finalPath)
+        if (prepared.size > 128) prepared.delete(prepared.values().next().value)
         return { success: true, path: finalPath, mime: mimeType || 'image/png' }
       } catch (e) {
         return { success: false, error: e?.message }
@@ -630,8 +636,20 @@ export function createBrowserViewController({ getPicturesDirectory }) {
      * 2、记录诊断信息并按平台准备图标。
      * 3、发起拖拽，通过同步返回值反馈结果并复位状态。
      */
-    ipcMain.on('doubao:start-drag-sync', (event, { filePath, iconPath }) => {
+    ipcMain.on('doubao:start-drag-sync', (event, payload) => {
+      if (!isTrustedIpcSender(event)) {
+        event.returnValue = { success: false, error: '未授权的网页操作来源' }
+        return
+      }
       try {
+        assertRecord(payload, '同步拖拽')
+        const { filePath, iconPath } = payload
+        assertText(filePath, 32768, '拖拽路径')
+        if (iconPath !== undefined && iconPath !== null) assertText(iconPath, 32768, '拖拽图标路径')
+        if (!preparedDragFiles.get(event.sender)?.has(filePath)) throw new Error('文件路径未授权，请先准备拖拽图片')
+        const picturesDir = getPicturesDirectory ? getPicturesDirectory() : app.getPath('pictures')
+        const allowedPath = assertOwnedFilePath(picturesDir, ['MomentumStickFigure', path.basename(filePath)])
+        if (allowedPath !== filePath || !fs.statSync(filePath).isFile()) throw new Error('拖拽文件路径未授权')
         // 1、禁止宿主已销毁或已有拖拽进行时重复启动。
         const owner = getOwningWindowForWebContents(event.sender)
         if (!owner || owner.isDestroyed() || !owner.webContents || owner.webContents.isDestroyed()) {
