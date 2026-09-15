@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "f47bafc",
+  "scope": "真实OCR处理器useAI分支的受控本地HTTP取消集成验收",
+  "firstRun": { "directory": "temp/ocr-ai-handler-cancel-acceptance-b1p8uq", "tests": 17, "passed": 15, "failed": 2, "cause": "新增测试误要求destroyed监听为0；可信窗口注册已有1个生命周期监听。改为严格恢复运行前基线，不修改生产代码。" },
+  "recheck": { "directory": "temp/ocr-ai-handler-cancel-recheck-acceptance-AAqnxe", "tests": 17, "passed": 17, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["连通检查请求到达后取消，不启动识别进程或创建输出目录", "纠错请求到达后取消，识别进程已退出且不写最终字幕", "两阶段均确认本地服务端连接关闭、临时脚本清除", "取消后再次运行useAI任务成功，最终文件内容完全匹配", "HTTP自定义端口和/custom路径前缀保留"],
+  "limits": ["真实HTTP服务仅绑定127.0.0.1并使用假密钥", "业务处理器和请求管理器为真实代码；Python边界替换为受控Node进程", "未调用第三方AI、真实Python模型或修改Electron隔离bootstrap"]
+}

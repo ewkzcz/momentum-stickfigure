@@ -5,7 +5,8 @@ import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from 'node:fs/promis
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { EventEmitter } from 'node:events'
+import { EventEmitter, once } from 'node:events'
+import { createServer } from 'node:http'
 import { build } from 'esbuild'
 
 const repo = fileURLToPath(new URL('../', import.meta.url))
@@ -107,6 +108,60 @@ async function fixture(t) {
     invoke(channel, ...args) { return handlers.get(`video-ocr:${channel}`)(event, ...args) },
     readyFor(stage) { return new Promise(resolve => { state.ready = record => { if (record.stage === stage) resolve(record) } }) }
   }
+}
+
+for (const phase of ['connection', 'correction']) {
+  test(`OCR AI ${phase}：真实本地请求取消、关闭连接并恢复`, { timeout: 20000 }, async t => {
+    const f = await fixture(t)
+    const baselineListeners = f.event.sender.listenerCount('destroyed')
+    let held, requests = 0, hold = true
+    let received
+    const reached = new Promise(resolve => { received = resolve })
+    const server = createServer((req, res) => {
+      requests++
+      req.resume()
+      assert.equal(req.url, '/custom/v1/chat/completions')
+      assert.equal(req.headers.authorization, 'Bearer isolated-fake-key')
+      if (hold && (phase === 'connection' || requests === 2)) {
+        held = req.socket
+        received({ closed: once(held, 'close') })
+        return
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ choices: [{ message: { content: '隔离纠错字幕' } }] }))
+    })
+    server.listen(0, '127.0.0.1')
+    await once(server, 'listening')
+    t.after(async () => {
+      server.closeAllConnections()
+      await new Promise(resolve => server.close(resolve))
+    })
+    const payload = { ...f.payload, useAI: true, apiKey: 'isolated-fake-key', aiModel: 'fixture', apiBaseUrl: `http://127.0.0.1:${server.address().port}/custom` }
+    const task = f.invoke('process-video', payload)
+    // 此Promise只在请求到达时完成；连接关闭由独立Promise记录。
+    const socketClosed = await Promise.race([
+      reached,
+      task.then(result => { throw new Error(`请求到达前任务结束: ${JSON.stringify(result)}`) })
+    ])
+    assert.ok(held)
+    assert.deepEqual(await f.invoke('cancel'), { success: true, cancelled: 1 })
+    await socketClosed.closed
+    assert.equal(held.destroyed, true)
+    const result = await task
+    assert.equal(result.success, false)
+    assert.match(result.message, /取消/)
+    assert.equal(requests, phase === 'connection' ? 1 : 2)
+    assert.equal(f.state.records.length, phase === 'connection' ? 0 : 1)
+    for (const record of f.state.records) assertExited(record)
+    assert.equal((await readdir(f.root)).some(name => name.endsWith('.py')), false)
+    if (phase === 'correction') assert.deepEqual(await readdir(f.payload.outputDir), [])
+    else await assert.rejects(readdir(f.payload.outputDir), { code: 'ENOENT' })
+    hold = false
+    const recovered = await f.invoke('process-video', payload)
+    assert.equal(recovered.success, true)
+    assert.equal(await readFile(recovered.data.outputPath, 'utf8'), '隔离纠错字幕')
+    assert.equal(f.event.sender.listenerCount('destroyed'), baselineListeners)
+  })
 }
 
 function assertExited(record) {
