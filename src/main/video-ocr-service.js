@@ -12,6 +12,7 @@ import { currentTaskSignal, runOwnedTask, cancelOwnedTasks } from './owned-proce
 import { requestTaskResponse } from './task-http-request.mjs'
 import { buildApiUrl } from '../shared/api-url.js'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { assertLocalProcessOptions, assertText } from './ipc-parameter-policy.js'
 
 // ==================== 常量定义 ====================
 
@@ -1340,6 +1341,7 @@ export function registerVideoOcrServiceHandlers() {
   ipcMain.handle('video-ocr:check-environment', async (event, pythonHome) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的字幕识别操作来源')
+      assertText(pythonHome, 32768, 'Python路径')
       const envCheck = await runOwnedTask(event.sender, 'ocr', () => checkEnvironment(pythonHome))
       return {
         success: true,
@@ -1371,6 +1373,7 @@ export function registerVideoOcrServiceHandlers() {
         if (!event.sender.isDestroyed()) event.sender.send('video-ocr:progress', progress)
       }
 
+      assertText(pythonHome, 32768, 'Python路径')
       await runOwnedTask(event.sender, 'ocr', () => cleanEnvironment(pythonHome, progressCallback))
       
       return {
@@ -1403,6 +1406,8 @@ export function registerVideoOcrServiceHandlers() {
         if (!event.sender.isDestroyed()) event.sender.send('video-ocr:progress', progress)
       }
 
+      assertText(pythonHome, 32768, 'Python路径')
+      if (useMirror !== undefined && typeof useMirror !== 'boolean') throw new TypeError('镜像参数必须是布尔值')
       await runOwnedTask(event.sender, 'ocr', () => installEnvironment(pythonHome, useMirror !== false, progressCallback))
       
       return {
@@ -1436,6 +1441,7 @@ export function registerVideoOcrServiceHandlers() {
         if (!event.sender.isDestroyed()) event.sender.send('video-ocr:progress', progress)
       }
 
+      assertLocalProcessOptions(payload)
       const result = await runOwnedTask(event.sender, 'ocr', () => processVideo(payload, progressCallback))
       
       return {

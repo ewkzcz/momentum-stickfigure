@@ -9,6 +9,7 @@ import os from 'os'
 import { runManagedProcess } from './managed-process.mjs'
 import { currentTaskSignal, runOwnedTask, cancelOwnedTasks } from './owned-process-tasks.mjs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { assertLocalProcessOptions, assertText } from './ipc-parameter-policy.js'
 
 const deniedSource = () => ({ success: false, message: '未授权的高清工具操作来源' })
 
@@ -988,10 +989,12 @@ export function registerHdServiceHandlers() {
 
   ipcMain.handle('hd:save-config', async (event, payload) => {
     if (!isTrustedIpcSender(event)) return deniedSource()
-    const merged = updateConfig(payload || {})
-    return {
-      success: true,
-      data: merged
+    try {
+      assertLocalProcessOptions(payload)
+      const merged = updateConfig(payload)
+      return { success: true, data: merged }
+    } catch (error) {
+      return { success: false, message: error.message }
     }
   })
 
@@ -999,7 +1002,8 @@ export function registerHdServiceHandlers() {
   ipcMain.handle('hd:run-removebg', async (event, payload) => {
     if (!isTrustedIpcSender(event)) return deniedSource()
     try {
-      const result = await runOwnedTask(event.sender, 'hd', () => handleRemoveBackground(payload || {}))
+      assertLocalProcessOptions(payload)
+      const result = await runOwnedTask(event.sender, 'hd', () => handleRemoveBackground(payload))
       return {
         success: true,
         data: result
@@ -1018,7 +1022,8 @@ export function registerHdServiceHandlers() {
   ipcMain.handle('hd:run-highres', async (event, payload) => {
     if (!isTrustedIpcSender(event)) return deniedSource()
     try {
-      const result = await runOwnedTask(event.sender, 'hd', () => handleHighres(payload || {}))
+      assertLocalProcessOptions(payload)
+      const result = await runOwnedTask(event.sender, 'hd', () => handleHighres(payload))
       return {
         success: true,
         data: result
@@ -1037,6 +1042,7 @@ export function registerHdServiceHandlers() {
   ipcMain.handle('hd:get-image-preview', async (event, imagePath) => {
     if (!isTrustedIpcSender(event)) return deniedSource()
     try {
+      assertText(imagePath, 32768, '图片路径')
       const dataUrl = readImageAsDataUrl(imagePath)
       return {
         success: true,

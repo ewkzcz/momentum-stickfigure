@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "d7aefa1",
+  "scope": "高清配置/任务和字幕任务/环境操作有限参数",
+  "before": { "directory": "temp/local-parameters-before-acceptance-5hp4r0", "passed": 0, "failed": 1, "failure": "hd:save-config接受数组并写入配置" },
+  "after": { "directory": "temp/local-parameters-after-acceptance-kI4kZk", "tests": 21, "passed": 21, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["配置及嵌套模型对象、字符串路径、图片列表、有限非负数、布尔和性能模式", "兼容旧数字字符串及alphaMatting的0/1字符串", "任务登记/执行前拒绝错误参数，原高清配置不变", "高清设置磁盘迁移备份恢复、取消UI、真实受控子进程、字幕AI本地HTTP取消集成回归"],
+  "limits": ["本组未执行真实Python或模型，不修改用户环境", "路径类型校验尚不等于可信选择授权", "数值业务范围沿用原实现，本组不宣称所有计算资源预算已完善"]
+}

@@ -116,6 +116,26 @@ export function assertGeminiOptions(value) {
   if (value.inputImages !== undefined) assertPathList(value.inputImages)
 }
 
+export function assertLocalProcessOptions(value, nested = false) {
+  assertRecord(value, '本地处理')
+  for (const key of ['pythonHome', 'pythonPath', 'removebgWeightsDir', 'removebgWeightsPath', 'highresWeightsDir', 'highresWeightsPath', 'outputDir', 'outputPath', 'weightsDir', 'modelId', 'videoPath', 'apiKey', 'apiBaseUrl', 'aiModel']) {
+    if (value[key] !== undefined) assertText(value[key], 32768, key)
+  }
+  if (value.inputPaths !== undefined) assertPathList(value.inputPaths)
+  for (const key of ['outscale', 'tile', 'tilePad', 'prePad', 'intervalSeconds']) {
+    const item = value[key]
+    if (item !== undefined && ((typeof item !== 'number' && typeof item !== 'string') || item === '' || !Number.isFinite(Number(item)) || Number(item) < 0)) throw new TypeError(`${key}参数无效`)
+  }
+  for (const key of ['half', 'useAI']) {
+    if (value[key] !== undefined && typeof value[key] !== 'boolean') throw new TypeError(`${key}参数必须是布尔值`)
+  }
+  if (value.alphaMatting !== undefined) assertEnum(value.alphaMatting, [true, false, '1', '0'], 'alphaMatting')
+  if (value.mode !== undefined) assertEnum(value.mode, ['auto', 'cpu', 'gpu', 'custom'], '性能模式')
+  if (!nested) for (const key of ['removebg', 'highres']) {
+    if (value[key] !== undefined) assertLocalProcessOptions(value[key], true)
+  }
+}
+
 export function assertHotkeys(value) {
   assertRecord(value, '快捷键')
   for (const key of Object.keys(value)) {
