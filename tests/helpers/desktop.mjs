@@ -52,7 +52,8 @@ export async function launchDesktop(existingRoot, renderMode = 'default') {
     /** 关闭真实应用并保存脱离用户配置的诊断记录。 */
     async close() {
       // 1、先采集隔离检查结果，再让生产退出持久化正常执行。
-      const safety = await application.evaluate(() => ({ violations: globalThis.__momentumTest.violations, writes: globalThis.__momentumTest.writes, background: globalThis.__momentumTest.backgroundPolicy.snapshot() }))
+      // inspector 可在原生对象析构中断点式重入；状态查询必须在正常事件循环执行。
+      const safety = await application.evaluate(() => new Promise(resolve => setImmediate(() => resolve({ violations: globalThis.__momentumTest.violations, writes: globalThis.__momentumTest.writes, background: globalThis.__momentumTest.backgroundPolicy.snapshot() }))))
       try {
         assert.equal(safety.background.installed, true, '后台保护未安装')
         assert.deepEqual(safety.background.windowEvents, [], '测试期间出现原生显示或聚焦事件')

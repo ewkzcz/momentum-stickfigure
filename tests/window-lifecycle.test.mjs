@@ -9,13 +9,15 @@ import { createCanvas } from '@napi-rs/canvas'
 import { launchDesktop, repository } from './helpers/desktop.mjs'
 import { stableCanvas, assertSamePixels } from './helpers/images.mjs'
 import { closePreviewByButton } from './helpers/preview-close.mjs'
+import { installPreviewDeliveryTrace, readPreviewDeliveryTrace } from './helpers/preview-delivery-trace.mjs'
 
 /** 获取原生窗口列表；1、仅规范化随机窗口编号，保留真实资源路径和后台状态。 */
 async function windows(application) {
-  return application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().map(window => ({
+  // 调试器求值可能在原生析构回调内重入；等当前原生调用退栈后再读取窗口状态。
+  return application.evaluate(({ BrowserWindow }) => new Promise(resolve => setImmediate(() => resolve(BrowserWindow.getAllWindows().map(window => ({
     id: window.id, url: window.webContents.getURL(), visible: window.isVisible(), focused: window.isFocused(),
     alwaysOnTop: window.isAlwaysOnTop(), focusable: window.isFocusable(), devTools: window.webContents.isDevToolsOpened()
-  })))
+  }))))))
 }
 
 test('窗口生命周期：十轮预览复用、主题和视图同步、关闭及主窗联动', { timeout: 180000 }, async () => {
@@ -31,8 +33,13 @@ test('窗口生命周期：十轮预览复用、主题和视图同步、关闭�
     limits: ['后台策略阻止show/focus/置顶，不等同原生显示验收', 'globalShortcut.register为原helper固定false，未验证系统快捷键触发']
   }
   let stage = 'start'
+  let failure
+  const child = application.process()
+  const processExit = { pid: child.pid }
+  child.once('exit', (code, signal) => Object.assign(processExit, { code, signal }))
   console.log(`窗口生命周期证据：${root}`)
   try {
+    await installPreviewDeliveryTrace(application)
     const beforeRoot = process.env.MOMENTUM_WINDOW_BEFORE
     const before = beforeRoot ? JSON.parse(await readFile(path.join(beforeRoot, 'window-lifecycle-result.json'), 'utf8')) : null
     if (before) {
@@ -107,6 +114,7 @@ test('窗口生命周期：十轮预览复用、主题和视图同步、关闭�
       evidence.mainRecreationCycles = []
       let next
       for (let cycle = 0; cycle < 20; cycle++) {
+        stage = `main-recreation-${cycle}-activate`
         const reopened = application.waitForEvent('window')
         await application.evaluate(({ app }) => { app.emit('activate') })
         next = await reopened
@@ -117,6 +125,7 @@ test('窗口生命周期：十轮预览复用、主题和视图同步、关闭�
         assert.equal(listeners, initialWebContentsListeners, '主窗口重建不得累计应用级webview监听')
         evidence.mainRecreationCycles.push({ cycle, listeners })
         if (cycle < 19) {
+          stage = `main-recreation-${cycle}-close`
           const closed = next.waitForEvent('close')
           await application.evaluate(({ BrowserWindow }, id) => { BrowserWindow.fromId(id).close() }, current[0].id)
           await closed
@@ -135,14 +144,32 @@ test('窗口生命周期：十轮预览复用、主题和视图同步、关闭�
     }
     evidence.passed = true
   } catch (error) {
+    failure = error
     evidence.failure = { stage, message: error.message }
+    try {
+      evidence.pages = await Promise.all(application.windows().map(window => window.evaluate(() => ({
+        url: location.href, readyState: document.readyState, bridge: typeof window.electronAPI,
+        invoke: typeof window.electronAPI?.invoke, on: typeof window.electronAPI?.on,
+        canvas: [...document.querySelectorAll('canvas')].map(canvas => ({ width: canvas.width, height: canvas.height })),
+        text: document.body.innerText.slice(0, 500)
+      }))))
+    } catch (diagnosticError) {
+      evidence.pageDiagnosticFailure = diagnosticError.message
+    }
     throw error
   } finally {
+    try {
+      evidence.deliveryTrace = await readPreviewDeliveryTrace(application)
+    } catch (error) {
+      evidence.traceFailure = error.message
+    }
     try { await desktop.close() } catch (error) {
       evidence.passed = false
       evidence.cleanupFailure = error.message
-      throw error
+      if (!failure) throw error
     } finally {
+      evidence.processExit = processExit
+      await writeFile(path.join(root, 'window-lifecycle-desktop.log'), desktop.logs.join(''))
       await writeFile(path.join(root, 'window-lifecycle-result.json'), JSON.stringify(evidence, null, 2), { flag: 'wx' })
     }
   }
