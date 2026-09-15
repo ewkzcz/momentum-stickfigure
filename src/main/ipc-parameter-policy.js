@@ -101,6 +101,21 @@ export function assertSettingsArchive(value) {
   visit(value, 0)
 }
 
+export function assertPathList(value, maximum = 1024) {
+  if (!Array.isArray(value) || value.length > maximum) throw new TypeError('文件列表参数无效')
+  for (const file of value) assertText(file, 32768, '文件路径')
+}
+
+export function assertGeminiOptions(value) {
+  assertRecord(value, '图像配置')
+  for (const key of ['apiKey', 'baseUrl', 'model', 'projectRoot', 'outputDir', 'editOutputDir', 'logDir', 'logFile', 'aspectRatio']) {
+    if (value[key] !== undefined) assertText(value[key], 32768, key)
+  }
+  if (value.prompt !== undefined) assertText(value.prompt, 1024 * 1024, '提示词')
+  if (value.timeoutMinutes !== undefined && (typeof value.timeoutMinutes !== 'number' || !Number.isFinite(value.timeoutMinutes) || value.timeoutMinutes <= 0)) throw new TypeError('超时参数无效')
+  if (value.inputImages !== undefined) assertPathList(value.inputImages)
+}
+
 export function assertHotkeys(value) {
   assertRecord(value, '快捷键')
   for (const key of Object.keys(value)) {

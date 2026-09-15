@@ -7,6 +7,7 @@
 import { ipcMain } from 'electron';
 import path from 'path';
 import { isTrustedIpcSender } from '../ipc-sender-policy.js';
+import { assertGeminiOptions, assertPathList, assertText } from '../ipc-parameter-policy.js';
 
 // 直接从 ESM 模块中按需导入需要的函数
 import { apiWrapper } from './gemini-image-service.js';
@@ -34,6 +35,7 @@ export function registerFalApiHandlers() {
   ipcMain.handle('fal-generate-image', async (event, options) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertGeminiOptions(options);
       const config = getConfig(options);
       const validation = validateConfig(config);
 
@@ -78,6 +80,7 @@ export function registerFalApiHandlers() {
   ipcMain.handle('fal-edit-image', async (event, options) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertGeminiOptions(options);
       const config = getConfig(options);
       const validation = validateConfig(config);
 
@@ -138,6 +141,7 @@ export function registerFalApiHandlers() {
   ipcMain.handle('fal-get-config', async (event, userConfig = {}) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertGeminiOptions(userConfig);
       const config = getConfig(userConfig);
       const validation = validateConfig(config);
 
@@ -163,6 +167,7 @@ export function registerFalApiHandlers() {
   ipcMain.handle('fal-validate-image', async (event, imagePath) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertText(imagePath, 32768, '图片路径');
       const isValid = validateImageFile(imagePath);
       let imageInfo = null;
 
@@ -191,6 +196,7 @@ export function registerFalApiHandlers() {
   ipcMain.handle('fal-validate-images', async (event, imagePaths) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertPathList(imagePaths);
       const results = [];
 
       for (const imagePath of imagePaths) {
@@ -226,6 +232,7 @@ export function registerFalApiHandlers() {
   ipcMain.handle('fal-create-directories', async (event, config = {}) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertGeminiOptions(config);
       const fullConfig = getConfig(config);
       createDefaultDirectories(fullConfig);
 
