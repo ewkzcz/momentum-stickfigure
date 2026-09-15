@@ -7,6 +7,7 @@ import { ipcMain, app } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import { assertTemplateSegment, assertTemplateType, checkedTemplatePath, resolveTemplateImagePath } from './template-storage-paths.js';
 
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
@@ -74,7 +75,7 @@ function getTemplateStorageDir() {
   // macOS: ~/Library/Application Support/<应用名>/templates
   // Linux: ~/.config/<应用名>/templates
   const userDataPath = app.getPath('userData');
-  const templatesDir = path.join(userDataPath, 'templates');
+  const templatesDir = checkedTemplatePath(userDataPath, ['templates']);
   
   // 2、确保模板目录存在。
   if (!fs.existsSync(templatesDir)) {
@@ -94,8 +95,9 @@ function getTemplateStorageDir() {
  */
 function getTemplateTypeDir(templateType) {
   // 1、定位并准备类型专属目录。
-  const baseDir = getTemplateStorageDir();
-  const typeDir = path.join(baseDir, templateType);
+  assertTemplateType(templateType);
+  getTemplateStorageDir();
+  const typeDir = checkedTemplatePath(app.getPath('userData'), ['templates', templateType]);
   
   if (!fs.existsSync(typeDir)) {
     fs.mkdirSync(typeDir, { recursive: true });
@@ -129,11 +131,12 @@ async function saveTemplateImage(templateType, templateId, base64Data) {
     const imageBuffer = Buffer.from(base64Content, 'base64');
     
     // 获取存储目录
-    const typeDir = getTemplateTypeDir(templateType);
+    assertTemplateSegment(templateId);
+    getTemplateTypeDir(templateType);
     
     // 生成文件名：模板ID.png
     const fileName = `${templateId}.png`;
-    const filePath = path.join(typeDir, fileName);
+    const filePath = checkedTemplatePath(app.getPath('userData'), ['templates', templateType, fileName]);
     
     // 2、保存文件并使用最新文件状态刷新缓存。
     await writeFile(filePath, imageBuffer);
@@ -171,7 +174,7 @@ async function loadTemplateImage(relativePath) {
     }
     
     // 构建完整路径
-    const fullPath = path.join(app.getPath('userData'), relativePath);
+    const fullPath = resolveTemplateImagePath(app.getPath('userData'), relativePath);
     
     // 检查文件是否存在
     if (!fs.existsSync(fullPath)) {
@@ -334,7 +337,7 @@ async function deleteTemplateImage(relativePath) {
       return false;
     }
     
-    const fullPath = path.join(app.getPath('userData'), relativePath);
+    const fullPath = resolveTemplateImagePath(app.getPath('userData'), relativePath);
     
     if (fs.existsSync(fullPath)) {
       // 2、文件删除成功后同步失效缓存。
