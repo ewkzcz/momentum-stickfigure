@@ -5,6 +5,7 @@ import path from 'path'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertText, assertBinaryPayload } from './ipc-parameter-policy.js'
 import { assertImageBase64 } from './template-image-parameters.js'
+import { assertOwnedFilePath, writeOwnedFile } from './file-access-policy.js'
 
 /**
  * 注册图片写入与拖入文件落盘接口。
@@ -92,7 +93,7 @@ export function registerFileWriteHandler() {
 
       // 1、定位应用使用的拖入文件临时目录。
       const tempDir = app.getPath('temp')
-      const appTempDir = path.join(tempDir, 'momentum-stickfigure', 'dragged-files')
+      const appTempDir = assertOwnedFilePath(tempDir, ['momentum-stickfigure', 'dragged-files'])
 
       // 确保临时目录存在
       if (!fs.existsSync(appTempDir)) {
@@ -107,23 +108,15 @@ export function registerFileWriteHandler() {
         : 'dragged'
       const sanitizedExt = ext || ''
       const sanitizedFileName = `${sanitizedBaseName}${sanitizedExt}`
-      const filePath = path.join(appTempDir, sanitizedFileName)
+      const filePath = assertOwnedFilePath(tempDir, ['momentum-stickfigure', 'dragged-files', sanitizedFileName])
 
-      // 如果已存在同名文件则覆盖
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath)
-          console.log('已删除旧的临时文件，准备覆盖:', filePath)
-        } catch (removeError) {
-          console.warn('删除旧临时文件失败，将直接覆盖:', removeError.message)
-        }
-      }
+      // 合法同名文件保持覆盖；不删除链接后绕过目标身份检查。
 
       // 3、将传入字节转换为缓冲区并写入临时文件。
       const buffer = ArrayBuffer.isView(arrayBuffer)
         ? Buffer.from(arrayBuffer.buffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
         : Buffer.from(arrayBuffer)
-      fs.writeFileSync(filePath, buffer)
+      writeOwnedFile(filePath, buffer)
 
       console.log('拖拽文件已保存到:', filePath)
       return {

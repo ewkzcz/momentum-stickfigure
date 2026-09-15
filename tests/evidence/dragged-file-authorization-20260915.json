@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "unit": "dragged-file-authorization",
+  "baseline": { "directory": "temp/dragged-authorization-before-acceptance-cJsCzO", "passed": 0, "failed": 1, "failure": "拖入临时目录符号链接指向隔离哨兵目录，原handler接受写入" },
+  "changes": ["从可信系统temp根逐段检查应用专属dragged-files目录及目标文件", "拒绝目录及目标符号链接，最终open使用O_NOFOLLOW与0600", "去除先unlink旧目标逻辑，合法同名仍原路径覆盖"],
+  "verification": { "directory": "temp/dragged-authorization-after-acceptance-Dc0z3l", "passed": 6, "failed": 0, "durationMs": 4759.912917, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "coverage": ["目录及目标链接拒绝，隔离哨兵字节不变", "移除链接后中文空格合法保存和同名覆盖恢复", "原始ArrayBuffer字节、文件重名后缀及重启持久化", "粘贴临时图片链接及IPC来源/载荷回归"],
+  "limits": ["不是对恶意本地进程并发替换父目录的原子防护", "保留既有同名覆盖语义，不新增随机名称", "尚未授予通用read-file可信读取权限；完整选择器和配置目录授权仍未完成", "Windows/Linux与真实系统拖拽未验证", "定向通过不等于累计全量"]
+}
