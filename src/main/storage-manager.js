@@ -9,6 +9,7 @@ import path from 'path'
 import { app } from 'electron'
 import os from 'os'
 import { randomUUID } from 'node:crypto'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 const ENABLE_REALTIME_MULTI_INSTANCE_SYNC = false
 
@@ -458,7 +459,7 @@ class StorageManager {
   }
 
   /**
-   * 广播storage变化给所有窗口
+   * 广播storage变化给当前可信主入口窗口
    * 处理流程：
    * 1、获取当前窗口列表。
    * 2、发送变更载荷，忽略关闭窗口的发送失败。
@@ -473,7 +474,9 @@ class StorageManager {
     // 2、逐窗口发送变更信息。
     windows.forEach((window) => {
       try {
-        window.webContents.send('storage-changed', {
+        const contents = window.webContents
+        if (!isTrustedIpcSender({ sender: contents, senderFrame: contents.mainFrame })) return
+        contents.send('storage-changed', {
           method,
           key,
           value

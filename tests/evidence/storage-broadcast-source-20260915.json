@@ -1,0 +1,9 @@
+{
+  "scope": "原规划3.2.3及3.2.9：配置广播接收方隔离",
+  "baseHead": "63fce689af365a515136163a17ba230e74244583",
+  "change": "复用注册身份与固定入口顶层frame检查，storage-changed仅发送可信主窗口；预览和未注册窗口不接收配置载荷",
+  "before": { "evidence": "storage-broadcast-before-acceptance-d7GO12", "passed": false, "actualRecipients": [3, 2, 1], "expectedRecipients": [1], "observation": "透明包装真实webContents.send，未阻断或伪造投递；主窗口实际收到事件" },
+  "after": { "evidence": "storage-broadcast-after-acceptance-8ooe8x", "passed": 25, "failed": 0, "skipped": 0, "durationMs": 199988.268458, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true, "manifestSha256": "ad559ade7bd775e03ad9b909e7fe09210e7db8e4420dfe2cfd9deda13f60c352" },
+  "coverage": ["广播拒绝与主窗口真实收信", "七类配置IPC来源", "磁盘原子替换和退出顺序", "0600权限", "设置文件导入导出备份和重启", "预设生命周期", "预览ready与十轮窗口生命周期", "两份指定PSD及三份公开夹具154图像场景RGBA零差异"],
+  "limitations": ["不代表其他设置与能力IPC均已限制", "不覆盖跨平台及真实外部服务", "未建立任意新窗口的配置权限，只有既有注册main身份可接收"]
+}
