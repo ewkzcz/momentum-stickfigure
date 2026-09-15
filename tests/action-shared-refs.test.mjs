@@ -34,7 +34,7 @@ before(async () => {
         if (['shared-ref-entry', 'naive-ui', 'electron'].includes(id)) return `\0${id}`
       },
       load(id) {
-        if (id === '\0shared-ref-entry') return exports.map(name => `export { ${name} } from ${JSON.stringify(path.join(pageDirectory, `composables/${name}.js`))}`).join('\n') + `\nexport { registerDragToJianyingHandlers } from ${JSON.stringify(path.join(repository, 'src/main/drag-clipboard-handler.js'))}`
+        if (id === '\0shared-ref-entry') return exports.map(name => `export { ${name} } from ${JSON.stringify(path.join(pageDirectory, `composables/${name}.js`))}`).join('\n') + `\nexport { registerDragToJianyingHandlers } from ${JSON.stringify(path.join(repository, 'src/main/drag-clipboard-handler.js'))}\nexport { registerTrustedWindow } from ${JSON.stringify(path.join(repository, 'src/main/ipc-sender-policy.js'))}`
         if (id === '\0naive-ui') return `const message = new Proxy({}, { get: (_, method) => (...args) => globalThis.__sharedRefTestBoundary.messages.push({ method, args }) }); export const useMessage = () => message; export const useDialog = () => ({});`
         if (id === '\0electron') return `const boundary = globalThis.__sharedRefTestBoundary; export const BrowserWindow = { fromWebContents: () => boundary.desktopWindow }; export const ipcMain = { handle: (name, callback) => boundary.handlers.set(name, callback) }; export const clipboard = { writeText() {} }; export const nativeImage = { createFromDataURL: () => ({ resize() { return this } }) };`
       }
@@ -168,9 +168,11 @@ test('早期创建的真实拖拽读取图层优先级，主进程强制重命�
   const calls = []
   const config = { outputRoot: root, overwriteMode: 'overwrite', createPsdFolder: true, forceRename: false }
   setGlobal(t, 'localStorage', { getItem: () => JSON.stringify(config) })
+  const sender = { mainFrame: { url: 'file:///isolated/index.html' }, isDestroyed: () => false, once() {} }
+  modules.registerTrustedWindow(sender, sender.mainFrame.url, 'main')
   setGlobal(t, 'window', { electronAPI: { createTempFileAndStartDrag: async (...args) => {
     calls.push(args)
-    return handlers.get('create-temp-file-and-start-drag')({ sender: {} }, ...args)
+    return handlers.get('create-temp-file-and-start-drag')({ sender, senderFrame: sender.mainFrame }, ...args)
   } } })
   setGlobal(t, 'document', { createElement: () => canvas() })
   const shared = sharedTreeRefs()

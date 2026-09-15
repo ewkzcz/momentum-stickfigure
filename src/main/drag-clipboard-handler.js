@@ -6,6 +6,8 @@ import path from 'path'
 import os from 'os'
 import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { assertText } from './ipc-parameter-policy.js'
+import { assertDragImageParameters } from './drag-clipboard-parameters.js'
 
 // ==================== 拖拽到剪映功能处理器 ====================
 
@@ -49,6 +51,7 @@ function registerDragToJianyingHandlers() {
   ipcMain.handle('save-drag-image-and-copy', async (event, base64Data, iconPayload, stickfigureConfig) => {
     if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的系统操作来源' }
     try {
+      assertDragImageParameters(base64Data, iconPayload, undefined, stickfigureConfig)
       console.log('📁 保存拖拽图片...')
 
       // 1、读取配置，决定保存目录。
@@ -135,8 +138,9 @@ function registerDragToJianyingHandlers() {
     if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的系统操作来源' }
     try {
       // 1、由主进程访问系统剪贴板。
+      assertText(text, 1024 * 1024, '剪贴板文本')
       clipboard.writeText(text)
-      console.log('✅ 已复制到剪贴板:', text)
+      console.log('✅ 已复制到剪贴板')
       return { success: true }
     } catch (error) {
       console.error('❌ 复制到剪贴板失败:', error)
@@ -178,6 +182,7 @@ function registerDragToJianyingHandlers() {
   ipcMain.handle('create-temp-file-and-start-drag', async (event, base64Data, iconPayload, fileNameSuggestion, stickfigureConfig) => {
     if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的系统操作来源' }
     try {
+      assertDragImageParameters(base64Data, iconPayload, fileNameSuggestion, stickfigureConfig)
       // 1、取得调用窗口，并按用户设置选择图片保存目录。
       const window = BrowserWindow.fromWebContents(event.sender)
       if (!window) return { success: false, error: '窗口不存在' }
