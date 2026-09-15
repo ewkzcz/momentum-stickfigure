@@ -102,7 +102,7 @@
         :options="moreOptions"
         @select="emit('more-select', $event)"
       >
-        <n-tooltip placement="bottom">
+        <n-tooltip placement="bottom" style="pointer-events: none;">
           <template #trigger>
             <n-button size="small">
               更多
