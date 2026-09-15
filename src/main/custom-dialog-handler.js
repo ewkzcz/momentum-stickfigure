@@ -5,6 +5,9 @@ import { app, ipcMain } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { assertText } from './ipc-parameter-policy.js'
+import { assertImageBase64 } from './template-image-parameters.js'
+import { assertOwnedFilePath, writeOwnedFile } from './file-access-policy.js'
 
 /**
  * 注册自定义对话框图片的本地管理接口。
@@ -15,7 +18,9 @@ import { isTrustedIpcSender } from './ipc-sender-policy.js'
  */
 export function registerCustomDialogHandlers() {
   // 1、使用应用数据目录集中保存自定义对话框图片。
-  const customDialogDir = path.join(app.getPath('userData'), 'custom-dialogs')
+  const userData = app.getPath('userData')
+  const customPath = (...segments) => assertOwnedFilePath(userData, ['custom-dialogs', ...segments])
+  const customDialogDir = customPath()
   
   // 确保目录存在
   if (!fs.existsSync(customDialogDir)) {
@@ -27,16 +32,21 @@ export function registerCustomDialogHandlers() {
   ipcMain.handle('save-custom-dialog', async (event, fileName, base64Data) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的自定义图片操作来源')
+      assertText(fileName, 255, '自定义图片名称')
+      if (base64Data !== '') {
+        if (typeof base64Data === 'string' && base64Data.startsWith('data:')) throw new TypeError('自定义图片参数必须是裸base64')
+        assertImageBase64(base64Data)
+      }
       // 生成唯一文件名（时间戳 + 原文件名）
       const timestamp = Date.now()
       const ext = path.extname(fileName)
       const baseName = path.basename(fileName, ext)
       const uniqueFileName = `${timestamp}_${baseName}${ext}`
-      const filePath = path.join(customDialogDir, uniqueFileName)
+      const filePath = customPath(uniqueFileName)
       
       // 将base64转为buffer并保存
       const buffer = Buffer.from(base64Data, 'base64')
-      fs.writeFileSync(filePath, buffer)
+      writeOwnedFile(filePath, buffer)
       
       console.log('自定义对话框保存成功:', filePath)
       return { 
@@ -57,6 +67,7 @@ export function registerCustomDialogHandlers() {
   ipcMain.handle('scan-custom-dialogs', async (event) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的自定义图片操作来源')
+      customPath()
       if (!fs.existsSync(customDialogDir)) {
         return { success: true, dialogs: [] }
       }
@@ -68,7 +79,7 @@ export function registerCustomDialogHandlers() {
       for (const file of files) {
         const ext = path.extname(file).toLowerCase()
         if (imageExtensions.includes(ext)) {
-          const filePath = path.join(customDialogDir, file)
+          const filePath = customPath(file)
           const buffer = fs.readFileSync(filePath)
           const base64 = buffer.toString('base64')
           const dataURL = `data:image/${ext.slice(1)};base64,${base64}`
@@ -101,11 +112,12 @@ export function registerCustomDialogHandlers() {
   ipcMain.handle('delete-custom-dialog', async (event, fileName) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的自定义图片操作来源')
-      const filePath = path.join(customDialogDir, fileName)
+      assertText(fileName, 255, '自定义图片名称')
       // 删除接口只接收目录内的直接文件名，拒绝两类平台分隔符及路径跳转。
       if (!fileName || fileName === '.' || fileName === '..' || /[\\/]/.test(fileName) || path.isAbsolute(fileName)) {
         return { success: false, error: '文件名不能包含路径' }
       }
+      const filePath = customPath(fileName)
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath)
         console.log('删除自定义对话框:', filePath)

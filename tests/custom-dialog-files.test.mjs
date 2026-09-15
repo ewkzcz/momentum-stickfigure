@@ -101,7 +101,7 @@ test('自定义对话框文件：公开保存、扫描、删除与重启保持�
     const beforeInvalid = (await readdir(directory)).sort()
     for (const args of [[null, png], [42, png], ['错误.png', null], ['错误.png', 42], ['错误.png']]) {
       const result = await desktop.page.evaluate((values) => window.customDialog.save(...values), args)
-      assertFailure(result, /must be of type string|must be of type string or an instance/)
+      assertFailure(result, /参数/)
     }
     assert.deepEqual((await readdir(directory)).sort(), beforeInvalid)
     const permissive = await desktop.page.evaluate(() => window.customDialog.save('原有行为.txt', ''))
@@ -113,7 +113,7 @@ test('自定义对话框文件：公开保存、扫描、删除与重启保持�
     assert.deepEqual(await desktop.page.evaluate((name) => window.customDialog.delete(name), permissive.fileName), { success: true })
     await assert.rejects(stat(permissive.filePath), { code: 'ENOENT' })
     assert.deepEqual(await desktop.page.evaluate((name) => window.customDialog.delete(name), permissive.fileName), { success: false, error: '文件不存在' })
-    assertFailure(await desktop.page.evaluate(() => window.customDialog.delete(null)), /must be of type string/)
+    assertFailure(await desktop.page.evaluate(() => window.customDialog.delete(null)), /参数/)
 
     // 6、真实目录假冒图片触发读取失败，整个扫描返回失败和空列表，不跳过错误项。
     const fakeName = '读取失败.png'

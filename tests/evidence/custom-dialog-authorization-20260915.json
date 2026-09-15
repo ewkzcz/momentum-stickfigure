@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-15",
+  "unit": "custom-dialog-authorization",
+  "baseline": { "directory": "temp/custom-authorization-before-acceptance-rWwrj2", "passed": 0, "failed": 1, "failure": "扫描接受PNG符号链接并读取应用图片目录之外的隔离哨兵" },
+  "changes": ["保存扫描删除按注册时捕获的userData检查专属目录及目标链接", "保存前校验名称和64MiB Base64预算，空内容及原扩展名策略保留", "写入使用不跟随链接的0600文件打开，目录替换后拒绝写删"],
+  "verification": { "directory": "temp/custom-authorization-after-acceptance-7YY2T6", "passed": 4, "failed": 0, "durationMs": 4591.755959, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "coverage": ["扫描链接返回原失败包络与空列表，不泄漏哨兵字节", "目录替换后写删拒绝，恢复目录后中文空格保存扫描删除可用", "真实PNG画布编码、旧扩展名/排序/空文件/捕获目录/重启回归", "预览来源和拖入临时文件链接回归"],
+  "testAdjustment": "原非法参数断言从Node隐式类型错误更新为显式参数错误，完整失败字段、无目录变化及合法空文件断言保留",
+  "limits": ["不是对恶意本地进程并发替换路径的原子读取保护", "未改变扫描总量与旧磁盘格式", "本单元不代表通用文件选择和配置输出目录授权已完成", "定向通过不等于累计全量"]
+}
