@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scope": "主窗口及两条创建路径的预览窗口导航固定入口保护",
+  "baseline": "7c374b7ba396a41697b1ac1ba83e89dd928cb37d",
+  "fixCommit": "ffa632f43b5d9453f3b14d7339d203affb9367dc",
+  "reproduction": { "directory": "temp/privileged-navigation-before-acceptance-b7Fmpl", "tests": 2, "pass": 0, "fail": 2, "method": "真实隔离Electron窗口上发出will-navigate/will-redirect事件，观察preventDefault；未向真实外站发送请求。" },
+  "behavior": "在页面加载前捕获固定开发或生产入口，导航和重定向仅接受相同协议、host、pathname及凭据；允许hash路由与查询变化；窗口销毁时解除本模块监听。",
+  "firstTargeted": { "directory": "temp/privileged-navigation-after-acceptance-MAqKi9", "tests": 18, "pass": 17, "fail": 1, "failure": "window-lifecycle第三轮预览画布或图片解码未在时限内稳定", "failureDirectory": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-tu1Ps9", "interpretation": "导航拒绝用例及前两轮预览通过；保留自然预览失败，不据此断言新导航代码是根因，也不将复测通过当作自然超时修复。" },
+  "targetedRecheck": { "directory": "temp/privileged-navigation-recheck-acceptance-ne3HcI", "tests": 18, "pass": 18, "fail": 0, "codeChangedBetweenRuns": false },
+  "fullAcceptance": {
+    "head": "ffa632f43b5d9453f3b14d7339d203affb9367dc", "passed": true,
+    "command": "node scripts/verify-remaining-defects.mjs all",
+    "directory": "temp/remaining-defects-acceptance-PSUjA1", "log": "temp/privileged-navigation-full.log",
+    "tests": 321, "pass": 321, "fail": 0, "skipped": 0, "cancelled": 0,
+    "durationMs": 1385397.753667, "finishedAt": "2026-09-15T01:34:18.037Z",
+    "manifestSha256": "f6de858d49448551c26e835f11530d4f5db832ceeae9d1d8dde951ae571056ea", "integrityErrors": [],
+    "referenceFiles": 266, "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed"
+  },
+  "limits": ["证据后置提交，321项归属于ffa632f。", "事件级受控拒绝不等于完整真实攻击链验证；尚未覆盖子frame导航、IPC授权、预览window.open及开发入口运行验收。", "BrowserView/webview站点正常导航不在本单元改变范围。", "webSecurity、sandbox、CSP、权限与路径边界仍需独立推进。", "自然预览超时仍未定位。"]
+}
