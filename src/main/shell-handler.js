@@ -18,7 +18,7 @@ function registerShellHandlers() {
     try {
       // 2、使用与窗口弹出链接相同的解析及协议策略。
       await openExternalUrl(url)
-      console.log('✅ 已打开外部链接:', url)
+      console.log('✅ 已打开外部链接')
       return { success: true }
     } catch (error) {
       console.error('打开外部链接失败:', error)
