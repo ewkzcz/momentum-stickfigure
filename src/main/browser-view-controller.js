@@ -4,7 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertBrowserOptions } from './ipc-parameter-policy.js'
-import { sitePartition, webOrigin, installWebPermissions } from './web-session-policy.js'
+import { sitePartition, webOrigin, installWebPermissions, protectWebNavigation } from './web-session-policy.js'
 
 /**
  * 创建唯一网页控制器并复用入口的系统图片目录策略。
@@ -378,16 +378,17 @@ export function createBrowserViewController({ getPicturesDirectory }) {
           webPreferences: {
             partition: actualPartition,
             preload: undefined,
-            sandbox: false,
+            sandbox: true,
             nodeIntegration: false,
             contextIsolation: true,
             devTools: enableDevTools,
-            webSecurity: false
+            webSecurity: true
           }
         })
 
 
         installWebPermissions(view.webContents.session, origin)
+        protectWebNavigation(view.webContents)
         const record = trackView(key, window, view, useNative)
         openingRecord = record
         addView(window, view)

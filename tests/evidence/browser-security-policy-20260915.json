@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "b9b11d2",
+  "scope": "BrowserView恢复webSecurity/sandbox并限制导航",
+  "before": { "directory": "temp/browser-security-before-acceptance-vT1q1H", "passed": 0, "failed": 1, "failure": "实际BrowserView偏好sandbox和webSecurity均false" },
+  "after": { "directory": "temp/browser-security-after-acceptance-eolLgg", "tests": 8, "passed": 8, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["实际BrowserView启用sandbox/webSecurity，仍禁用nodeIntegration且无preload", "真实网页window.open返回null", "导航事件拒绝file协议，正常本地HTTP导航可用", "网页主题、视图owner、失败恢复、并发、在途关闭、释放及来源会话回归"],
+  "limits": ["文件导航拒绝使用事件级断言，未将它冒充真实file页面导航验收", "导航保留HTTP(S)跨来源以兼容登录重定向；系统权限仍只初始来源有限允许", "新窗口默认拒绝会影响弹窗式登录，真实第三方登录列外部未验证", "主窗口/预览沙箱、webview附加配置及全局CSP/CORS策略仍未完成"]
+}

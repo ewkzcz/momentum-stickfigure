@@ -14,6 +14,22 @@ export function sitePartition(label, url) {
   return `${prefix}momentum-site-${digest}`
 }
 
+export function protectWebNavigation(contents) {
+  const guard = (event, destination) => {
+    try { webOrigin(typeof destination === 'string' ? destination : destination?.url) }
+    catch { event.preventDefault() }
+  }
+  contents.on('will-navigate', guard)
+  contents.on('will-redirect', guard)
+  contents.on('will-frame-navigate', guard)
+  contents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  contents.once('destroyed', () => {
+    contents.removeListener('will-navigate', guard)
+    contents.removeListener('will-redirect', guard)
+    contents.removeListener('will-frame-navigate', guard)
+  })
+}
+
 const installed = new WeakSet()
 export function installWebPermissions(session, initialOrigin) {
   if (installed.has(session)) return
