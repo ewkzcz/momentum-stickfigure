@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "unit": "psd-tree-parameters",
+  "baseline": { "directory": "temp/psd-tree-parameters-before-acceptance-Drtm4X", "passed": 0, "failed": 1, "failure": "非法layerHierarchy进入渲染后仍由外层报告成功而非入口参数拒绝；基线第一例即失败，未执行巨大画布分配" },
+  "changes": ["直接render/detect在递归前迭代检查图层树，复用8192图层/128深度限制并拒绝循环或重复节点", "渲染画布正整数尺寸与32Mi像素预算在创建Canvas前检查", "有界名称、有限数字、图像Base64及累计128MiB图像载荷，输出格式/质量/背景校验"],
+  "verification": { "directory": "temp/psd-tree-parameters-after-acceptance-GL4zJN", "passed": 7, "failed": 0, "durationMs": 5395.212375, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "coverage": ["循环/8193层/129深度拒绝", "画布像素预算恰好上限和超限", "错误图层树/负尺寸/超大画布在分配前拒绝，随后8x8真实Canvas渲染成功", "直接接口参数、PSD响应、解析任务及解析预算回归"],
+  "limits": ["Base64压缩图像的解码尺寸不等于图层元数据，未宣称对恶意压缩图片的RSS硬上限", "尚未完整校验detection自定义规则或PSD配置路径授权", "不修改原渲染算法或吞错包络，只在入口拒绝无效参数", "定向通过不等于累计全量"]
+}
