@@ -3,6 +3,7 @@ import { app, BrowserWindow, BrowserView, ipcMain, nativeImage, nativeTheme, ses
 import path from 'path'
 import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
+import { assertBrowserOptions } from './ipc-parameter-policy.js'
 
 /**
  * 创建唯一网页控制器并复用入口的系统图片目录策略。
@@ -359,6 +360,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
       // 仅在本次打开尚未成功时持有回收入口，避免加载失败遗留已挂载的网页。
       let openingRecord = null
       try {
+        assertBrowserOptions(payload)
         // 1、每个视图通过分区和地址共同定位。
         const window = BrowserWindow.fromWebContents(event.sender)
         if (!window) return { success: false, error: '窗口不存在' }
@@ -441,6 +443,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
       const { partition = 'persist:doubao', url } = payload || {}
       try {
+        assertBrowserOptions(payload)
         // 1、使用与打开入口一致的键定位视图。
         const key = `${event.sender.id}:${partition}:${url || ''}`
         const record = globalBrowserViews.get(key)
@@ -461,6 +464,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
       const { partition = 'persist:doubao', url, bounds } = payload || {}
       try {
+        assertBrowserOptions(payload)
         // 1、仅更新已创建视图的边界。
         const key = `${event.sender.id}:${partition}:${url || ''}`
         const record = globalBrowserViews.get(key)
@@ -482,6 +486,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
       const { partition = 'persist:doubao', url, scheme, nativeTheme: useNative } = payload || {}
       try {
+        assertBrowserOptions(payload)
         // 1、未指定颜色方案时使用系统当前主题。
         const key = `${event.sender.id}:${partition}:${url || ''}`
         const record = globalBrowserViews.get(key)
@@ -507,6 +512,7 @@ export function createBrowserViewController({ getPicturesDirectory }) {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的网页操作来源' }
       const { partition = 'persist:doubao', url } = payload || {}
       try {
+        assertBrowserOptions(payload)
         // 1、视图不存在时返回明确错误。
         const key = `${event.sender.id}:${partition}:${url || ''}`
         const record = globalBrowserViews.get(key)

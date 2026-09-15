@@ -136,6 +136,24 @@ export function assertLocalProcessOptions(value, nested = false) {
   }
 }
 
+export function assertBrowserOptions(value) {
+  assertRecord(value, '网页配置')
+  if (value.url !== undefined) assertText(value.url, 32768, '网页地址')
+  if (value.partition !== undefined) {
+    assertText(value.partition, 256, '会话分区')
+    if (!value.partition) throw new TypeError('会话分区参数不能为空')
+  }
+  for (const key of ['theme', 'scheme']) if (value[key] !== undefined) assertEnum(value[key], ['dark', 'light', 'system'], '网页主题')
+  for (const key of ['enableDevTools', 'nativeTheme']) if (value[key] !== undefined && typeof value[key] !== 'boolean') throw new TypeError(`${key}参数必须是布尔值`)
+  if (value.bounds !== undefined) {
+    assertRecord(value.bounds, '网页边界')
+    for (const key of ['x', 'y', 'width', 'height']) {
+      const number = value.bounds[key]
+      if (!Number.isInteger(number) || Math.abs(number) > 2147483647 || (['width', 'height'].includes(key) && number < 0)) throw new TypeError('网页边界参数无效')
+    }
+  }
+}
+
 export function assertHotkeys(value) {
   assertRecord(value, '快捷键')
   for (const key of Object.keys(value)) {
