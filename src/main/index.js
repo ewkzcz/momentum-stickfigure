@@ -8,8 +8,6 @@ import { createBrowserViewController } from './browser-view-controller.js'
 import { getPicturesDirectory, registerDragToJianyingHandlers, unregisterDragToJianyingHandlers } from './drag-clipboard-handler.js'
 import { registerShellHandlers, unregisterShellHandlers } from './shell-handler.js'
 import path from 'path'
-// 放开第三方存储分区隔离，提升第三方登录/跨域站点兼容性（如豆包站）
-app.commandLine.appendSwitch('disable-features', 'ThirdPartyStoragePartitioning')
 
 // 解决 Windows 下 Electron 中文乱码问题
 if (process.platform === 'win32') {

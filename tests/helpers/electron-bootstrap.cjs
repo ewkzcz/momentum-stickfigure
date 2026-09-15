@@ -128,6 +128,13 @@ syncBuiltinESMExports()
 // 3、仅替代原生交互边界，业务解析、图层渲染和文件写入均运行原实现。
 const state = { root, violations, writes, faults, backgroundPolicy: background.policy, openPaths: [], savePath: null, drags: [], clipboard: '', external: [] }
 globalThis.__momentumTest = state
+// 记录业务追加的浏览器开关，区分Playwright启动默认值；保持所有隔离保护生效。
+state.commandLineSwitches = []
+const appendSwitch = app.commandLine.appendSwitch.bind(app.commandLine)
+app.commandLine.appendSwitch = (name, value) => {
+  state.commandLineSwitches.push({ name, value })
+  return value === undefined ? appendSwitch(name) : appendSwitch(name, value)
+}
 // 子进程与 Node 网络在本地回归中没有授权用途，误触即记录并拒绝。
 for (const name of ['spawn', 'spawnSync', 'exec', 'execSync', 'execFile', 'execFileSync', 'fork']) {
   require('node:child_process')[name] = () => {
