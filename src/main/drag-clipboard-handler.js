@@ -5,6 +5,7 @@ import { BrowserWindow, ipcMain, clipboard, nativeImage } from 'electron'
 import path from 'path'
 import os from 'os'
 import fs from 'fs'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 // ==================== 拖拽到剪映功能处理器 ====================
 
@@ -46,6 +47,7 @@ function registerDragToJianyingHandlers() {
    * 3、写入图片、复制路径并返回保存结果。
    */
   ipcMain.handle('save-drag-image-and-copy', async (event, base64Data, iconPayload, stickfigureConfig) => {
+    if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的系统操作来源' }
     try {
       console.log('📁 保存拖拽图片...')
 
@@ -130,6 +132,7 @@ function registerDragToJianyingHandlers() {
    * 1、写入文本并返回成功状态，异常时返回错误消息。
    */
   ipcMain.handle('copy-to-clipboard', async (event, text) => {
+    if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的系统操作来源' }
     try {
       // 1、由主进程访问系统剪贴板。
       clipboard.writeText(text)
@@ -148,6 +151,7 @@ function registerDragToJianyingHandlers() {
    * 1、通过页面找到所属窗口，返回边界或缺失提示。
    */
   ipcMain.handle('get-window-bounds', async (event) => {
+    if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的系统操作来源' }
     try {
       // 1、使用调用页面的窗口，避免读取其他窗口的边界。
       const window = BrowserWindow.fromWebContents(event.sender)
@@ -172,6 +176,7 @@ function registerDragToJianyingHandlers() {
    * 4、准备图标和结束通知，调用系统拖拽接口。
    */
   ipcMain.handle('create-temp-file-and-start-drag', async (event, base64Data, iconPayload, fileNameSuggestion, stickfigureConfig) => {
+    if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的系统操作来源' }
     try {
       // 1、取得调用窗口，并按用户设置选择图片保存目录。
       const window = BrowserWindow.fromWebContents(event.sender)

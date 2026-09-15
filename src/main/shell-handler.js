@@ -3,6 +3,7 @@
  */
 import { ipcMain } from 'electron'
 import { openExternalUrl } from './external-link-policy.js'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 /**
  * 注册系统浏览器打开外部链接的入口。
@@ -13,6 +14,7 @@ import { openExternalUrl } from './external-link-policy.js'
 function registerShellHandlers() {
   // 1、注册入口，在调用系统浏览器前验证地址。
   ipcMain.handle('shell-open-external', async (event, url) => {
+    if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的系统操作来源' }
     try {
       // 2、使用与窗口弹出链接相同的解析及协议策略。
       await openExternalUrl(url)

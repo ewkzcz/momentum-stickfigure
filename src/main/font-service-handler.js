@@ -5,6 +5,7 @@
 
 import { ipcMain } from 'electron'
 import { getSystemFonts } from './font-service.js'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 /**
  * 注册字体服务IPC处理器
@@ -16,7 +17,8 @@ export function registerFontServiceHandlers() {
   console.log('[IPC] 注册字体服务处理器...')
 
   // 1、注册系统字体查询入口。
-  ipcMain.handle('fonts:get-system-fonts', async () => {
+  ipcMain.handle('fonts:get-system-fonts', async (event) => {
+    if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的字体操作来源', fonts: [] }
     try {
       console.log('[IPC] 调用: fonts:get-system-fonts')
       // 2、获取字体列表并包装为渲染进程可用的结果。

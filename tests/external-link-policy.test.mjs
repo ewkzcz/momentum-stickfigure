@@ -5,7 +5,7 @@ import { EventEmitter } from 'node:events'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { protectPrivilegedNavigation } from '../src/main/privileged-navigation.js'
-import { registerTrustedWindow } from '../src/main/ipc-sender-policy.js'
+import { registerTrustedWindow, isTrustedIpcSender } from '../src/main/ipc-sender-policy.js'
 
 async function fixture(t) {
   t.mock.method(console, 'log', () => {}); t.mock.method(console, 'warn', () => {}); t.mock.method(console, 'error', () => {})
@@ -19,19 +19,22 @@ async function fixture(t) {
     }
     loadFile() {} loadURL() {} isDestroyed() { return false }
   }
-  const deps = { app, BrowserWindow: Window, shell, ipcMain: { handle: (name, fn) => handlers.set(name, fn), removeHandler: name => handlers.delete(name) }, nativeTheme: {}, globalShortcut: {}, is: { dev: false }, path, pathToFileURL, protectPrivilegedNavigation, registerTrustedWindow, getHotkeysConfig: () => ({}), saveHotkeysConfig() {} }
+  const deps = { app, BrowserWindow: Window, shell, ipcMain: { handle: (name, fn) => handlers.set(name, fn), removeHandler: name => handlers.delete(name) }, nativeTheme: {}, globalShortcut: {}, is: { dev: false }, path, pathToFileURL, protectPrivilegedNavigation, registerTrustedWindow, isTrustedIpcSender, getHotkeysConfig: () => ({}), saveHotkeysConfig() {} }
   const policy = await readFile(new URL('../src/main/external-link-policy.js', import.meta.url), 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error })
   const source = await readFile(new URL('../src/main/window-controller.js', import.meta.url), 'utf8')
   const body = (policy + '\n' + source).replace(/^import .*\n/gm, '').replace(/export (async )?function /g, '$1function ')
   const controller = new Function(...Object.keys(deps), `${body}\nreturn createWindowController({mainDirectory: '/unused'})`)(...Object.values(deps))
   controller.createWindow()
   const main = windows[0]
+  main.webContents.isDestroyed = () => false
+  main.webContents.mainFrame = { url: pathToFileURL('/renderer/index.html').href }
+  const event = { sender: main.webContents, senderFrame: main.webContents.mainFrame }
   const webview = { getType: () => 'webview', session: { setPermissionRequestHandler() {} }, setWindowOpenHandler(handler) { this.open = handler } }
   app.emit('web-contents-created', {}, webview)
   const shellSource = await readFile(new URL('../src/main/shell-handler.js', import.meta.url), 'utf8')
   const shellBody = (policy + '\n' + shellSource).replace(/^import .*\n/gm, '').replace(/^export \{.*\}\s*$/gm, '').replace(/export (async )?function /g, '$1function ')
   new Function(...Object.keys(deps), `${shellBody}\nregisterShellHandlers()`)(...Object.values(deps))
-  return { main, webview, opened, invoke: value => handlers.get('shell-open-external')({}, value) }
+  return { main, webview, opened, invoke: value => handlers.get('shell-open-external')(event, value) }
 }
 
 for (const target of ['main', 'webview']) test(`外部链接${target}：仅HTTP(S)交给系统，拒绝本地与脚本协议`, async t => {
