@@ -38,6 +38,20 @@ export function assertDialogOptions(value) {
   }
 }
 
+export function assertPsdTaskOptions(value) {
+  assertRecord(value, 'PSD解析')
+  if (value.taskId !== undefined) {
+    assertText(value.taskId, 128, 'PSD任务ID')
+    if (!value.taskId) throw new TypeError('PSD任务ID参数不能为空')
+  }
+  if (value.parseOptions !== undefined) {
+    assertRecord(value.parseOptions, 'PSD解析选项')
+    for (const key of ['validateFile', 'parseImages', 'parseChannelData', 'extractThumbnails', 'processLayers', 'autoDetectComponents']) {
+      if (value.parseOptions[key] !== undefined && typeof value.parseOptions[key] !== 'boolean') throw new TypeError(`PSD ${key}参数必须是布尔值`)
+    }
+  }
+}
+
 export function assertHotkeys(value) {
   assertRecord(value, '快捷键')
   for (const key of Object.keys(value)) {

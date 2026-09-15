@@ -6,6 +6,7 @@
 import { app, ipcMain } from 'electron';
 import path from 'path';
 import { isTrustedIpcSender } from './ipc-sender-policy.js';
+import { assertPsdTaskOptions } from './ipc-parameter-policy.js';
 
 function deniedPsdSource(requestId, startTime) {
     return { success: false, status: 'error', message: '未授权的PSD操作来源', timestamp: new Date().toISOString(), requestId, processingTime: Date.now() - startTime };
@@ -67,6 +68,10 @@ async function registerPSDApiHandlers() {
         const startTime = Date.now();
         let requestId = `psd-parse-${Date.now()}`;
         if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
+        try { assertPsdTaskOptions(options); }
+        catch (error) {
+            return { success: false, status: 'error', message: error.message, timestamp: new Date().toISOString(), requestId, processingTime: Date.now() - startTime };
+        }
         const controller = new globalThis.AbortController();
         const taskId = options?.taskId;
         const taskKey = typeof taskId === 'string' && taskId.length <= 128
@@ -133,7 +138,7 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-cancel-parse', (event, taskId) => {
         if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, message: '未授权的PSD操作来源' };
         // 1、不允许按任意窗口编号或服务生成的请求标识跨窗口取消。
-        if (typeof taskId !== 'string' || taskId.length > 128) return { success: false };
+        if (typeof taskId !== 'string' || !taskId || taskId.length > 128 || taskId.includes('\0')) return { success: false };
         const task = parseTasks.get(`${event.sender.id}:${taskId}`);
         task?.controller.abort();
         return { success: true, cancelled: Boolean(task) };
