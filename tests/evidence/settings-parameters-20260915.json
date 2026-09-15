@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "ca0e5de",
+  "scope": "设置导出及自动备份输入参数",
+  "before": { "directory": "temp/settings-parameters-before-acceptance-MDoGTy", "passed": 0, "failed": 1, "failure": "settings-auto-backup接受null并覆盖最新备份" },
+  "after": { "directory": "temp/settings-parameters-after-acceptance-fRqIxr", "tests": 11, "passed": 11, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["写入前拒绝错误根对象、非有限数字、循环引用及错误完整备份选项", "拒绝后最新备份内容不变", "默认脱敏/显式完整备份、旧配置归档、真实磁盘轮换与恢复及来源回归"],
+  "limits": ["递归深度64沿用脱敏策略；100万节点和64Mi字符为保守接口预算，未采集真实用户配置", "本组不修改旧磁盘导入格式，不代表所有配置服务参数已完成"]
+}

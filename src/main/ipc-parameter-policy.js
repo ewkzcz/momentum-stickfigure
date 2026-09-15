@@ -80,6 +80,27 @@ export function assertStorageValue(value) {
   if (typeof value === 'string' && value.length > 64 * 1024 * 1024) throw new TypeError('存储值参数超过容量限制')
 }
 
+export function assertSettingsArchive(value) {
+  assertRecord(value, '设置归档')
+  const ancestors = new Set()
+  let nodes = 0, characters = 0
+  const visit = (item, depth) => {
+    if (++nodes > 1000000 || depth > 64) throw new TypeError('设置归档参数结构超过限制')
+    if (typeof item === 'string') characters += item.length
+    else if (typeof item === 'number') {
+      if (!Number.isFinite(item)) throw new TypeError('设置归档数字参数无效')
+    } else if (item && typeof item === 'object') {
+      if (!Array.isArray(item)) assertRecord(item, '设置归档项')
+      if (ancestors.has(item)) throw new TypeError('设置归档参数不允许循环引用')
+      ancestors.add(item)
+      for (const [key, child] of Object.entries(item)) { characters += key.length; visit(child, depth + 1) }
+      ancestors.delete(item)
+    } else if (item !== null && item !== undefined && typeof item !== 'boolean') throw new TypeError('设置归档参数类型无效')
+    if (characters > 64 * 1024 * 1024) throw new TypeError('设置归档参数超过容量限制')
+  }
+  visit(value, 0)
+}
+
 export function assertHotkeys(value) {
   assertRecord(value, '快捷键')
   for (const key of Object.keys(value)) {

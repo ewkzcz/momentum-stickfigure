@@ -5,6 +5,7 @@ import os from 'os'
 import path from 'path'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { redactSettingsForSharing } from './settings-sharing-policy.js'
+import { assertRecord, assertSettingsArchive } from './ipc-parameter-policy.js'
 
 /**
  * 获取用户文档目录下的配置备份路径
@@ -46,6 +47,9 @@ export function registerSettingsHandlers() {
   ipcMain.handle('settings-export', async (event, settings, options = {}) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的设置归档来源')
+      assertSettingsArchive(settings)
+      assertRecord(options, '导出选项')
+      if (options.includeSecrets !== undefined && typeof options.includeSecrets !== 'boolean') throw new TypeError('完整备份参数必须是布尔值')
       const window = BrowserWindow.fromWebContents(event.sender)
 
       const result = await dialog.showSaveDialog(window, {
@@ -137,6 +141,7 @@ export function registerSettingsHandlers() {
   ipcMain.handle('settings-auto-backup', async (event, settings) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的设置归档来源')
+      assertSettingsArchive(settings)
       const backupDir = getSettingsBackupPath()
 
       // 确保备份目录存在
