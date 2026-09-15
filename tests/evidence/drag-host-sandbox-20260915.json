@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-15",
+  "scope": "隐藏拖拽宿主恢复sandbox并显式webSecurity",
+  "baseline": { "directory": "temp/drag-host-sandbox-before-acceptance-hxpYEz", "passed": 0, "failed": 1, "finding": "真实创建隐藏宿主getLastWebPreferences().sandbox为false。" },
+  "after": { "directory": "temp/drag-host-sandbox-after-acceptance-R18CcM", "passed": 4, "failed": 0, "durationMs": 3560.487792, "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "changes": ["隐藏宿主sandbox:true、webSecurity:true，保持nodeIntegration:false和contextIsolation:true。"],
+  "validated": ["实际创建宿主配置、未登记宿主无法调用应用剪贴板、授权图片拖拽调用、主窗预览环境桥接及沙箱。"],
+  "limitations": [
+    "同步入口通过已注册生产listener事件级调用，未新增preload同步桥接。",
+    "系统拖拽仍由强制隔离bootstrap记录；真实OS拖拽效果未验。",
+    "隐藏宿主不加载网页，本结果不替代主窗webSecurity和CSP/CORS剩余工作。",
+    "4项是定向验收，不是累计完整验收。"
+  ]
+}

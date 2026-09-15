@@ -164,7 +164,8 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         resizable: false,
         skipTaskbar: true,
         webPreferences: {
-          sandbox: false,
+          sandbox: true,
+          webSecurity: true,
           nodeIntegration: false,
           contextIsolation: true,
           backgroundThrottling: false,
