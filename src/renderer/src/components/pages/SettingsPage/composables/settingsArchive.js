@@ -166,7 +166,7 @@ export function createSettingsArchive({
         hdToolkitConfig: JSON.parse(JSON.stringify(hdToolkitConfig)), // 抠图高清配置
       }
 
-      console.log('[设置页] 配置已收集:', allSettings)
+      console.log('[设置页] 配置已收集')
 
       // 2、文件选择和磁盘写入由主进程完成。
       const result = await window.electronAPI.settings.exportSettings(allSettings)
