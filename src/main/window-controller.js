@@ -11,6 +11,7 @@ import { protectPrivilegedNavigation } from './privileged-navigation.js'
 import { registerTrustedWindow, isTrustedIpcSender } from './ipc-sender-policy.js'
 // 导入快捷键存储
 import { assertEnum, assertText, assertHotkeys } from './ipc-parameter-policy.js'
+import { assertPreviewPayload } from './preview-payload-parameters.js'
 import { protectWebviewAttachment } from './webview-attachment-policy.js'
 import { installPrivilegedPermissions } from './web-session-policy.js'
 import { getHotkeysConfig, saveHotkeysConfig } from './hotkeys-storage.js'
@@ -347,6 +348,7 @@ export function createWindowController({ mainDirectory }) {
       if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
+          assertPreviewPayload(imagePayload)
           let payloadToSend = imagePayload
 
           // 兼容老版本字符串，同时支持新格式的二进制缓冲

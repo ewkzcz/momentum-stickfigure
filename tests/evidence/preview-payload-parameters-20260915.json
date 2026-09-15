@@ -1,0 +1,19 @@
+{
+  "date": "2026-09-15",
+  "scope": "窗口画布预览传输前类型、编码、字节及声明尺寸预算",
+  "baseline": { "directory": "temp/preview-payload-parameters-before-acceptance-nkzj3f", "passed": 1, "failed": 1, "finding": "null画布载荷被接受；合法三格式逐像素检查通过。" },
+  "firstAfter": { "directory": "temp/preview-payload-parameters-after-acceptance-uOl0ey", "passed": 5, "failed": 1, "finding": "合法图像绘制后关闭按钮click报告Target page closed；日志显示预览已关闭且正常退出，未见编码拒绝。未修改测试、未force点击，进行一次同条件复验。该时序风险未定位为已修复。" },
+  "recheck": { "directory": "temp/preview-payload-parameters-recheck-acceptance-u0owrj", "passed": 6, "failed": 0, "durationMs": 19828.473167, "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "changes": [
+    "预览存在时在转发前要求图片dataURL或普通对象二进制/图片dataUrl。",
+    "ArrayBuffer和偏移视图保留原复制范围；压缩字节最多64MiB。",
+    "宽高若提供则要求正安全整数，合计不超过32Mi像素；媒体类型有界。",
+    "错误载荷不转发，合法ArrayBuffer、偏移视图、旧dataURL通过原零容差像素测试。"
+  ],
+  "limitations": [
+    "声明尺寸不是图像头解码尺寸，预算不是实际RSS硬限制。",
+    "预览不存在时保持原失败契约，未引入新默认画布。",
+    "主窗及预览webSecurity/CSP恢复尚未完成。",
+    "6项为定向回归，不是累计完整验收；首次关闭时序失败证据保留。"
+  ]
+}
