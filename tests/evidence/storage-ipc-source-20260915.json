@@ -1,0 +1,14 @@
+{
+  "scope": "原规划3.2.3：共享配置IPC来源校验",
+  "baseHead": "215d2df3410f70449addd3a0d3b2d4ee85055252",
+  "change": "七个storage IPC仅允许主进程注册的main窗口固定入口顶层frame，保持成功及失败返回结构",
+  "before": { "evidence": "storage-ipc-before-acceptance-mn3AZg", "passed": false, "failure": "预览get成功，期望拒绝" },
+  "after": { "evidence": "storage-ipc-after-acceptance-ELgnAk", "passed": 6, "failed": 0, "lintSizeBuildReferences": true, "manifestSha256": "d52a7dbc3f1053ff3a5725445d20b4b8995c6dee0bde279bd60589394303d8d9", "actualTests": ["storage-ipc-source", "storage-atomicity（2项）", "storage-mode", "preview-ready", "window-lifecycle"] },
+  "supplement": { "command": "node --test --test-concurrency=1 tests/settings-files.test.mjs tests/settings-basic.test.mjs tests/regression.test.mjs", "log": "temp/storage-source-settings-recheck.log", "passed": 18, "failed": 0, "skipped": 0, "durationMs": 124532.905583, "rgba": "两份指定PSD及三份公开夹具154场景零差异", "provenanceAfter": true, "references": "266份参考不变" },
+  "limitations": [
+    "初次after命令误列不存在的settings-archive/settings-persistence，Node未报错但未执行；6项结果不含设置验收，后用真实路径补测18项。",
+    "补测前一次同命令曾观察到剪切组和混合模式像素一致后测试失败，原日志与临时结果现不可读，未确定原因；本次同源码完整重跑18项通过，不宣称已经定位或修复该旧失败。",
+    "配置广播仍需单独限制接收来源；本提交不代表全部配置机密隔离。",
+    "未验证其他IPC、真实外部服务、跨平台和安装产物。"
+  ]
+}

@@ -5,6 +5,9 @@
 
 import { ipcMain } from 'electron'
 import storageManager from './storage-manager.js'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
+
+const unauthorized = () => new Error('未授权的配置操作来源')
 
 /**
  * 注册Storage服务IPC处理器
@@ -18,6 +21,7 @@ export function registerStorageHandlers() {
   // 1、注册设置存储项的入口。
   ipcMain.handle('storage:setItem', async (event, key, value) => {
     try {
+      if (!isTrustedIpcSender(event)) throw unauthorized()
       const success = storageManager.setItem(key, value)
       return { success }
     } catch (error) {
@@ -29,6 +33,7 @@ export function registerStorageHandlers() {
   // 2、注册读取存储项的入口。
   ipcMain.handle('storage:getItem', async (event, key) => {
     try {
+      if (!isTrustedIpcSender(event)) throw unauthorized()
       const value = storageManager.getItem(key)
       return { success: true, value }
     } catch (error) {
@@ -40,6 +45,7 @@ export function registerStorageHandlers() {
   // 3、注册删除存储项的入口。
   ipcMain.handle('storage:removeItem', async (event, key) => {
     try {
+      if (!isTrustedIpcSender(event)) throw unauthorized()
       const success = storageManager.removeItem(key)
       return { success }
     } catch (error) {
@@ -49,8 +55,9 @@ export function registerStorageHandlers() {
   })
 
   // 4、注册清空存储的入口。
-  ipcMain.handle('storage:clear', async () => {
+  ipcMain.handle('storage:clear', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw unauthorized()
       const success = storageManager.clear()
       return { success }
     } catch (error) {
@@ -60,8 +67,9 @@ export function registerStorageHandlers() {
   })
 
   // 5、注册键列表查询。
-  ipcMain.handle('storage:keys', async () => {
+  ipcMain.handle('storage:keys', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw unauthorized()
       const keys = storageManager.keys()
       return { success: true, keys }
     } catch (error) {
@@ -71,8 +79,9 @@ export function registerStorageHandlers() {
   })
 
   // 6、注册存储项数量查询。
-  ipcMain.handle('storage:length', async () => {
+  ipcMain.handle('storage:length', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw unauthorized()
       const length = storageManager.length()
       return { success: true, length }
     } catch (error) {
@@ -82,8 +91,9 @@ export function registerStorageHandlers() {
   })
 
   // 7、注册全量数据查询，供窗口初始化同步。
-  ipcMain.handle('storage:getAllData', async () => {
+  ipcMain.handle('storage:getAllData', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw unauthorized()
       const data = storageManager.getAllData()
       return { success: true, data }
     } catch (error) {
