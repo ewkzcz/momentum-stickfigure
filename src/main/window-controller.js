@@ -7,7 +7,7 @@ import { is } from '@electron-toolkit/utils'
 import path from 'path'
 import { pathToFileURL } from 'node:url'
 import { protectPrivilegedNavigation } from './privileged-navigation.js'
-import { registerTrustedWindow } from './ipc-sender-policy.js'
+import { registerTrustedWindow, isTrustedIpcSender } from './ipc-sender-policy.js'
 // 导入快捷键存储
 import { getHotkeysConfig, saveHotkeysConfig } from './hotkeys-storage.js'
 
@@ -164,7 +164,8 @@ export function createWindowController({ mainDirectory }) {
 
     // 3、主题桥接：允许渲染层或预加载调整系统首选颜色方案供外部网页检测。
     ipcMain.removeHandler('theme:setPreferredColorScheme')
-    ipcMain.handle('theme:setPreferredColorScheme', (_event, scheme) => {
+    ipcMain.handle('theme:setPreferredColorScheme', (event, scheme) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         if (scheme === 'dark' || scheme === 'light') {
           nativeTheme.themeSource = scheme
@@ -251,6 +252,7 @@ export function createWindowController({ mainDirectory }) {
    */
   function registerWindowControlHandlers() {
     ipcMain.handle('canvas-preview-ready', (event) => {
+      if (!isTrustedIpcSender(event, ['preview'])) return { success: false, error: '未授权的窗口操作来源' }
       const target = canvasPreviewWindow
       if (!target || target.isDestroyed() || event.sender !== target.webContents) {
         return { success: false, error: '非当前预览窗口' }
@@ -263,6 +265,7 @@ export function createWindowController({ mainDirectory }) {
     })
     // 1、创建或复用独立预览窗口，并提供关闭入口。
     ipcMain.handle('canvas-preview-create', async (event) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         // 如果窗口已存在，直接显示并聚焦
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
@@ -334,7 +337,8 @@ export function createWindowController({ mainDirectory }) {
     })
 
     // 关闭画布预览窗口
-    ipcMain.handle('canvas-preview-close', async () => {
+    ipcMain.handle('canvas-preview-close', async (event) => {
+      if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的窗口操作来源' }
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
           canvasPreviewWindow.close()
@@ -349,6 +353,7 @@ export function createWindowController({ mainDirectory }) {
 
     // 2、兼容图片数据格式，转发画布及其他预览状态。
     ipcMain.handle('canvas-preview-update', async (event, imagePayload) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
           let payloadToSend = imagePayload
@@ -409,6 +414,7 @@ export function createWindowController({ mainDirectory }) {
 
     // 同步主题到预览窗口
     ipcMain.handle('canvas-preview-sync-theme', async (event, theme) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
           sendPreviewState('theme-update', theme)
@@ -423,6 +429,7 @@ export function createWindowController({ mainDirectory }) {
 
     // 更新预览窗口文件名
     ipcMain.handle('canvas-preview-update-filename', async (event, fileName) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
           sendPreviewState('canvas-filename-update', fileName)
@@ -436,7 +443,8 @@ export function createWindowController({ mainDirectory }) {
     })
 
     // 重置预览窗口视图状态（切换PSD时调用）
-    ipcMain.handle('canvas-preview-reset-viewport', async () => {
+    ipcMain.handle('canvas-preview-reset-viewport', async (event) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
           sendPreviewState('canvas-viewport-reset')
@@ -452,6 +460,7 @@ export function createWindowController({ mainDirectory }) {
 
     // 3、控制窗口置顶状态以及插件、软件两种窗口尺寸模式。
     ipcMain.handle('window-set-always-on-top', async (event, flag) => {
+      if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的窗口操作来源' }
       try {
         const window = BrowserWindow.fromWebContents(event.sender)
         if (window) {
@@ -479,6 +488,7 @@ export function createWindowController({ mainDirectory }) {
 
     // 获取窗口置顶状态
     ipcMain.handle('window-get-always-on-top', async (event) => {
+      if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, error: '未授权的窗口操作来源' }
       try {
         const window = BrowserWindow.fromWebContents(event.sender)
         if (window) {
@@ -494,6 +504,7 @@ export function createWindowController({ mainDirectory }) {
 
     // 设置窗口大小和位置（插件模式/软件模式）
     ipcMain.handle('window-set-mode', async (event, mode) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         const window = BrowserWindow.fromWebContents(event.sender)
         if (!window) {
@@ -739,6 +750,7 @@ export function createWindowController({ mainDirectory }) {
   function registerHotkeyHandlers() {
     // 1、更新快捷键配置并立即应用。
     ipcMain.handle('hotkeys-update', async (event, hotkeysConfig) => {
+      if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的窗口操作来源' }
       try {
         console.log('[快捷键] 收到更新请求:', hotkeysConfig)
 
