@@ -7,6 +7,7 @@ import { is } from '@electron-toolkit/utils'
 import path from 'path'
 import { pathToFileURL } from 'node:url'
 import { protectPrivilegedNavigation } from './privileged-navigation.js'
+import { registerTrustedWindow } from './ipc-sender-policy.js'
 // 导入快捷键存储
 import { getHotkeysConfig, saveHotkeysConfig } from './hotkeys-storage.js'
 
@@ -27,6 +28,7 @@ export function createWindowController({ mainDirectory }) {
       ? (preview ? `${process.env.ELECTRON_RENDERER_URL}/canvas-preview.html` : process.env.ELECTRON_RENDERER_URL)
       : pathToFileURL(path.join(mainDirectory, preview ? '../renderer/canvas-preview.html' : '../renderer/index.html')).href
     protectPrivilegedNavigation(window.webContents, entry)
+    registerTrustedWindow(window.webContents, entry, preview ? 'preview' : 'main')
   }
 
   /**

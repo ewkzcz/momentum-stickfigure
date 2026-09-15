@@ -1,6 +1,7 @@
 /** 文件读取处理器：保留本地存在性检查、原始字节读取及失败返回约定。 */
 import { ipcMain } from 'electron'
 import fs from 'fs'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 /**
  * 注册本地文件存在性检查与读取接口。
@@ -16,6 +17,7 @@ export function registerFileOperationHandlers() {
    * 1、查询文件系统并返回布尔值，异常时返回否。
    */
   ipcMain.handle('check-file-exists', async (event, filePath) => {
+    if (!isTrustedIpcSender(event)) return false
     try {
       // 1、将路径检查结果直接返回页面。
       const exists = fs.existsSync(filePath)
@@ -35,6 +37,7 @@ export function registerFileOperationHandlers() {
    * 2、读取并返回缓冲区，缺失或异常时返回空值。
    */
   ipcMain.handle('read-file', async (event, filePath) => {
+    if (!isTrustedIpcSender(event)) return null
     try {
       // 1、确认路径存在，避免无效文件读取。
       console.log('读取文件:', filePath)

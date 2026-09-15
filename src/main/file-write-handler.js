@@ -2,6 +2,7 @@
 import { app, ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 /**
  * 注册图片写入与拖入文件落盘接口。
@@ -19,6 +20,7 @@ export function registerFileWriteHandler() {
    * 3、解码并写入文件，返回实际保存路径。
    */
   ipcMain.handle('write-file', async (event, filePath, base64Data) => {
+    if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的文件操作来源' }
     try {
       console.log('写入文件:', filePath)
 
@@ -74,6 +76,7 @@ export function registerFileWriteHandler() {
    * 3、保存字节并返回路径和原始名称。
    */
   ipcMain.handle('save-dragged-file', async (event, fileName, arrayBuffer) => {
+    if (!isTrustedIpcSender(event)) return { success: false, error: '未授权的文件操作来源' }
     try {
       console.log('保存拖拽文件到临时目录:', fileName)
 
