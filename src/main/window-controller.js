@@ -5,6 +5,8 @@ import { app, BrowserWindow, ipcMain, nativeTheme, globalShortcut } from 'electr
 import { openExternalUrl } from './external-link-policy.js'
 import { is } from '@electron-toolkit/utils'
 import path from 'path'
+import { pathToFileURL } from 'node:url'
+import { protectPrivilegedNavigation } from './privileged-navigation.js'
 // 导入快捷键存储
 import { getHotkeysConfig, saveHotkeysConfig } from './hotkeys-storage.js'
 
@@ -20,6 +22,12 @@ export function createWindowController({ mainDirectory }) {
   let mainWindow = null
   // 应用级监听由唯一控制器持有，主窗口重建时复用，退出时按同一引用解除。
   let webContentsCreatedHandler = null
+  const protectWindow = (window, preview = false) => {
+    const entry = is.dev && process.env.ELECTRON_RENDERER_URL
+      ? (preview ? `${process.env.ELECTRON_RENDERER_URL}/canvas-preview.html` : process.env.ELECTRON_RENDERER_URL)
+      : pathToFileURL(path.join(mainDirectory, preview ? '../renderer/canvas-preview.html' : '../renderer/index.html')).href
+    protectPrivilegedNavigation(window.webContents, entry)
+  }
 
   /**
    * 创建并初始化应用主窗口。
@@ -48,6 +56,7 @@ export function createWindowController({ mainDirectory }) {
       }
     })
 
+    protectWindow(mainWindow)
 
     // 处理 OPTIONS 预检请求（CORS 预检）
     mainWindow.webContents.session.webRequest.onBeforeRequest((details, callback) => {
@@ -278,6 +287,8 @@ export function createWindowController({ mainDirectory }) {
             devTools: true
           }
         })
+
+        protectWindow(canvasPreviewWindow, true)
 
         // 设置最高的置顶层级（screen-saver-level），确保始终在所有窗口之上
         canvasPreviewWindow.setAlwaysOnTop(true, 'screen-saver')
@@ -668,6 +679,8 @@ export function createWindowController({ mainDirectory }) {
                   devTools: true
                 }
               })
+
+              protectWindow(canvasPreviewWindow, true)
 
               // 开发者工具策略
 

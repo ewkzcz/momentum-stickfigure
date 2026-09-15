@@ -3,6 +3,8 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { EventEmitter } from 'node:events'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { protectPrivilegedNavigation } from '../src/main/privileged-navigation.js'
 
 async function fixture(t) {
   t.mock.method(console, 'log', () => {}); t.mock.method(console, 'warn', () => {}); t.mock.method(console, 'error', () => {})
@@ -16,7 +18,7 @@ async function fixture(t) {
     }
     loadFile() {} loadURL() {} isDestroyed() { return false }
   }
-  const deps = { app, BrowserWindow: Window, shell, ipcMain: { handle: (name, fn) => handlers.set(name, fn), removeHandler: name => handlers.delete(name) }, nativeTheme: {}, globalShortcut: {}, is: { dev: false }, path, getHotkeysConfig: () => ({}), saveHotkeysConfig() {} }
+  const deps = { app, BrowserWindow: Window, shell, ipcMain: { handle: (name, fn) => handlers.set(name, fn), removeHandler: name => handlers.delete(name) }, nativeTheme: {}, globalShortcut: {}, is: { dev: false }, path, pathToFileURL, protectPrivilegedNavigation, getHotkeysConfig: () => ({}), saveHotkeysConfig() {} }
   const policy = await readFile(new URL('../src/main/external-link-policy.js', import.meta.url), 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error })
   const source = await readFile(new URL('../src/main/window-controller.js', import.meta.url), 'utf8')
   const body = (policy + '\n' + source).replace(/^import .*\n/gm, '').replace(/export (async )?function /g, '$1function ')
