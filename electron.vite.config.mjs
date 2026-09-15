@@ -57,7 +57,7 @@ function copyApiModulesPlugin() {
       }
       
       copyFileSync('src/main/psd-worker-queue.mjs', 'out/main/psd-worker-queue.mjs')
-      const psdFiles = ['config.js', 'psd-constants.mjs', 'psd-engine.mjs', 'psd-worker.mjs', 'psd_client.js', 'psd_utils.js', 'main_api.js', 'package.json', 'index.js']
+      const psdFiles = ['config.js', 'psd-constants.mjs', 'psd-engine.mjs', 'psd-resource-budget.mjs', 'psd-worker.mjs', 'psd_client.js', 'psd_utils.js', 'main_api.js', 'package.json', 'index.js']
       psdFiles.forEach(file => {
         const source = `${psdSourceDir}/${file}`
         const target = `${psdTargetDir}/${file}`
