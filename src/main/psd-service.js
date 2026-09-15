@@ -7,6 +7,7 @@ import { app, ipcMain } from 'electron';
 import path from 'path';
 import { isTrustedIpcSender } from './ipc-sender-policy.js';
 import { assertPsdTree } from './psd-tree-parameters.js';
+import { assertDetectionOptions } from './psd-detection-parameters.js';
 import { assertPsdTaskOptions, assertRecord, assertBinaryPayload } from './ipc-parameter-policy.js';
 
 function deniedPsdSource(requestId, startTime) {
@@ -198,7 +199,7 @@ async function registerPSDApiHandlers() {
         try {
             assertRecord(options, 'PSD检测');
             assertRecord(options.psdData, 'PSD数据');
-            if (options.detectionOptions !== undefined) assertRecord(options.detectionOptions, 'PSD检测选项');
+            assertDetectionOptions(options.detectionOptions === undefined ? {} : options.detectionOptions);
             assertPsdTree(options.psdData, options.detectionOptions);
             const api = await loadPSDApi();
             console.log('收到PSD组件检测请求:', requestId);

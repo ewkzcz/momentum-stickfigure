@@ -181,9 +181,9 @@ async function mainDetectComponents(psdData, options = {}) {
         );
         
         console.log('组件检测完成');
-        console.log(`检测到前手: ${result.frontHand.length} 个`);
-        console.log(`检测到后手: ${result.backHand.length} 个`);
-        console.log(`检测到表情: ${result.expression.length} 个`);
+        console.log(`检测到前手: ${result.components.frontHand.length} 个`);
+        console.log(`检测到后手: ${result.components.backHand.length} 个`);
+        console.log(`检测到表情: ${result.components.expression.length} 个`);
         
         return {
             success: true,
