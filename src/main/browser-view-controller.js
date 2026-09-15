@@ -5,6 +5,7 @@ import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertBrowserOptions } from './ipc-parameter-policy.js'
 import { assertBrowserDragParameters } from './browser-drag-parameters.js'
+import { assertOwnedFilePath, writeOwnedFile } from './file-access-policy.js'
 import { sitePartition, webOrigin, installWebPermissions, protectWebNavigation } from './web-session-policy.js'
 
 /**
@@ -566,10 +567,10 @@ export function createBrowserViewController({ getPicturesDirectory }) {
         }
         // 保存到与纳米香蕉一致的根目录（Pictures/MomentumStickFigure）
         const picturesDir = getPicturesDirectory ? getPicturesDirectory() : app.getPath('pictures')
-        const targetDir = path.join(picturesDir, 'MomentumStickFigure')
+        const targetDir = assertOwnedFilePath(picturesDir, ['MomentumStickFigure'])
         if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true })
-        const finalPath = path.join(targetDir, name)
-        fs.writeFileSync(finalPath, buffer)
+        const finalPath = assertOwnedFilePath(picturesDir, ['MomentumStickFigure', name])
+        writeOwnedFile(finalPath, buffer)
 
         // 2、构建拖拽图标，优先使用网页图片内容。
         let dragIcon = null
@@ -610,12 +611,12 @@ export function createBrowserViewController({ getPicturesDirectory }) {
           throw new Error('文件名不能包含路径')
         }
         const picturesDir = getPicturesDirectory ? getPicturesDirectory() : app.getPath('pictures')
-        const targetDir = path.join(picturesDir, 'MomentumStickFigure')
+        const targetDir = assertOwnedFilePath(picturesDir, ['MomentumStickFigure'])
         if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true })
-        const finalPath = path.join(targetDir, safeName)
+        const finalPath = assertOwnedFilePath(picturesDir, ['MomentumStickFigure', safeName])
         // 2、写入图片字节并返回本地文件定位信息。
         const buffer = Buffer.from(base64, 'base64')
-        fs.writeFileSync(finalPath, buffer)
+        writeOwnedFile(finalPath, buffer)
         return { success: true, path: finalPath, mime: mimeType || 'image/png' }
       } catch (e) {
         return { success: false, error: e?.message }

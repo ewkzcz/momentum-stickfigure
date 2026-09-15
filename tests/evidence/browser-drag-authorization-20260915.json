@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-15",
+  "scope": "网页图片默认输出目录及最终目标符号链接边界",
+  "baseline": { "directory": "temp/browser-drag-authorization-before-acceptance-ecZeE4", "passed": 0, "failed": 1, "finding": "图片准备入口沿MomentumStickFigure目录链接写入隔离哨兵目录并返回成功。" },
+  "after": { "directory": "temp/browser-drag-authorization-after-acceptance-T18csn", "passed": 5, "failed": 0, "durationMs": 4176.558125, "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "changes": [
+    "从可信系统Pictures根逐段检查MomentumStickFigure目录与最终单段文件名。",
+    "两个网页图片写入入口复用NOFOLLOW最终打开，权限0600，合法同名文件保持覆盖。",
+    "验证目录链接及目标链接拒绝、隔离哨兵不变、拒绝后真实文件写入与拖拽调用恢复。"
+  ],
+  "limitations": [
+    "系统Pictures根仍允许系统别名；根以下拒绝符号链接。",
+    "不宣称防止本地恶意进程并发替换父目录。",
+    "不代表通用文件读写或用户配置输出目录授权已经完成。",
+    "系统拖拽由强制隔离bootstrap记录，真实系统交互仍未验证。",
+    "本5项定向结果不代表当前累计完整验收。"
+  ]
+}
