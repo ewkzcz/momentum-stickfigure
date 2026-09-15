@@ -325,7 +325,13 @@
     "passed": true
   },
   "fullAcceptance": {
-    "testSummary": { "reportedTests": 332, "pass": 331, "fail": 1, "skipped": 0, "cancelled": 0 },
+    "testSummary": {
+      "reportedTests": 332,
+      "pass": 331,
+      "fail": 1,
+      "skipped": 0,
+      "cancelled": 0
+    },
     "failure": "action-shared-refs.test.mjs文件级失败：Node 24.11.1测试运行器Unable to deserialize cloned data；窗口生命周期与预加载测试通过。独立原同例随后30轮、每轮6项通过；未据此标记累计通过。",
     "directory": "temp/remaining-defects-acceptance-f4CfKC",
     "head": "6bd09d4503fc53d169d2fac856d184929a50005b",
@@ -441,5 +447,27 @@
     "原生故障发生在测试调试器状态采集路径，不据此声称业务IPC引发原生崩溃。",
     "无真实系统快捷键、前台显示、Windows/macOS安装包、第三方登录或用户Python环境验收。",
     "总规划仍有安全、存储、Python进程管理与性能测量缺口；本证据不代表总规划完成。"
-  ]
+  ],
+  "fullRecheck": {
+    "directory": "temp/remaining-defects-acceptance-ixQyU1",
+    "head": "7713748d1c93a55b37e595de0d2dc8f255843c09",
+    "passed": true,
+    "testSummary": [
+      "ℹ tests 333",
+      "ℹ suites 0",
+      "ℹ pass 333",
+      "ℹ fail 0",
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 1625233.061291"
+    ],
+    "manifestSha256": "2cd1d82d12e040cd928f83c46a578472674a9064145e0dcfe4e2008c378b40fe",
+    "startedAt": "2026-09-15T03:23:24.930Z",
+    "finishedAt": "2026-09-15T03:50:43.393Z",
+    "integrityErrors": [],
+    "referenceFiles": 266,
+    "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed",
+    "note": "原Node24.11.1未更换；运行器反序列化失败未定位，原同例30轮加相同spawnSync捕获100轮均未复现。重跑完整333项通过，不抹去前次失败。"
+  }
 }
