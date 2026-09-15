@@ -1,0 +1,8 @@
+{
+  "scope": "原规划3.2.3：设置归档四通道来源校验",
+  "change": "导出、导入、自动备份和恢复在任何文件或对话框操作前验证可信main来源，保持原返回契约",
+  "before": { "evidence": "settings-ipc-before-acceptance-VNvYVK", "passed": false, "failure": "预览成功读取主窗口归档，期望拒绝；在此停止，未调用原版对话框" },
+  "after": { "evidence": "settings-ipc-after-acceptance-8CHiI0", "passed": 20, "failed": 0, "skipped": 0, "durationMs": 107611.468167, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true },
+  "coverage": ["预览拒绝全部四通道且无配置泄露", "主窗口原始备份未被篡改", "真实设置文件导入导出与失败取消", "基础、对话、前手、生图、高清、快捷键设置保存及重启", "版本确认五条路径"],
+  "limitations": ["尚不代表配置默认导出已脱敏", "不覆盖真实外部服务和跨平台", "本次未重跑完整333项，按受影响设置范围回归"]
+}

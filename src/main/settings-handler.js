@@ -3,6 +3,7 @@ import { BrowserWindow, dialog, ipcMain } from 'electron'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 /**
  * 获取用户文档目录下的配置备份路径
@@ -43,6 +44,7 @@ export function registerSettingsHandlers() {
   // 1、通过系统对话框选择文件，导出或导入 JSON 设置。
   ipcMain.handle('settings-export', async (event, settings) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的设置归档来源')
       const window = BrowserWindow.fromWebContents(event.sender)
 
       const result = await dialog.showSaveDialog(window, {
@@ -89,6 +91,7 @@ export function registerSettingsHandlers() {
   // 导入设置
   ipcMain.handle('settings-import', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的设置归档来源')
       const window = BrowserWindow.fromWebContents(event.sender)
 
       const result = await dialog.showOpenDialog(window, {
@@ -131,6 +134,7 @@ export function registerSettingsHandlers() {
   // 2、自动备份设置到用户文档目录，并轮换历史配置备份。
   ipcMain.handle('settings-auto-backup', async (event, settings) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的设置归档来源')
       const backupDir = getSettingsBackupPath()
 
       // 确保备份目录存在
@@ -188,6 +192,7 @@ export function registerSettingsHandlers() {
   // 3、从用户文档目录读取最新设置副本。
   ipcMain.handle('settings-restore', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的设置归档来源')
       const backupDir = getSettingsBackupPath()
       const latestBackupPath = path.join(backupDir, 'settings-latest.json')
 
