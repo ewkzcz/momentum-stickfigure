@@ -4,6 +4,7 @@
 import { app, ipcMain } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 /**
  * 注册自定义对话框图片的本地管理接口。
@@ -25,6 +26,7 @@ export function registerCustomDialogHandlers() {
   // 保存自定义对话框图片
   ipcMain.handle('save-custom-dialog', async (event, fileName, base64Data) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的自定义图片操作来源')
       // 生成唯一文件名（时间戳 + 原文件名）
       const timestamp = Date.now()
       const ext = path.extname(fileName)
@@ -54,6 +56,7 @@ export function registerCustomDialogHandlers() {
   // 2、扫描自定义对话框目录并生成页面预览数据。
   ipcMain.handle('scan-custom-dialogs', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的自定义图片操作来源')
       if (!fs.existsSync(customDialogDir)) {
         return { success: true, dialogs: [] }
       }
@@ -97,6 +100,7 @@ export function registerCustomDialogHandlers() {
   // 3、删除指定自定义对话框图片。
   ipcMain.handle('delete-custom-dialog', async (event, fileName) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的自定义图片操作来源')
       const filePath = path.join(customDialogDir, fileName)
       // 删除接口只接收目录内的直接文件名，拒绝两类平台分隔符及路径跳转。
       if (!fileName || fileName === '.' || fileName === '..' || /[\\/]/.test(fileName) || path.isAbsolute(fileName)) {

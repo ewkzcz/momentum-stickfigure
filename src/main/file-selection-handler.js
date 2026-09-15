@@ -8,6 +8,7 @@
 import { app, BrowserWindow, shell, dialog, ipcMain } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 /**
  * 注册文件选择、临时图片保存与目录打开接口。
@@ -26,6 +27,7 @@ export function registerFolderSelectHandler() {
    */
   ipcMain.handle('select-psd-files', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的文件选择操作来源')
       // 1、取得发送请求的窗口，并显示文件选择对话框。
       const window = BrowserWindow.fromWebContents(event.sender)
       
@@ -64,6 +66,7 @@ export function registerFolderSelectHandler() {
    */
   ipcMain.handle('select-folder', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的文件选择操作来源')
       // 1、取得调用窗口并显示目录选择器。
       const window = BrowserWindow.fromWebContents(event.sender)
       
@@ -104,6 +107,7 @@ export function registerFolderSelectHandler() {
    */
   ipcMain.handle('select-file', async (event, options = {}) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的文件选择操作来源')
       // 1、从调用参数构造文件选择选项。
       const window = BrowserWindow.fromWebContents(event.sender)
       const dialogOptions = {
@@ -149,6 +153,7 @@ export function registerFolderSelectHandler() {
    */
   ipcMain.handle('show-save-dialog', async (event, options = {}) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的文件选择操作来源')
       // 1、绑定调用窗口，保留默认位置与文件筛选条件。
       const window = BrowserWindow.fromWebContents(event.sender)
       const dialogOptions = {
@@ -188,6 +193,7 @@ export function registerFolderSelectHandler() {
    */
   ipcMain.handle('select-image-files', async (event) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的文件选择操作来源')
       // 1、取得调用窗口并按支持的图片格式筛选。
       const window = BrowserWindow.fromWebContents(event.sender)
       
@@ -272,6 +278,7 @@ export function registerFolderSelectHandler() {
    */
   ipcMain.handle('save-temp-image', async (event, base64Data, fileName) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的文件选择操作来源')
       // 1、图片内容为空时直接返回错误。
       if (!base64Data) {
         return { success: false, error: '图片数据为空' }
@@ -314,6 +321,7 @@ export function registerFolderSelectHandler() {
    */
   ipcMain.handle('open-folder', async (event, folderPath) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的文件选择操作来源')
       // 1、排除空路径，再提交系统目录打开请求。
       if (!folderPath) {
         return { success: false, error: '文件夹路径为空' }
