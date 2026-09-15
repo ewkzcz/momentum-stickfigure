@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "unit": "main-preview-sandbox",
+  "baseline": { "directory": "temp/window-sandbox-before-acceptance-AqfaEO", "failure": "主窗口和预览的实际sandbox为false" },
+  "changes": ["三个主窗/预览创建入口启用sandbox，webSecurity保持原值等待独立兼容验收", "os和url查询迁移到主进程同步环境桥接，保留env首脚本同步接口", "桥接要求控制器持有窗口和顶层frame；初始化空白页仅允许自有窗口，其余要求已登记固定入口"],
+  "verification": { "directory": "temp/window-sandbox-final-acceptance-t1qSzT", "passed": 5, "failed": 0, "durationMs": 15817.532292, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "coverage": ["主窗和预览实际sandbox为true", "隔离home与平台同步契约", "中文空格及井号问号路径与Node标准URL一致", "未登记窗口及非顶层frame事件级拒绝", "非法路径类型、NUL和长度拒绝后合法请求恢复", "首脚本桥接、预览十轮生命周期和主窗重建、窗口来源与地理权限回归"],
+  "limits": ["负例由实际主进程listener接收受控事件，非真实子frame sendSync端到端", "preload-order替换页面的测试只证明平台及接口可用，不证明非固定probe页面获准读取home", "每次pathToFileURL使用同步IPC，非法输入返回null", "主窗webSecurity、CSP、webview附加策略和隐藏拖拽窗口仍未完成", "真实系统交互及Windows/Linux未验证", "本单元定向通过不等于当前累计全量通过"]
+}

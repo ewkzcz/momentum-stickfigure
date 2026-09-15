@@ -3,38 +3,12 @@
  */
 import { contextBridge, ipcRenderer } from 'electron'
 
-// 暴露环境信息
-const os = require('os')
-const { pathToFileURL } = require('url')
+// 沙箱预加载不加载os/url；固定同步查询保留页面首脚本所需的原env契约。
+const environment = ipcRenderer.sendSync('environment:sync') || { platform: process.platform, homedir: '' }
 contextBridge.exposeInMainWorld('env', {
-  platform: process.platform,
-  homedir: os.homedir(),
-  /**
-   * 将本地文件路径转换为页面可用地址。
-   * 处理流程：
-   * 1、优先使用标准路径转换接口。
-   * 2、转换异常时根据平台手动拼接文件地址。
-   */
-  pathToFileURL: (filePath) => {
-    // 1、由标准接口处理路径编码与平台差异。
-    try {
-      return pathToFileURL(filePath).href
-    } catch (error) {
-      console.error('路径转换失败:', error)
-      // 2、降级处理：手动转换路径分隔符与文件地址前缀。
-      let fileUrl = filePath.replace(/\\/g, '/')
-      if (process.platform === 'win32') {
-        // Windows: file:///C:/path/to/file.mp4
-        if (!fileUrl.startsWith('/')) {
-          fileUrl = '/' + fileUrl
-        }
-        return `file:///${fileUrl}`
-      } else {
-        // Unix/Linux/Mac: file:///path/to/file.mp4
-        return `file://${fileUrl}`
-      }
-    }
-  }
+  platform: environment.platform,
+  homedir: environment.homedir,
+  pathToFileURL: filePath => ipcRenderer.sendSync('environment:sync', filePath)
 })
 
 // 暴露文件系统 API

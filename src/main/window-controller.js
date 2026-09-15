@@ -5,6 +5,7 @@ import { app, BrowserWindow, ipcMain, nativeTheme, globalShortcut } from 'electr
 import { openExternalUrl } from './external-link-policy.js'
 import { is } from '@electron-toolkit/utils'
 import path from 'path'
+import os from 'node:os'
 import { pathToFileURL } from 'node:url'
 import { protectPrivilegedNavigation } from './privileged-navigation.js'
 import { registerTrustedWindow, isTrustedIpcSender } from './ipc-sender-policy.js'
@@ -23,6 +24,23 @@ import { getHotkeysConfig, saveHotkeysConfig } from './hotkeys-storage.js'
 export function createWindowController({ mainDirectory }) {
   // 全局窗口引用
   let mainWindow = null
+  // 同步预加载桥接只查询主进程登记的窗口，不读取渲染进程提供的环境数据。
+  const environmentHandler = (event, filePath) => {
+    const sender = event.sender
+    const duringPreload = sender?.mainFrame?.url === '' || sender?.mainFrame?.url === 'about:blank'
+    const window = BrowserWindow.fromWebContents(sender)
+    const owned = window && (window === mainWindow || window === canvasPreviewWindow)
+    if (!owned || event.senderFrame !== sender.mainFrame || (!duringPreload && !isTrustedIpcSender(event, ['main', 'preview']))) {
+      event.returnValue = null
+      return
+    }
+    if (filePath === undefined) event.returnValue = { platform: process.platform, homedir: os.homedir() }
+    else {
+      try { assertText(filePath, 32768, '文件路径'); event.returnValue = pathToFileURL(filePath).href }
+      catch { event.returnValue = null }
+    }
+  }
+  ipcMain.on('environment:sync', environmentHandler)
   // 应用级监听由唯一控制器持有，主窗口重建时复用，退出时按同一引用解除。
   let webContentsCreatedHandler = null
   const protectWindow = (window, preview = false) => {
@@ -51,7 +69,7 @@ export function createWindowController({ mainDirectory }) {
       autoHideMenuBar: true,
       webPreferences: {
         preload: path.join(mainDirectory, '../preload/index.cjs'),
-        sandbox: false,
+        sandbox: true,
         nodeIntegration: false,
         contextIsolation: true,
         enableRemoteModule: false,
@@ -277,7 +295,7 @@ export function createWindowController({ mainDirectory }) {
           backgroundColor: '#1a1a1a',
           webPreferences: {
             preload: path.join(mainDirectory, '../preload/index.cjs'),
-            sandbox: false,
+            sandbox: true,
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
@@ -583,6 +601,7 @@ export function createWindowController({ mainDirectory }) {
    * 2、移除预览与窗口控制通道的事件监听。
    */
   function unregisterWindowControlHandlers() {
+    ipcMain.removeListener('environment:sync', environmentHandler)
     // 1、清理画布预览窗口。
     if (canvasPreviewWindow && !canvasPreviewWindow.isDestroyed()) {
       canvasPreviewWindow.close()
@@ -681,7 +700,7 @@ export function createWindowController({ mainDirectory }) {
                 backgroundColor: '#1a1a1a',
                 webPreferences: {
                   preload: path.join(mainDirectory, '../preload/index.cjs'),
-                  sandbox: false,
+                  sandbox: true,
                   nodeIntegration: false,
                   contextIsolation: true,
                   enableRemoteModule: false,
