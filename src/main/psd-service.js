@@ -6,6 +6,7 @@
 import { app, ipcMain } from 'electron';
 import path from 'path';
 import { isTrustedIpcSender } from './ipc-sender-policy.js';
+import { assertOwnedFilePath } from './file-access-policy.js';
 import { assertPsdTree } from './psd-tree-parameters.js';
 import { assertDetectionOptions } from './psd-detection-parameters.js';
 import { assertPsdTaskOptions, assertRecord, assertBinaryPayload } from './ipc-parameter-policy.js';
@@ -328,8 +329,8 @@ async function registerPSDApiHandlers() {
             const config = api.getPSDConfig(options);
             const validation = api.validatePSDConfig(config);
             
-            // 确保必要目录存在
-            api.createDefaultPSDDirectories(config);
+            // 只准备主进程固定目录；全部预检后创建，失败由原错误包络返回。
+            api.createDefaultPSDDirectories(config, assertOwnedFilePath);
             
             logger?.info(`PSD配置获取完成，耗时: ${Date.now() - startTime}ms`);
             

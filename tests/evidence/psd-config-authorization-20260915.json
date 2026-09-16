@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-15",
+  "scope": "PSD 配置查询的固定应用目录授权及正常配置兼容",
+  "baseline": {
+    "directory": "temp/psd-config-authorization-before-acceptance-yP82Dy",
+    "passed": 1,
+    "failed": 9,
+    "finding": "三个未授权目录覆盖实际创建目录；三个默认目录父分量符号链接导致链接目标新增 psd；三个最终目录符号链接被成功接受。"
+  },
+  "after": {
+    "directory": "temp/psd-config-authorization-after-acceptance-z3JryX",
+    "passed": 17,
+    "failed": 0,
+    "durationMs": 10833.187208,
+    "referencesBefore": 0,
+    "lint": 0,
+    "size": 0,
+    "build": 0,
+    "referencesAfter": 0,
+    "inputAndArtifactManifest": "passed",
+    "testedHead": "04e42c8cc1bb8a896d779f285007735b0ac7c280",
+    "tests": ["psd-config-authorization", "psd-direct-parameters", "psd-detection-parameters", "psd-tree-parameters", "psd-task-parameters"]
+  },
+  "changes": [
+    "只允许 userData 下 temp/psd、cache/psd、output/psd，拒绝未授权小写目录字段及 DEFAULT_* 覆盖。",
+    "全部目录预检后创建，创建前后复核父分量、最终目录类型、符号链接和规范路径；错误保留原失败包络，不吞错成功。",
+    "原10项基线断言保留；新增2项覆盖空值和相同默认目录、非目录选项兼容，以及三种伪造常量拒绝。",
+    "真实 Electron 隔离环境验证正常初始化、拒绝后的恢复与哨兵不变；强制后台保护保持。"
+  ],
+  "limitations": [
+    "本次17项为定向回归，不是当前累计完整验收。",
+    "未完成通用文件读写及可信选择、配置目录用途授权。",
+    "目录检查不等同于原子目录操作，不宣称抵御本地进程并发替换父目录的全部竞争风险。",
+    "运行时工作区包含独立未通过的窗口 webSecurity 候选及其测试，manifest 如实记录；该候选不属于本次提交。",
+    "主窗预览跨域失败、累计验收及三类外部验收仍阻塞收工。"
+  ]
+}

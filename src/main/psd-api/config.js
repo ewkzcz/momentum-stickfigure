@@ -4,6 +4,7 @@
  */
 
 import path from 'path';
+import fs from 'node:fs';
 import { app } from 'electron';
 import { COMPONENT_DETECTION_CONFIG, PSD_ERROR_MESSAGES } from './psd-constants.mjs';
 
@@ -113,23 +114,46 @@ const PSD_MIME_TYPES = {
     '.webp': 'image/webp'
 };
 
+/** 目录只能采用主进程默认值；空值兼容旧表单，但不产生自定义目录授权。 */
+function assertFixedPSDDirectories(config) {
+    for (const [field, constant] of [
+        ['tempDir', 'DEFAULT_TEMP_DIR'],
+        ['cacheDir', 'DEFAULT_CACHE_DIR'],
+        ['outputDir', 'DEFAULT_OUTPUT_DIR']
+    ]) {
+        for (const key of [field, constant]) {
+            const value = config[key];
+            if (value !== undefined && value !== null && value !== '' && value !== PSD_PATH_CONFIG[constant]) {
+                throw new Error(`PSD目录未授权：${key}只能使用应用默认目录`);
+            }
+        }
+    }
+}
+
 /**
- * 获取PSD配置
- * 处理流程：
- * 1、合并默认配置及解析、合成选项，再应用顶层覆盖值。
- * @param {object} options - 配置选项
- * @returns {object} 合并后的配置
+ * 获取PSD配置：保留非目录选项，目录常量和显式目录字段均由主进程固定。
  */
 function getPSDConfig(options = {}) {
-    // 1、按从默认值到调用方配置的顺序合并。
-    return {
+    assertFixedPSDDirectories(options);
+    const config = {
         ...PSD_API_CONFIG,
         ...PSD_PATH_CONFIG,
         parseDefaults: { ...PSD_PARSE_DEFAULTS, ...options.parseOptions },
         composeDefaults: { ...IMAGE_COMPOSE_DEFAULTS, ...options.composeOptions },
         detection: COMPONENT_DETECTION_CONFIG,
-        ...options
+        ...options,
+        DEFAULT_TEMP_DIR: PSD_PATH_CONFIG.DEFAULT_TEMP_DIR,
+        DEFAULT_CACHE_DIR: PSD_PATH_CONFIG.DEFAULT_CACHE_DIR,
+        DEFAULT_OUTPUT_DIR: PSD_PATH_CONFIG.DEFAULT_OUTPUT_DIR
     };
+    for (const [field, constant] of [
+        ['tempDir', 'DEFAULT_TEMP_DIR'],
+        ['cacheDir', 'DEFAULT_CACHE_DIR'],
+        ['outputDir', 'DEFAULT_OUTPUT_DIR']
+    ]) {
+        if (Object.prototype.hasOwnProperty.call(options, field)) config[field] = PSD_PATH_CONFIG[constant];
+    }
+    return config;
 }
 
 /**
@@ -173,32 +197,41 @@ function validatePSDConfig(config) {
 }
 
 /**
- * 创建默认目录
- * 处理流程：
- * 1、确定临时、缓存及输出目录。
- * 2、逐个创建缺失目录，单项失败只记录警告。
- * @param {object} config - 配置对象
+ * 准备固定的应用目录：全部预检通过后才创建，创建后复核，任何失败交给调用方处理。
+ * 第二参数仅由主进程传入共享路径检查器；原样复制的 PSD API 不依赖未复制的模块。
  */
-function createDefaultPSDDirectories(config) {
-    // 1、优先使用传入目录，缺省使用应用数据路径。
-    const fs = require('fs');
-    const dirs = [
-        config.tempDir || PSD_PATH_CONFIG.DEFAULT_TEMP_DIR,
-        config.cacheDir || PSD_PATH_CONFIG.DEFAULT_CACHE_DIR,
-        config.outputDir || PSD_PATH_CONFIG.DEFAULT_OUTPUT_DIR
-    ];
-    
-    // 2、独立准备每个目录，避免单项失败终止后续创建。
-    dirs.forEach(dir => {
-        try {
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true });
-                console.log(`创建目录: ${dir}`);
+function createDefaultPSDDirectories(config, assertOwnedPath) {
+    assertFixedPSDDirectories(config);
+    const root = app.getPath('userData');
+    const directories = ['temp', 'cache', 'output'].map(parent => [parent, 'psd']);
+    const canonicalRoot = fs.realpathSync(root);
+    const checkDirectory = (segments) => {
+        if (assertOwnedPath) assertOwnedPath(root, segments);
+        let current = root;
+        for (const segment of segments) {
+            current = path.join(current, segment);
+            try {
+                const stat = fs.lstatSync(current);
+                if (stat.isSymbolicLink() || !stat.isDirectory()) throw new Error('PSD默认目录必须是非符号链接目录');
+            } catch (error) {
+                if (error.code !== 'ENOENT') throw error;
             }
-        } catch (error) {
-            console.warn(`创建目录失败: ${dir}`, error.message);
         }
-    });
+        if (fs.realpathSync(root) !== canonicalRoot) throw new Error('PSD应用目录已发生变化');
+        return current;
+    };
+
+    // 包括尚未创建的目录和已存在的父分量，不能创建前一个目录后才发现后一个链接。
+    directories.forEach(checkDirectory);
+    for (const segments of directories) {
+        const directory = checkDirectory(segments);
+        fs.mkdirSync(directory, { recursive: true });
+        checkDirectory(segments);
+        if (!fs.lstatSync(directory).isDirectory() || fs.realpathSync(directory) !== path.join(canonicalRoot, ...segments)) {
+            throw new Error('PSD默认目录创建后校验失败');
+        }
+    }
+    directories.forEach(checkDirectory);
 }
 
 /**
