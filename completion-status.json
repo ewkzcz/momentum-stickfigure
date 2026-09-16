@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "items": {
+    "finish-psd-budgets": "in_progress",
+    "finish-performance": "in_progress",
+    "finish-python-lifecycle": "in_progress",
+    "finish-ipc-boundaries": "in_progress",
+    "finish-file-authorization": "in_progress",
+    "finish-web-permissions": "in_progress",
+    "finish-sandbox-csp": "in_progress",
+    "finish-config-sharing": "completed",
+    "finish-final-acceptance": "pending"
+  },
+  "unresolvedFailures": [
+    "主窗/预览webSecurity候选：file入口仍可读取无CORS响应，privileged-web-security.test.mjs失败。"
+  ],
+  "external": {
+    "platform-installers": "unverified",
+    "real-system-interactions": "unverified",
+    "third-party-and-ai-python": "unverified"
+  },
+  "fullAcceptanceResult": null
+}
