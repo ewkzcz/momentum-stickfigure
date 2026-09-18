@@ -248,7 +248,8 @@ test('主窗预览网页安全：实际启用webSecurity并拒绝无CORS跨域�
         if (evidenceRoot) {
           const evidencePath = path.join(evidenceRoot, 'privileged-web-security.json')
           await writeFile(evidencePath, JSON.stringify(evidence, null, 2))
-          console.log(`主窗预览网页安全证据：${evidencePath}`)
+          // 使用测试运行器诊断通道，避免原始 stdout 文本与子测试二进制结果交错。
+          context.diagnostic(`主窗预览网页安全证据：${evidencePath}`)
         }
       } finally {
         server.closeAllConnections()

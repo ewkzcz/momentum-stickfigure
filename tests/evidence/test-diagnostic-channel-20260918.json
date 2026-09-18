@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scope": "测试结果诊断通道修复；生产代码和全部业务断言不变",
+  "before": {
+    "directory": "temp/remaining-defects-acceptance-4O6zAx",
+    "head": "29dfbd9e94e2d2601673ba6440f01fd8b1e4ae84",
+    "tests": 605, "passed": 604, "failed": 1, "cancelled": 0, "skipped": 0, "exitCode": 1,
+    "error": "Node 24.11.1 internal/test_runner/runner:375 Unable to deserialize cloned data due to invalid or unsupported version",
+    "observation": "privileged-web-security 六个内部子测试均通过，在打印最终证据路径之后发生文件级解析错误。保持源码不变隔离复跑，前两次7/7，第三次6/7并复现相同错误。"
+  },
+  "change": "仅将 privileged-web-security 最终证据路径 console.log 改为 context.diagnostic，使用测试运行器结构化诊断通道。没有删除输出、修改断言、忽略异常、升级依赖或修改产品。",
+  "causalityLimit": "已复现故障并通过输出通道单变量修改验证缓解；未宣称已证明 Node 内部具体缺陷。上游相似报告 https://github.com/nodejs/node/issues/64061 仅作辅助参考。",
+  "repeatAfter": {"runs": 20, "testsPerRun": 7, "allRunsExitCode": 0, "failures": 0},
+  "relatedAfter": {
+    "directory": "temp/diagnostic-channel-after-acceptance-ufUc6H",
+    "manifestSha256": "8370797cde2f875afffd9f4d3e7a882ff7320c2cf6b9744a5d4a005e82aeba3f",
+    "tests": 13, "passed": 13, "failed": 0, "cancelled": 0, "skipped": 0,
+    "durationMs": 5232.495292, "exitCode": 0,
+    "stages": {"references-before": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "references-after": 0}
+  },
+  "limits": ["此前de7a8e4的605/605保持为历史成功；不得替代下一次最终提交累计。", "本结果不能替代三类真实外部验收。"]
+}
