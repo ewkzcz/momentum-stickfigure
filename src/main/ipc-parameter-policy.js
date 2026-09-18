@@ -130,7 +130,7 @@ export function assertLocalProcessOptions(value, nested = false) {
     if (value[key] !== undefined && typeof value[key] !== 'boolean') throw new TypeError(`${key}参数必须是布尔值`)
   }
   if (value.alphaMatting !== undefined) assertEnum(value.alphaMatting, [true, false, '1', '0'], 'alphaMatting')
-  if (value.mode !== undefined) assertEnum(value.mode, ['auto', 'cpu', 'gpu', 'custom'], '性能模式')
+  if (value.mode !== undefined) assertEnum(value.mode, ['auto', 'cpu', 'gpu', 'custom', 'fast'], '性能模式')
   if (!nested) for (const key of ['removebg', 'highres']) {
     if (value[key] !== undefined) assertLocalProcessOptions(value[key], true)
   }

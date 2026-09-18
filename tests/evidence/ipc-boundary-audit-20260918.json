@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "scope": "原计划第4有限IPC对账（只读调查结果）",
+  "status": "read-only-audit-complete",
+  "executed": { "edit": false, "command": false, "test": false, "build": false },
+  "coverageClaim": "人工有限对账；按实际preload、主进程注册入口、handler、来源/参数策略及已有测试关联，非运行时全枚举。",
+  "findings": [
+    { "id": "F1", "status": "resolved-targeted", "channels": ["hd:save-config", "hd:run-highres"], "detail": "界面与默认参数使用fast，入口枚举遗漏已由真实基线确认并修复；相关5/5退出0，详见hd-mode-compatibility-20260918.json。" },
+    { "id": "F2", "status": "unverified-compatibility-suspect", "channels": ["psd-get-info", "psd-validate-file"], "detail": "静态发现字节归一化兼容疑点，尚无合法字节正例确认，先单独基线，不视为已测失败。" }
+  ],
+  "evidenceOnlyUnresolved": ["fonts:get-system-fonts成功断言未单独定位", "environment:sync拒绝分支未单独定位"],
+  "scopeExclusions": ["文件用途授权归第5项，不重复拆分", "无handler的历史fal通道不新增", "不扩大威胁模型"],
+  "pending": ["F1/F2必要基线与相关回归", "write-file及配置授权相关提交后的最终累计验收"],
+  "external": { "platform-installers": "unverified", "real-system-interactions": "unverified", "third-party-and-ai-python": "unverified" }
+}

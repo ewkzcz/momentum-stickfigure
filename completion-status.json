@@ -13,20 +13,22 @@
   },
   "unresolvedFailures": [],
   "remainingLocalWork": [
-    "可信文件授权：配置目录及专用导出入口的用途授权与兼容回归。",
-    "有限IPC清单与网页权限：核对现有来源、角色和参数正反测试，只处理原计划内确切遗漏。",
-    "安全兼容：开发入口实际策略及原承诺的本地视频、HTTP/HTTPS端口和路径兼容验证。",
+    "有限IPC：fast模式遗漏已修复并有5/5回归；PSD get-info/validate-file合法字节兼容基线仍待执行；有限清单证据整理仍待主代理核对。",
+    "可信文件授权：手动导出、画布拖拽、Gemini配置输出已通过定向回归；OCR专用输出授权仍未接入，HD使用既有专用输出能力。",
+    "网页权限与安全兼容：开发入口实际CSP、HTTP/HTTPS端口和路径兼容、本地视频正例仍待原计划内验证。",
     "上述本地项完成后冻结最终源码，运行一次累计完整验收。"
   ],
   "resolvedFailureEvidence": [
     "tests/evidence/file-read-history-20260918.json",
     "tests/evidence/application-task-shutdown-20260918.json",
-    "tests/evidence/file-write-authorization-20260918.json"
+    "tests/evidence/file-write-authorization-20260918.json",
+    "tests/evidence/configured-output-authorization-20260918.json",
+    "tests/evidence/hd-mode-compatibility-20260918.json"
   ],
   "scopeNotes": [
-    "已解决失败仍保留原始失败日志；已测限制不自动升级为原计划必做任务。",
-    "精确读取相关67/67、退出相关21/21、通用写入最终相关42/42均为定向验收，不能相加替代最终累计。",
-    "既有媒体精确授权与有限准入证据保留；额外的大图总预算和任意瞬时路径竞争防护不新增为本轮必做。"
+    "已解决失败保留原始失败日志；已测限制不自动升级为新必做任务。",
+    "精确读取相关67/67、退出相关21/21、通用写入最终相关42/42、配置相关14/14、高清相关5/5均为定向验收，不能相加替代最终累计。",
+    "OCR专用配置用途尚未接入；真实OCR/Python业务仍属于既定外部验收，不删除该缺口。"
   ],
   "external": {
     "platform-installers": "unverified",
