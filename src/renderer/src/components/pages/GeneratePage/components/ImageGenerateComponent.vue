@@ -997,7 +997,9 @@ const saveImageToFolder = async (image, index, folderPath) => {
   try {
     // 如果是文件路径，直接读取
     if (image.url.startsWith('file://') || image.url.startsWith('/') || /^[a-zA-Z]:\\/.test(image.url)) {
-      const response = await fetch(image.url)
+      const authorized = await window.hdToolkit.getImagePreview(image.path || image.url)
+      if (!authorized?.success) throw new Error(authorized?.message || '图片未授权，请重新选择')
+      const response = await fetch(authorized.data.dataUrl)
       const blob = await response.blob()
       const reader = new FileReader()
       

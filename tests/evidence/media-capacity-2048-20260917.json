@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "scope": "2048固定样本测量与更新ASAR依赖诊断，非安装产物或最终累计验收",
+  "headAtValidation": "3d71c803e79b217aaa6d958c667511746b3c022a",
+  "workingTreeWasDirty": true,
+  "capacity": {
+    "directory": "temp/media-capacity-2048-acceptance-ItMvIs",
+    "rawEvidence": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-capacity-report-vvWwdX/media-resource-capacity.json",
+    "tests": {"total": 1, "passed": 1, "failed": 0, "durationMs": 17800.517125},
+    "samples": 10, "dimensions": [2048, 2048], "completedBusinessCalls": 30, "maximumConcurrentRequests": 1,
+    "checks": {"referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0},
+    "stopPolicyTriggered": false
+  },
+  "packaging": {
+    "command": "npx electron-builder --mac --arm64 --dir --publish never -c.directories.output=temp/media-canvas-package-evaluation -c.mac.identity=null",
+    "exitCode": 0, "builder": "25.1.8", "os": "25.6.0", "electron": "35.7.5", "signed": false,
+    "diagnostics": "串行png/jpeg/webp各valid/truncated，六条helper命令均退出0；shell遇首失败即退出",
+    "diagnosticRootNames": ["momentum-regression-K1cd30", "momentum-regression-GfHRxx", "momentum-regression-poHJCM", "momentum-regression-oHyTjP", "momentum-regression-S7p2lF", "momentum-regression-GDPv9l"],
+    "diagnosticEvidenceName": "canvas-packaged-asar.json",
+    "packagedApplicationEntryLaunched": false
+  },
+  "limits": ["2048样本不能外推5.3亿像素候选上限，不是大图支持或RSS硬预算", "六项打包诊断使用强制保护的工作区入口加载ASAR内两库，不是打包可执行文件/安装产物验收", "媒体候选未提交；测试后证据写入改变输入清单", "真实系统交互、第三方登录权限与真实AI/Python及平台安装产物均仍未验证"],
+  "conclusion": "固定容量样本与更新包内依赖诊断完成；还不能收工"
+}

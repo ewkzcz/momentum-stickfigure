@@ -406,11 +406,12 @@ export function useGenerateWorkflow({
           try {
             // 如果是 file:// 路径，提取真实路径
             if (item.url.startsWith('file://')) {
-              filePath = item.url.replace('file:///', '').replace('file://', '')
-              // Windows路径处理
-              if (/^[a-zA-Z]:/.test(filePath)) {
-                // 已经是完整路径，直接使用
-              }
+              const authorized = await window.hdToolkit.getImagePreview(item.url)
+              if (!authorized?.success) throw new Error(authorized?.message || '图片未授权，请重新选择')
+              const temp = await window.fileSystem.saveTempImage(authorized.data.dataUrl.split(',')[1], `自动保存_${item.name || 'image'}.png`)
+              if (!temp?.success) throw new Error(temp?.error || '保存临时图片失败')
+              filePath = temp.path
+              item.url = authorized.data.dataUrl
             } 
             // 如果是 data URL，保存为临时文件
             else if (item.url.startsWith('data:image')) {

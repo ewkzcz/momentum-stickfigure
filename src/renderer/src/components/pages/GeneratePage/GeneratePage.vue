@@ -773,12 +773,9 @@ const handleDrop = async (event) => {
   if (!items.length && event?.dataTransfer) {
     const uriList = event.dataTransfer.getData('text/uri-list') || ''
     if (uriList.trim()) {
-      const paths = uriList
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line && !line.startsWith('#'))
-        .map((uri) => decodeURI(uri.replace(/^file:\/+/, '')))
-      items = paths.map((path) => ({ path }))
+      message.info('文件地址不能直接授权读取，请在文件选择器中确认要导入的图片。')
+      await handleSelectImages()
+      return
     }
   }
   if (!items.length) return
@@ -1175,7 +1172,7 @@ const loadPreviewImages = async (files) => {
           previews.push({
             id: createImageId(),
             path: filePath,
-            url: toFileUrl(filePath),
+            url: await toFileUrl(filePath),
             name: extractName(filePath)
           })
         }
@@ -1183,7 +1180,7 @@ const loadPreviewImages = async (files) => {
         previews.push({
           id: createImageId(),
           path: filePath,
-          url: toFileUrl(filePath),
+          url: await toFileUrl(filePath),
           name: extractName(filePath)
         })
       }
@@ -1249,9 +1246,10 @@ const normalizeToImageItem = async (source) => {
         return null
       }
       let url = source.previewUrl || source.url
+      if (url?.startsWith('file:') || url?.startsWith('/') || /^[a-zA-Z]:[\\/]/.test(url || '')) url = await toFileUrl(path || url)
       if (!url) {
         if (path) {
-          url = toFileUrl(path)
+          url = await toFileUrl(path)
         } else if (source.base64) {
           url = `data:image/png;base64,${source.base64}`
         }
@@ -1407,16 +1405,11 @@ const extractName = (filePath) => {
  * 1、保留已有文件地址并规范路径分隔符
  * 2、按绝对路径形式补充文件协议前缀
  */
-const toFileUrl = (path) => {
-  // 1、处理空路径及已经转换的地址。
+const toFileUrl = async (path) => {
   if (!path) return ''
-  if (path.startsWith('file://')) return path
-  const normalized = path.replace(/\\/g, '/')
-  // 2、为不同平台路径选择文件协议格式。
-  if (normalized.startsWith('/')) {
-    return `file://${normalized}`
-  }
-  return `file:///${normalized}`
+  const result = await window.hdToolkit.getImagePreview(path)
+  if (!result?.success || !result.data?.dataUrl) throw new Error(result?.message || '图片未授权，请重新选择')
+  return result.data.dataUrl
 }
 
 // ==================== 拖拽功能方法 ====================

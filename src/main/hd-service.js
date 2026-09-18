@@ -2,7 +2,10 @@
  * 抠图高清服务：管理本地配置、Python 执行环境以及图片处理的进程通信。
  */
 
-import { app, ipcMain } from 'electron'
+import { app, ipcMain, BrowserWindow, dialog } from 'electron'
+import { canonicalFile, grantInputFilesInLease, hasAuthorizedInput, grantOutputDirectory, authorizedOutputDirectory, readAuthorizedImage, MEDIA_LIMITS, assertImageDimensions } from './local-media-authorization.js'
+import { createArtifactTaskInLease, parseCompletion } from './hd-output-artifacts.js'
+import { withMediaAdmission, runMediaOperation } from './media-resource-admission.js'
 import path from 'path'
 import fs from 'fs'
 import os from 'os'
@@ -318,22 +321,9 @@ function runPythonInline(pythonExec, pythonHome, code, args, envExtra = {}) {
 const REMOVE_BG_SCRIPT = `
 import os
 import sys
-import shutil
+import json
 from pathlib import Path
 from rembg import remove, new_session
-
-def ensure_unique_path(base_path):
-    if not base_path.exists():
-        return base_path
-    stem = base_path.stem
-    suffix = base_path.suffix
-    parent = base_path.parent
-    index = 1
-    while True:
-        candidate = parent / f"{stem}_{index}{suffix}"
-        if not candidate.exists():
-            return candidate
-        index += 1
 
 def process_single(session, source_path, target_path, alpha_flag):
     result = remove(
@@ -344,10 +334,10 @@ def process_single(session, source_path, target_path, alpha_flag):
     target_path.write_bytes(result)
 
 def main():
-    if len(sys.argv) < 6:
+    if len(sys.argv) != 7:
         raise SystemExit("参数不足")
 
-    input_path = Path(sys.argv[1])
+    manifest_path = Path(sys.argv[1])
     output_dir = Path(sys.argv[2])
     weight_dir = Path(sys.argv[3])
     weight_name = sys.argv[4]
@@ -363,22 +353,15 @@ def main():
     os.environ.setdefault("U2NET_HOME", str(weight_dir))
     session = new_session(model_name)
 
-    if input_path.is_file():
-        target = ensure_unique_path(output_dir / input_path.name)
+    entries = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(entries, list) or not 0 < len(entries) <= 10000:
+        raise SystemExit("任务清单无效")
+    for entry in entries:
+        input_path, target = Path(entry["input"]), Path(entry["output"])
+        if not input_path.is_file() or target.exists():
+            raise SystemExit("任务输入或预定产物无效")
         process_single(session, input_path, target, alpha_flag)
-        return
-
-    if input_path.is_dir():
-        for item in input_path.iterdir():
-            if item.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
-                target = ensure_unique_path(output_dir / item.name)
-                process_single(session, item, target, alpha_flag)
-            else:
-                target = ensure_unique_path(output_dir / item.name)
-                shutil.copy2(item, target)
-        return
-
-    raise SystemExit(f"无法识别的输入路径：{input_path}")
+        print("MOMENTUM_ARTIFACT " + entry["id"], flush=True)
 
 main()
 `
@@ -387,7 +370,7 @@ const HIGHRES_SCRIPT = `
 import os
 import sys
 import types
-import shutil
+import json
 import time
 from pathlib import Path
 
@@ -406,19 +389,6 @@ except Exception:
 import torch
 from realesrgan import RealESRGANer
 from basicsr.archs.rrdbnet_arch import RRDBNet
-
-def ensure_unique_path(base_path):
-    if not base_path.exists():
-        return base_path
-    stem = base_path.stem
-    suffix = base_path.suffix
-    parent = base_path.parent
-    index = 1
-    while True:
-        candidate = parent / f"{stem}_{index}{suffix}"
-        if not candidate.exists():
-            return candidate
-        index += 1
 
 def process_single_image(upscaler, image_path, outscale, target_path):
     """处理单张图片，支持透明通道"""
@@ -466,10 +436,10 @@ def process_single_image(upscaler, image_path, outscale, target_path):
     return elapsed
 
 def main():
-    if len(sys.argv) < 13:
+    if len(sys.argv) != 13:
         raise SystemExit("参数不足")
 
-    input_path = Path(sys.argv[1])
+    manifest_path = Path(sys.argv[1])
     output_dir = Path(sys.argv[2])
     weight_dir = Path(sys.argv[3])
     weight_file = sys.argv[4]
@@ -530,83 +500,88 @@ def main():
         device=device,
     )
 
-    total_images = 0
-    total_time = 0.0
-
-    if input_path.is_file():
-        target = ensure_unique_path(output_dir / input_path.name)
-        print(f"处理: {input_path.name}", flush=True)
-        elapsed = process_single_image(upscaler, input_path, outscale, target)
-        total_images = 1
-        total_time = elapsed
-        print(f"完成: {target.name} (耗时: {elapsed:.2f}秒)", flush=True)
-        return
-
-    if input_path.is_dir():
-        images = [item for item in input_path.iterdir() 
-                 if item.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}]
-        total = len(images)
-        
-        for idx, item in enumerate(images, 1):
-            target = ensure_unique_path(output_dir / item.name)
-            print(f"[{idx}/{total}] 处理: {item.name}", flush=True)
-            elapsed = process_single_image(upscaler, item, outscale, target)
-            total_time += elapsed
-            total_images += 1
-            print(f"  完成: {target.name} (耗时: {elapsed:.2f}秒)", flush=True)
-        
-        # 复制非图片文件
-        for item in input_path.iterdir():
-            if item.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}:
-                target = ensure_unique_path(output_dir / item.name)
-                shutil.copy2(item, target)
-        
-        if total_images > 0:
-            avg_time = total_time / total_images
-            print(f"\\n处理完成: {total_images}张图片，总耗时: {total_time:.2f}秒，平均: {avg_time:.2f}秒/张", flush=True)
-        return
-
-    raise SystemExit(f"无法识别的输入路径：{input_path}")
+    entries = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(entries, list) or not 0 < len(entries) <= 10000:
+        raise SystemExit("任务清单无效")
+    for entry in entries:
+        input_path, target = Path(entry["input"]), Path(entry["output"])
+        if not input_path.is_file() or target.exists():
+            raise SystemExit("任务输入或预定产物无效")
+        process_single_image(upscaler, input_path, outscale, target)
+        print("MOMENTUM_ARTIFACT " + entry["id"], flush=True)
 
 main()
 `
 
-/**
- * 确保目标目录存在。
- * 处理流程：
- * 1、忽略空路径，按需递归创建目录。
- */
-function ensureDirectory(target) {
-  // 1、仅为有效且不存在的路径创建目录。
-  if (!target) return
-  if (!fs.existsSync(target)) {
-    fs.mkdirSync(target, { recursive: true })
+/** 原生输入/输出选择、精确用途授权和任务私有快照准备。 */
+async function prepareHdTask(owner, payload, suffix) {
+  const signal = currentTaskSignal()
+  const check = () => { if (owner.isDestroyed() || signal?.aborted) throw signal?.reason || new Error('任务来源已关闭') }
+  check()
+  let inputs = payload.inputPaths || []
+  let taskInputs = inputs
+  const rollbacks = []
+  let needsGrant = false, selectedOutput = false, task
+  try {
+  if (!inputs.length || !(await hasAuthorizedInput(owner, inputs, signal))) {
+    needsGrant = true
+    const selected = await dialog.showOpenDialog(BrowserWindow.fromWebContents(owner), {
+      title: '确认本次处理的输入文件或目录', properties: ['openFile', 'openDirectory', 'multiSelections']
+    })
+    check()
+    if (selected.canceled || !selected.filePaths.length) throw new Error('已取消输入选择，未授权处理')
+    taskInputs = selected.filePaths
+    inputs = []
+    for (const selectedPath of selected.filePaths) {
+      canonicalFile(selectedPath)
+      const candidates = fs.statSync(selectedPath).isDirectory()
+        ? fs.readdirSync(selectedPath).map(name => path.join(selectedPath, name)) : [selectedPath]
+      for (const file of candidates) {
+        if (inputs.length >= MEDIA_LIMITS.files) throw new Error('输入文件数量超过限制')
+        // 保留旧目录内普通非图片复制用途；目录/链接明确拒绝，不静默丢弃。
+        inputs.push(file)
+      }
+    }
+    check() // 原生选择只确认路径；输入授权延后到准备阶段额度内。
+  }
+  let base = payload.outputDir || getConfig().outputDir
+  try { base = authorizedOutputDirectory(owner, base) } catch {
+    const selected = await dialog.showOpenDialog(BrowserWindow.fromWebContents(owner), {
+      title: '确认本次图片处理输出目录', properties: ['openDirectory']
+    })
+    check()
+    if (selected.canceled || !selected.filePaths.length) throw new Error('已取消输出选择，未发布产物')
+    base = selected.filePaths[0]
+    selectedOutput = true
+  }
+  check()
+  let destination
+  await withMediaAdmission({ owner, signal }, async lease => {
+    if (needsGrant) rollbacks.push((await grantInputFilesInLease(lease, owner, inputs)).rollback)
+    await runMediaOperation(lease, context => {
+      context.check(); check()
+      if (selectedOutput) rollbacks.push(grantOutputDirectory(owner, base))
+      destination = path.join(authorizedOutputDirectory(owner, base), suffix)
+      try { fs.mkdirSync(destination, { mode: 0o700 }) } catch (error) { if (error.code !== 'EEXIST') throw error }
+      rollbacks.push(grantOutputDirectory(owner, destination))
+    })
+    task = await createArtifactTaskInLease(lease, { owner, temporaryRoot: app.getPath('temp'), inputs, signal })
+  })
+  return { task, destination, inputs: taskInputs, rollback: () => { for (const undo of rollbacks.reverse()) undo() } }
+  } catch (error) {
+    for (const undo of rollbacks.reverse()) undo()
+    if (task) task.cleanup(error)
+    throw error
   }
 }
 
-/**
- * 创建带时间戳的任务输出目录。
- * 处理流程：
- * 1、组合子目录前缀与时间戳，创建目录并返回路径。
- */
-function createSessionOutputDir(base, subFolder) {
-  // 1、将时间戳中的路径不兼容字符替换为短横线。
-  if (!base) return null
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-  const folderName = subFolder ? `${subFolder}-${timestamp}` : timestamp
-  const finalDir = path.join(base, folderName)
-  ensureDirectory(finalDir)
-  return finalDir
+async function completeHdBatch(task, stdout) {
+  const images = task.records.filter(record => record.image)
+  parseCompletion(stdout, images.map(record => record.id))
+  for (const record of task.records) await task.complete(record, record.image ? `MOMENTUM_ARTIFACT ${record.id}` : '')
 }
 
-/**
- * 批量执行本地图片去背景任务。
- * 处理流程：
- * 1、验证解释器、模型权重及输入输出路径。
- * 2、逐个调用 Python 去背景脚本。
- * 3、整理结果并仅返回本次新增文件。
- */
-async function handleRemoveBackground(payload) {
+async function handleRemoveBackground(payload, owner) {
   // 1、根据保存配置与任务参数检查运行条件。
   const config = getConfig()
   const pythonExec = resolvePythonExecutable(config.pythonHome)
@@ -630,61 +605,19 @@ async function handleRemoveBackground(payload) {
     throw new Error(`未找到对应的去背景模型配置: ${modelId}`)
   }
 
-  const outputBase = payload.outputDir || config.outputDir
-  if (!outputBase) {
-    throw new Error('未配置输出目录，请前往设置页面完成配置')
-  }
-
-  ensureDirectory(outputBase)
-  const sessionDir = path.join(outputBase, 'removebg-results')
-  ensureDirectory(sessionDir)
-  const existingNames = new Set(fs.readdirSync(sessionDir))
-
-  const inputPaths = Array.isArray(payload.inputPaths) ? payload.inputPaths : []
-  if (inputPaths.length === 0) {
-    throw new Error('请至少选择一个待处理的文件或文件夹')
-  }
-
-  // 2、顺序处理输入，避免多个模型实例同时占用内存。
-  const results = []
-  for (const inputPath of inputPaths) {
-    if (!fs.existsSync(inputPath)) {
-      throw new Error(`输入路径不存在：${inputPath}`)
-    }
-
-    await runPythonInline(
-      pythonExec,
-      pythonHome,
-      REMOVE_BG_SCRIPT,
-      [
-        inputPath,
-        sessionDir,
-        weightsDir,
-        model.weightFile,
-        model.rembgName,
-        payload.alphaMatting === true || payload.alphaMatting === '1' ? '1' : '0'
-      ],
-      {
-        U2NET_HOME: weightsDir
-      }
-    )
-    results.push({
-      input: inputPath,
-      outputDir: sessionDir
-    })
-  }
-
-  // 3、通过任务开始前的文件名集合筛出新增结果。
-  const files = finalizeOutputFiles(sessionDir, { renameDuplicates: true })
-  const newFiles = files.filter((filePath) => {
-    const name = path.basename(filePath)
-    return !existingNames.has(name)
-  })
-  return {
-    outputDir: sessionDir,
-    files: newFiles,
-    tasks: results
-  }
+  const { task, destination, inputs, rollback } = await prepareHdTask(owner, payload, 'removebg-results')
+  let failure
+  try {
+    const result = task.records.some(record => record.image) ? await runPythonInline(pythonExec, pythonHome, REMOVE_BG_SCRIPT, [
+      task.manifest, task.directory, weightsDir, model.weightFile, model.rembgName,
+      payload.alphaMatting === true || payload.alphaMatting === '1' ? '1' : '0'
+    ], { U2NET_HOME: weightsDir }) : null
+    await completeHdBatch(task, result?.stdout || '')
+    const files = await task.publish(destination)
+    task.commit()
+    return { outputDir: destination, files, tasks: inputs.map(input => ({ input, outputDir: destination })) }
+  } catch (error) { failure = error; rollback(); throw error }
+  finally { task.cleanup(failure) }
 }
 
 // 性能优化的默认参数配置（与hd-remove_bg项目保持一致）
@@ -737,7 +670,7 @@ async function detectGPUMode(pythonExec, pythonHome) {
  * 2、根据性能模式合并本次推理参数。
  * 3、逐个运行放大脚本，整理本次新增结果。
  */
-async function handleHighres(payload) {
+async function handleHighres(payload, owner) {
   // 1、准备运行环境并检查任务配置。
   const config = getConfig()
   const pythonExec = resolvePythonExecutable(config.pythonHome)
@@ -762,21 +695,11 @@ async function handleHighres(payload) {
     throw new Error(`未找到对应的高清模型配置: ${modelId}`)
   }
 
-  const outputBase = payload.outputDir || config.outputDir
-  if (!outputBase) {
-    throw new Error('未配置输出目录，请前往设置页面完成配置')
-  }
-  ensureDirectory(outputBase)
-  const sessionDir = path.join(outputBase, 'highres-results')
-  ensureDirectory(sessionDir)
-  const existingNames = new Set(fs.readdirSync(sessionDir))
 
-  const inputPaths = Array.isArray(payload.inputPaths) ? payload.inputPaths : []
-  if (inputPaths.length === 0) {
-    throw new Error('请至少选择一个待处理的文件或文件夹')
-  }
-
-  // 2、性能参数优化：根据模式选择最优参数。
+  const { task, destination, inputs, rollback } = await prepareHdTask(owner, payload, 'highres-results')
+  let failure
+  try {
+  // 2、只有输入输出用途确认后才允许探测或启动Python。
   const performanceMode = payload.mode || config.highres.mode || 'auto'
   let defaultParams
   let useAutoOptimization = false
@@ -822,8 +745,8 @@ async function handleHighres(payload) {
   console.log(`[HD Toolkit] 性能参数: tile=${tile}, outscale=${outscale}, half=${half}`)
 
   const pythonArgs = [
-    '', // placeholder for input path
-    sessionDir,
+    task.manifest, // main-owned bounded image list
+    task.directory,
     weightsDir,
     model.weightFile,
     model.modelName,
@@ -836,130 +759,15 @@ async function handleHighres(payload) {
     half ? '1' : '0'
   ]
 
-  // 3、复用公共参数，逐个执行输入文件的高清任务。
-  const tasks = []
-  for (const inputPath of inputPaths) {
-    if (!fs.existsSync(inputPath)) {
-      throw new Error(`输入路径不存在：${inputPath}`)
-    }
-
-    pythonArgs[0] = inputPath
-    await runPythonInline(
-      pythonExec,
-      pythonHome,
-      HIGHRES_SCRIPT,
-      pythonArgs
-    )
-    tasks.push({
-      input: inputPath,
-      outputDir: sessionDir
-    })
-  }
-
-  const files = finalizeOutputFiles(sessionDir, { renameDuplicates: true })
-  const newFiles = files.filter((filePath) => {
-    const name = path.basename(filePath)
-    return !existingNames.has(name)
-  })
-  return {
-    outputDir: sessionDir,
-    files: newFiles,
-    tasks
-  }
-}
-
-/**
- * 收集输出文件并按需处理同名文件。
- * 处理流程：
- * 1、排序目录条目并过滤不可访问项与目录。
- * 2、按文件主名计数，必要时追加未占用的序号。
- * 3、返回最终文件路径列表。
- */
-function finalizeOutputFiles(dir, options = {}) {
-  // 1、初始化稳定的遍历顺序与文件主名计数。
-  const { renameDuplicates = false } = options
-  if (!fs.existsSync(dir)) return []
-  const entries = fs.readdirSync(dir)
-  entries.sort((a, b) => a.localeCompare(b))
-  const baseCounts = new Map()
-  const result = []
-
-  for (const name of entries) {
-    const fullPath = path.join(dir, name)
-    let stat
-    try {
-      stat = fs.statSync(fullPath)
-    } catch (error) {
-      console.warn('[HD Toolkit] 跳过无法访问的文件:', fullPath, error)
-      continue
-    }
-    if (!stat.isFile()) {
-      continue
-    }
-
-    if (!renameDuplicates) {
-      result.push(fullPath)
-      continue
-    }
-
-    // 2、需要重命名时查找未占用的序号路径。
-    const ext = path.extname(name)
-    const base = path.basename(name, ext)
-    let count = baseCounts.get(base) || 0
-    let finalPath = fullPath
-
-    if (count > 0) {
-      let suffix = count
-      while (true) {
-        const candidateName = `${base}_${suffix}${ext}`
-        const candidatePath = path.join(dir, candidateName)
-        if (!fs.existsSync(candidatePath)) {
-          fs.renameSync(fullPath, candidatePath)
-          finalPath = candidatePath
-          baseCounts.set(base, suffix + 1)
-          break
-        }
-        suffix += 1
-      }
-    } else {
-      baseCounts.set(base, 1)
-    }
-
-    result.push(finalPath)
-  }
-
-  // 3、返回整理后的实际文件路径。
-  return result
-}
-
-/**
- * 将本地图片编码为页面可预览的数据地址。
- * 处理流程：
- * 1、检查文件并根据扩展名选择媒体类型。
- * 2、读取内容生成 Base64 地址，读取失败时抛出错误。
- */
-function readImageAsDataUrl(imagePath) {
-  // 1、确认文件存在并识别常用图片格式。
-  try {
-    if (!fs.existsSync(imagePath)) {
-      throw new Error('文件不存在')
-    }
-    const ext = path.extname(imagePath).toLowerCase()
-    const mimeMap = {
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.webp': 'image/webp'
-    }
-    const mime = mimeMap[ext] || 'image/png'
-    // 2、把图片字节转换为可直接绑定到预览组件的地址。
-    const data = fs.readFileSync(imagePath)
-    const base64 = data.toString('base64')
-    return `data:${mime};base64,${base64}`
-  } catch (error) {
-    console.error('[HD Toolkit] 读取图片失败:', imagePath, error)
-    throw error
-  }
+    const predictedPixels = task.records.reduce((sum, record) => sum + (record.image ? assertImageDimensions(record.width, record.height, outscale) : 0), 0)
+    if (predictedPixels > MEDIA_LIMITS.batchPixels) throw new Error('高清预期产物像素超过媒体预算')
+    const result = task.records.some(record => record.image) ? await runPythonInline(pythonExec, pythonHome, HIGHRES_SCRIPT, pythonArgs) : null
+    await completeHdBatch(task, result?.stdout || '')
+    const files = await task.publish(destination)
+    task.commit()
+    return { outputDir: destination, files, tasks: inputs.map(input => ({ input, outputDir: destination })) }
+  } catch (error) { failure = error; rollback(); throw error }
+  finally { task.cleanup(failure) }
 }
 
 // ==================== IPC 注册 ====================
@@ -1003,7 +811,7 @@ export function registerHdServiceHandlers() {
     if (!isTrustedIpcSender(event)) return deniedSource()
     try {
       assertLocalProcessOptions(payload)
-      const result = await runOwnedTask(event.sender, 'hd', () => handleRemoveBackground(payload))
+      const result = await runOwnedTask(event.sender, 'hd', () => handleRemoveBackground(payload, event.sender))
       return {
         success: true,
         data: result
@@ -1023,7 +831,7 @@ export function registerHdServiceHandlers() {
     if (!isTrustedIpcSender(event)) return deniedSource()
     try {
       assertLocalProcessOptions(payload)
-      const result = await runOwnedTask(event.sender, 'hd', () => handleHighres(payload))
+      const result = await runOwnedTask(event.sender, 'hd', () => handleHighres(payload, event.sender))
       return {
         success: true,
         data: result
@@ -1043,7 +851,8 @@ export function registerHdServiceHandlers() {
     if (!isTrustedIpcSender(event)) return deniedSource()
     try {
       assertText(imagePath, 32768, '图片路径')
-      const dataUrl = readImageAsDataUrl(imagePath)
+      const image = await readAuthorizedImage(event.sender, imagePath)
+      const dataUrl = image.dataUrl
       return {
         success: true,
         data: {

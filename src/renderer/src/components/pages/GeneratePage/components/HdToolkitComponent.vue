@@ -770,15 +770,10 @@ async function handleFileDrop(event) {
   if (!files.length && event?.dataTransfer) {
     const uriList = event.dataTransfer.getData('text/uri-list') || ''
     if (uriList.trim()) {
-      const paths = uriList
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line && !line.startsWith('#'))
-        .map((uri) => decodeURI(uri.replace(/^file:\/+/, '')))
-      files = paths.map((filePath) => ({
-        path: filePath,
-        name: extractName(filePath)
-      }))
+      message.info('文件地址不能直接授权读取，请在文件选择器中确认要导入的图片。')
+      const state = getActiveDropState()
+      if (state) await handleSelectImages(state === removeState ? 'remove' : 'highres')
+      return
     }
   }
 
@@ -893,7 +888,7 @@ function addFilesToState(state, items) {
       name: uniqueName,
       originalName: baseName,
       path: item.path,
-      url: item.url || null,
+      url: item.url || item.previewUrl || null,
       size: item.size,
       isTemp: item.isTemp || false
     })

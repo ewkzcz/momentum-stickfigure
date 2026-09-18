@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "scope": "媒体取消接入与接入后PSD兼容定向复验，非最终累计验收",
+  "headAtValidation": "3d71c803e79b217aaa6d958c667511746b3c022a",
+  "workingTreeWasDirty": true,
+  "preflightFailure": "主代理首次命令误将上轮标签media-admission-integration-after作为测试名，文件存在检查ENOENT即退出；未构建或执行测试。更正清单后运行，未修改测试断言。",
+  "cancellationAndMedia": {
+    "directory": "temp/media-cancellation-after-acceptance-Antpv7",
+    "tests": {"total": 59, "passed": 59, "failed": 0, "cancelled": 0, "skipped": 0, "durationMs": 150932.131541},
+    "newCancellationTests": 6,
+    "checks": {"referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0}
+  },
+  "psdCompatibility": {
+    "directory": "temp/media-admission-psd-recheck-acceptance-vtloXz",
+    "tests": {"total": 9, "passed": 9, "failed": 0, "durationMs": 106806.602792},
+    "checks": {"referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0},
+    "pixelTolerance": 0
+  },
+  "limits": [
+    "六项取消回归使用真实媒体API与Node来源夹具，不是真实Electron多窗口销毁",
+    "解码助手延后真实结算结果交付，不证明原生线程仍在运行或可硬取消",
+    "PNG pipeline运行中取消及HD完成/发布专项取消尚未覆盖",
+    "本次新生产接入的打包诊断待更新，旧ASAR结果不能作为当前入口验收",
+    "大图支持、原生释放与RSS硬上限仍未验证；三类必要外部验收未验证",
+    "59项与9项是两次定向结果，不能相加替代最终累计验收；媒体候选尚未提交"
+  ],
+  "conclusion": "媒体取消专项和PSD兼容定向复验通过；还不能收工"
+}

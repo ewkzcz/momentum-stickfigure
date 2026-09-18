@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "scope": "媒体资源预算修复前的小图观测；不是媒体单元或最终累计验收",
+  "headAtMeasurement": "0017ddde3b2c22d618f4423c98bb132e45c7b8ed",
+  "workingTreeWasDirty": true,
+  "productionOptimizationImplemented": false,
+  "attempts": [
+    {
+      "directory": "temp/media-decode-resource-before-acceptance-xbQKw8",
+      "tests": { "total": 1, "passed": 1, "durationMs": 2043.564916 },
+      "observationValid": false,
+      "reason": "加载后替换CJS loadImage未捕获生产ESM绑定调用，零计数不能证明缓存或串行"
+    },
+    {
+      "directory": "temp/media-decode-resource-before-v2-acceptance-84v0rj",
+      "tests": { "total": 1, "passed": 0, "failed": 1, "durationMs": 1682.561292 },
+      "observationValid": false,
+      "reason": "Playwright evaluate序列化函数缺少动态import回调；尚未进入图片阶段",
+      "resolution": "将只读ESM身份探针移至真实CJS测试辅助模块；保留生产与bootstrap保护"
+    },
+    {
+      "directory": "temp/media-decode-resource-before-v2-import-fix-acceptance-OTVD8o",
+      "result": "temp/media-decode-resource-before-v2-import-fix-acceptance-OTVD8o/result.json",
+      "rawEvidence": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-yH3Y7i/media-decode-resource-baseline.json",
+      "tests": { "total": 1, "passed": 1, "failed": 0, "durationMs": 1838.529875 },
+      "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0 },
+      "observationValid": true,
+      "fixtures": 15,
+      "phases": 60,
+      "businessCalls": 105,
+      "maximumConcurrentRequests": 4,
+      "maximumDimension": 1024,
+      "esmSnapshotVerified": true,
+      "observedImageDecodeCalls": 90,
+      "observerErrors": [],
+      "activeDecodePromisesAtCleanup": 0,
+      "exit": { "code": 0, "signal": null }
+    }
+  ],
+  "limits": [
+    "Image.src设置与Image.decode Promise分别计数；decode在onload后调用，活动峰值不等于loadImage全程或原生线程并行度",
+    "每图首次选择覆盖、源字节hash关联、窗口归属、业务结果、观察清理与正常退出均由测试断言验证",
+    "固定顺序小图、未控制预热或GC；主进程内存采样可能漏峰并包含观察开销",
+    "不能推导高清大图上限、系统或GPU预算、无泄漏、真实系统交互或安装产物通过",
+    "此证据对应测量时的未提交源码，不是当前最终累计验收，也不表示媒体候选已推送"
+  ],
+  "conclusion": "观测方法已修复；资源预算修复及必要后续验收尚未完成，还不能收工"
+}

@@ -213,6 +213,14 @@ test('GeneratePage：原任务持久化、共享输入输出、生成编辑恢�
     await writeFile(uploadPath, generated)
     await writeFile(removePath, removed)
     await writeFile(highresPath, highres)
+    // 服务替身的输出并非生产任务产物：通过原生选择边界授予这两个精确夹具，
+    // 不在替身中调用授权内部函数，也不放宽生产预览检查。
+    for (const file of [removePath, highresPath]) {
+      await application.evaluate((_, file) => { globalThis.__momentumTest.openPaths = [file] }, file)
+      const selected = await page.evaluate(() => window.fileSystem.selectFile({ title: '选择受控回归图片' }))
+      assert.equal(selected.success, true)
+      assert.equal(selected.path, file)
+    }
     evidence.fixtures = Object.fromEntries(Object.entries({ generated, edited, removed, highres }).map(([name, bytes]) => [name, hash(bytes)]))
     if (before) assert.deepEqual(evidence.fixtures, before.fixtures)
     const generatedUrl = `data:image/png;base64,${generated.toString('base64')}`

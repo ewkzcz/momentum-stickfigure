@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "scope": "媒体读取与固定消费阶段准入定向复验；非最终累计验收",
+  "headAtValidation": "3d71c803e79b217aaa6d958c667511746b3c022a",
+  "workingTreeWasDirty": true,
+  "before": {"directory": "temp/media-admission-owned-cleanup-before-acceptance-mGC3c4", "mediaTest": {"total": 1, "passed": 0, "failed": 1}, "failedConditions": ["waitingRequestsUnsettled", "noWaitingWholeReadOrAllocation", "fifthExplicitlyBusy", "fifthHasNoMediaAuthorization"]},
+  "after": {
+    "directory": "temp/media-admission-integration-after-acceptance-Dmq0mU",
+    "command": "node temp/verify-psd-unit.mjs media-admission-integration-after media-resource-admission media-resource-admission-core media-resource-consumption media-decode-resource-baseline hd-output-artifacts local-media-authorization hd-process-lifecycle file-selection-parameters generate-workflow hd-ipc-source file-selection-source local-process-parameters",
+    "tests": {"total": 53, "passed": 53, "failed": 0, "cancelled": 0, "skipped": 0, "durationMs": 154112.649416},
+    "checks": {"referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0},
+    "admissionRawEvidence": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-74qmiX/media-resource-admission.json",
+    "verdict": {"waitingRequestsUnsettled": true, "noWaitingWholeReadOrAllocation": true, "fifthExplicitlyBusy": true, "fifthHasNoMediaAuthorization": true, "noHdTaskSideEffects": true},
+    "admissionExit": {"code": 0, "signal": null},
+    "resourceRawEvidence": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-vWq4uX/media-decode-resource-baseline.json"
+  },
+  "limits": [
+    "原五请求媒体准入失败断言保持不变并已通过；不是所有媒体资源预算都完成",
+    "跨窗口销毁和活动取消的生产接入路径尚缺专项验证，核心单元测试不能替代",
+    "HD模型期间预览采用受控Node机制，非真实Python模型外部验收",
+    "单图大像素上限仍是未验收候选，未验证高清大图容量或RSS硬限；Promise结算不代表原生像素析构",
+    "生产接入变更后PSD兼容和打包诊断尚需更新，旧结果不能绑定本次源码",
+    "媒体候选未提交；本证据写入改变输入清单，不是最终累计验收"
+  ],
+  "conclusion": "读取前准入已测失败经实际生产入口复验解决；媒体单元及其余计划仍未闭环，还不能收工"
+}

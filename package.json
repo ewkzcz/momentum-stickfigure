@@ -28,6 +28,7 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
+    "@momentum/media-canvas": "npm:@napi-rs/canvas@1.0.5",
     "@napi-rs/canvas": "^0.1.58",
     "@vueuse/motion": "^2.0.0",
     "ag-psd": "^28.2.2",

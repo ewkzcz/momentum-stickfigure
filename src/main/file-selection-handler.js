@@ -7,11 +7,10 @@
  */
 import { app, BrowserWindow, shell, dialog, ipcMain } from 'electron'
 import path from 'path'
-import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertDialogOptions, assertFileName, assertText } from './ipc-parameter-policy.js'
-import { assertOwnedFilePath, writeOwnedFile } from './file-access-policy.js'
 import { assertImageBase64 } from './template-image-parameters.js'
+import { grantMediaFiles, saveTemporaryImage } from './local-media-authorization.js'
 
 /**
  * 注册文件选择、临时图片保存与目录打开接口。
@@ -130,6 +129,7 @@ export function registerFolderSelectHandler() {
         return { success: false, canceled: true, paths: [] }
       }
       const paths = result.filePaths
+      await grantMediaFiles(event.sender, paths.filter(file => /\.(png|jpe?g|webp)$/i.test(file)))
       console.log('选择的文件:', paths)
       return {
         success: true,
@@ -193,8 +193,8 @@ export function registerFolderSelectHandler() {
    * 选择图片并生成文件信息与预览。
    * 处理流程：
    * 1、显示图片多选对话框。
-   * 2、逐张读取文件元数据和编码预览。
-   * 3、返回文件列表，单张预览失败时保留该文件信息。
+   * 2、全部真实解码成功后原子授予精确文件能力。
+   * 3、复用校验字节生成预览；选择失败不留下本次部分授权。
    */
   ipcMain.handle('select-image-files', async (event) => {
     try {
@@ -217,47 +217,19 @@ export function registerFolderSelectHandler() {
       const filePaths = result.filePaths
       console.log('选择的图片文件:', filePaths)
       
-      // 2、收集文件路径、名称和大小，并尝试生成预览地址。
-      /**
-       * 读取单张图片的信息与预览。
-       * 处理流程：
-       * 1、取得文件元数据。
-       * 2、读取字节并按扩展名生成预览，失败时保留空预览。
-       * 3、返回完整文件信息。
-       */
-      const files = filePaths.map(filePath => {
-        // 1、读取真实文件元数据。
-        const stats = fs.statSync(filePath)
-        
-        // 2、读取文件并转换为base64（用于预览）。
-        let previewUrl = null
-        try {
-          const imageData = fs.readFileSync(filePath)
-          const ext = path.extname(filePath).toLowerCase()
-          let mimeType = 'image/png'
-          
-          if (ext === '.jpg' || ext === '.jpeg') {
-            mimeType = 'image/jpeg'
-          } else if (ext === '.png') {
-            mimeType = 'image/png'
-          }
-          
-          const base64 = imageData.toString('base64')
-          previewUrl = `data:${mimeType};base64,${base64}`
-        } catch (error) {
-          console.warn('生成预览失败:', filePath, error)
-        }
-        
-        // 3、返回元数据与可用预览。
-        return {
-          path: filePath,
-          name: path.basename(filePath),
-          size: stats.size,
-          previewUrl: previewUrl
-        }
-      })
+      // 全批校验后原子登记；每张原始字节在额度内转换为预览，不保留整批Buffer。
+      const selection = await grantMediaFiles(event.sender, filePaths, undefined, { preview: true })
+      let files
+      try {
+        files = selection.files.map(verified => ({
+          path: verified.path,
+          name: path.basename(verified.path),
+          size: verified.size,
+          previewUrl: verified.dataUrl
+        }))
+      } catch (error) { selection.rollback(); throw error }
       
-      // 3、返回所选图片列表，预览失败的项目保留空预览。
+      // 3、仅返回整批校验成功的图片及预览。
       return { 
         success: true, 
         files: files,
@@ -293,18 +265,8 @@ export function registerFolderSelectHandler() {
       if (base64Data.startsWith('data:')) throw new TypeError('图片数据参数必须是裸base64')
       assertImageBase64(base64Data)
       
-      // 创建临时目录
-      const tempDir = assertOwnedFilePath(app.getPath('temp'), ['momentum-stickfigure-paste'])
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true })
-      }
-      
-      // 2、生成临时文件路径，解码后写入图片。
-      const tempFilePath = assertOwnedFilePath(app.getPath('temp'), ['momentum-stickfigure-paste', fileName || `pasted_${Date.now()}.png`])
-      
-      // 将base64转换为buffer并保存
-      const buffer = Buffer.from(base64Data, 'base64')
-      writeOwnedFile(tempFilePath, buffer)
+      // 额度覆盖创建目录、base64解码、写盘与授权；繁忙时尚未产生文件副作用。
+      const { path: tempFilePath } = await saveTemporaryImage(event.sender, app.getPath('temp'), base64Data, fileName)
       
       // 3、向页面返回后续处理所需的本地路径。
       console.log('临时图片已保存:', tempFilePath)
