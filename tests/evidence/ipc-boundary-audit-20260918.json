@@ -1,15 +1,324 @@
 {
   "schema": 1,
-  "scope": "原计划第4有限IPC对账（只读调查结果）",
-  "status": "read-only-audit-complete",
-  "executed": { "edit": false, "command": false, "test": false, "build": false },
-  "coverageClaim": "人工有限对账；按实际preload、主进程注册入口、handler、来源/参数策略及已有测试关联，非运行时全枚举。",
-  "findings": [
-    { "id": "F1", "status": "resolved-targeted", "channels": ["hd:save-config", "hd:run-highres"], "detail": "界面与默认参数使用fast，入口枚举遗漏已由真实基线确认并修复；相关5/5退出0，详见hd-mode-compatibility-20260918.json。" },
-    { "id": "F2", "status": "unverified-compatibility-suspect", "channels": ["psd-get-info", "psd-validate-file"], "detail": "静态发现字节归一化兼容疑点，尚无合法字节正例确认，先单独基线，不视为已测失败。" }
+  "scope": "原计划第4有限IPC对账；第5项文件用途授权仅关联已有证据，不重复拆分工程",
+  "status": "audit-record-updated-not-final-acceptance",
+  "method": "复用先前只读preload、主进程注册入口、业务handler、策略和测试的人工有限清单；本轮读取新证据及select-folder用途源码后，仅更新本证据文件。",
+  "executed": { "edit": true, "command": false, "test": false, "build": false },
+  "editedFiles": ["tests/evidence/ipc-boundary-audit-20260918.json"],
+  "coverageClaim": "人工有限对账，非自动提取或运行时全枚举；测试引用表示已关联的用例，不表示本轮执行通过。检索假空不作为不存在证据。",
+  "revision": "本轮提交标识由主任务提供，未运行Git核实；定向结果从对应证据文件读取，不将并行工作区或本次记录更新视为最终源码累计验收。",
+  "pathConventions": {
+    "handler": "相对src/main/",
+    "tests": "测试名称相对tests/，统一加.test.mjs",
+    "evidence": "相对tests/evidence/"
+  },
+  "bridge": {
+    "preload": "src/preload/index.js",
+    "genericInvoke": "electronAPI.invoke可以调用已注册handle，故不能只统计具名桥接",
+    "genericSend": "当前preload未公开通用send/sendSync",
+    "dedicatedSync": "env使用environment:sync",
+    "subscriptions": "electronAPI.on及业务订阅隐藏事件对象；属于接收消息，不授予主进程业务调用权限"
+  },
+  "roles": {
+    "M": "登记的主窗口、固定入口、顶层frame、未销毁",
+    "MP": "同样条件下的主窗口或预览窗口",
+    "P": "登记的当前预览窗口",
+    "sharedPolicy": "ipc-sender-policy.js",
+    "sharedTests": ["ipc-sender-policy"],
+    "sharedRefusalCases": ["未登记窗口", "非顶层frame", "入口协议、主机端口或路径不符", "角色不符", "窗口销毁", "事件信息缺失"]
+  },
+  "groups": [
+    {
+      "id": "storage",
+      "handler": "storage-handler.js",
+      "channels": ["storage:setItem", "storage:getItem", "storage:removeItem", "storage:clear", "storage:keys", "storage:length", "storage:getAllData"],
+      "role": "M",
+      "parameters": "键文本；值标量及既有容量限制；无业务参数查询不额外要求载荷",
+      "normalTests": ["storage-ipc-source", "storage-parameters", "storage-atomicity"],
+      "refusalTests": ["storage-ipc-source", "storage-parameters", "storage-broadcast-source"],
+      "normalScope": "七操作及旧标量字符串转换；广播只到可信主窗"
+    },
+    {
+      "id": "settings",
+      "handler": "settings-handler.js",
+      "channels": ["settings-export", "settings-import", "settings-auto-backup", "settings-restore"],
+      "role": "M",
+      "parameters": "归档普通对象、递归结构、数值与容量；导出选项",
+      "normalTests": ["settings-files", "settings-sharing", "settings-export-log", "settings-parameters"],
+      "refusalTests": ["settings-ipc-source", "settings-parameters"],
+      "normalScope": "隔离设置导入导出、备份恢复；不读取用户真实配置"
+    },
+    {
+      "id": "preset",
+      "handler": "preset-handler.js",
+      "channels": ["preset-export", "preset-import", "preset-save-file"],
+      "role": "M",
+      "parameters": "保存路径与文本；原生保存选择授予精确文件权限",
+      "normalTests": ["preset-files", "preset-file-authorization"],
+      "refusalTests": ["preset-ipc-source", "preset-file-authorization"],
+      "note": "现有文件授权证据归原分项，不重复拆工程"
+    },
+    {
+      "id": "prompt",
+      "handler": "prompt-template-service.js",
+      "channels": ["prompt-templates:get", "prompt-templates:save"],
+      "role": "M",
+      "parameters": "image/video类型、模板列表、字段类型与既有容量",
+      "normalTests": ["template-ipc-source", "prompt-template-parameters"],
+      "refusalTests": ["template-ipc-source", "prompt-template-parameters"],
+      "normalScope": "get/save及主窗广播；预览不接收敏感广播"
+    },
+    {
+      "id": "selection",
+      "handler": "file-selection-handler.js",
+      "channels": ["select-psd-files", "select-folder", "select-file", "show-save-dialog", "select-image-files", "save-temp-image", "open-folder"],
+      "role": "M",
+      "parameters": "对话框对象、筛选、文本、单段文件名、图片编码；select-folder只接受purpose字段，值可缺省或为export/canvas-output/gemini-output/ocr-output",
+      "selectFolderPurpose": {
+        "source": ["file-selection-handler.js", "configured-output-policy.js"],
+        "allowedExplicitValues": ["export", "canvas-output", "gemini-output", "ocr-output"],
+        "omitted": "普通项目目录选择，不授予输出用途权限",
+        "export": "grantExportDirectory授予当前窗口通用导出目录权限",
+        "configured": "其余三个用途经configuredOutputPurpose和grantConfiguredOutput按窗口及用途登记；不转换为读取或执行权限",
+        "ocrLimit": "OCR服务已接入可取消用途授权；33项相关回归通过，证据ocr-output-authorization-20260918.json；真实OCR仍属外部验收"
+      },
+      "normalTests": ["file-selection", "file-selection-parameters", "temp-file-authorization", "paste-payload-parameters", "file-read-authorization"],
+      "refusalTests": ["file-selection-source", "file-selection-parameters", "temp-file-authorization", "paste-payload-parameters"],
+      "relatedEvidence": ["file-write-authorization-20260918.json", "configured-output-authorization-20260918.json"],
+      "status": "通用导出42/42及canvas/Gemini配置输出14/14已分别定向验收并提交；不是全部用途或最终累计验收"
+    },
+    {
+      "id": "custom-dialog",
+      "handler": "custom-dialog-handler.js",
+      "channels": ["save-custom-dialog", "scan-custom-dialogs", "delete-custom-dialog"],
+      "role": "M",
+      "parameters": "文件名、图片载荷、固定目录内读写删除",
+      "normalTests": ["custom-dialog-files", "custom-dialog-authorization"],
+      "refusalTests": ["file-selection-source", "custom-dialog-path", "custom-dialog-authorization", "file-payload-parameters"]
+    },
+    {
+      "id": "file-read",
+      "handler": "file-read-handler.js",
+      "channels": ["check-file-exists", "read-file"],
+      "role": "M",
+      "parameters": "路径类型及可信选择/任务持有的读取授权",
+      "normalTests": ["file-read", "file-read-authorization", "file-read-capability", "file-ipc-source"],
+      "refusalTests": ["file-read-authorization", "file-read-capability", "file-ipc-source"],
+      "note": "67项相关验收是已有证据，不替代当前最终累计"
+    },
+    {
+      "id": "file-write",
+      "handler": "file-write-handler.js",
+      "channels": ["write-file", "save-dragged-file"],
+      "role": "M",
+      "parameters": "路径/文件名、编码或二进制载荷；write-file按窗口校验原生精确保存目标或purpose=export目录；拖入文件固定临时用途",
+      "normalTests": ["file-write", "dragged-file-authorization", "file-payload-parameters", "file-write-authorization"],
+      "refusalTests": ["file-ipc-source", "dragged-file-authorization", "file-payload-parameters", "file-write-authorization"],
+      "relatedEvidence": ["file-write-authorization-20260918.json"],
+      "status": "resolved-targeted",
+      "commit": "0545d96",
+      "targetedResult": "相关42/42，tests退出0；原失败和修复迭代保留于关联证据；不替代最终累计"
+    },
+    {
+      "id": "gemini",
+      "handler": "gemini-image-api/gemini-image-ipc.js",
+      "channels": ["fal-generate-image", "fal-edit-image", "fal-get-config", "fal-validate-image", "fal-validate-images", "fal-create-directories"],
+      "role": "M",
+      "parameters": "配置对象、文本、图片路径列表、正数超时；目录与媒体用途沿既有授权，配置目录准备按gemini-output用途确认",
+      "normalTests": ["gemini-ipc-source", "gemini-ipc-parameters", "generate-workflow"],
+      "refusalTests": ["gemini-ipc-source", "gemini-ipc-parameters"],
+      "relatedEvidence": ["configured-output-authorization-20260918.json"],
+      "configuredOutputCommit": "e70d368",
+      "normalScope": "配置及本地校验契约、受控生成流程；配置画布/Gemini相关14/14，不等于真实AI服务或最终累计验收"
+    },
+    {
+      "id": "hd",
+      "handler": "hd-service.js",
+      "channels": ["hd:get-initial-data", "hd:save-config", "hd:run-removebg", "hd:run-highres", "hd:get-image-preview", "hd:cancel"],
+      "role": "M",
+      "parameters": "本地配置及嵌套对象、路径列表、数值/布尔/模式；任务按owner管理；fast枚举兼容已修复，未知模式继续拒绝",
+      "normalTests": ["hd-ipc-source", "local-process-parameters", "hd-process-lifecycle", "hd-output-artifacts", "hd-cancel-ui"],
+      "refusalTests": ["hd-ipc-source", "local-process-parameters", "local-media-authorization"],
+      "relatedEvidence": ["hd-mode-compatibility-20260918.json"],
+      "status": "F1已基线确认并定向修复，提交d1351f0；受控测试不替代真实Python验收"
+    },
+    {
+      "id": "ocr",
+      "handler": "video-ocr-service.js",
+      "channels": ["video-ocr:check-environment", "video-ocr:clean-environment", "video-ocr:install-environment", "video-ocr:process-video", "video-ocr:cancel"],
+      "role": "M",
+      "parameters": "Python路径、镜像开关、本地任务对象；任务按owner管理",
+      "normalTests": ["ocr-process-lifecycle", "local-process-parameters", "process-cancel-ui"],
+      "refusalTests": ["ocr-ipc-source", "local-process-parameters"],
+      "normalScope": "受控Node与本地HTTP任务/取消；真实Python和真实AI仍属外部验收",
+      "note": "OCR配置输出已接入runOwnedTask内可取消授权及最终目录复核；33/33相关回归，提交7a93fce，证据ocr-output-authorization-20260918.json；不替代最终累计和真实OCR外部验收"
+    },
+    {
+      "id": "psd",
+      "handler": "psd-service.js",
+      "channelsByRole": {
+        "MP": ["psd-parse-file", "psd-cancel-parse", "psd-render-layers", "psd-detect-components", "psd-get-info", "psd-validate-file"],
+        "M": ["psd-get-config"]
+      },
+      "parameters": "解析任务ID与选项；取消按sender隔离；树/渲染/检测参数；直接字节载荷；固定配置目录；两个头部接口在原类型/容量校验后归一化为Buffer并保留视图偏移及长度",
+      "normalTests": ["psd-upload", "psd-cancellation", "psd-sender-boundaries", "psd-tree-parameters", "psd-detection-parameters", "psd-config-authorization"],
+      "refusalTests": ["psd-ipc-source", "psd-task-parameters", "psd-direct-parameters", "psd-tree-parameters", "psd-detection-parameters", "psd-config-authorization"],
+      "relatedEvidence": ["psd-direct-compatibility-20260918.json"],
+      "status": "F2已基线确认并定向修复，5/5、提交557e0f1；字节数组/ArrayBuffer/Uint8Array/偏移视图头部正例已补，不冒充完整PSD解码或最终累计"
+    },
+    {
+      "id": "template-image",
+      "handler": "template-storage-service.js",
+      "channels": ["template-storage-save-image", "template-storage-load-image", "template-storage-batch-save", "template-storage-batch-load", "template-storage-delete-image", "template-storage-batch-delete", "template-storage-cleanup", "template-storage-stats", "template-storage-get-dir"],
+      "role": "M",
+      "parameters": "模板类型/ID、图片编码、批量载荷、固定模板路径",
+      "normalTests": ["template-ipc-source", "template-storage-parameters", "template-storage-paths"],
+      "refusalTests": ["template-ipc-source", "template-storage-parameters", "template-storage-paths"],
+      "normalScope": "template-ipc-source逐一覆盖九接口正例与预览拒绝"
+    },
+    {
+      "id": "window",
+      "handler": "window-controller.js",
+      "channelsByRole": {
+        "M": ["canvas-preview-create", "canvas-preview-update", "canvas-preview-sync-theme", "canvas-preview-update-filename", "canvas-preview-reset-viewport", "window-set-mode", "theme:setPreferredColorScheme", "hotkeys-update"],
+        "MP": ["canvas-preview-close", "window-set-always-on-top", "window-get-always-on-top"],
+        "P": ["canvas-preview-ready"]
+      },
+      "parameters": "预览载荷、主题/模式枚举、布尔置顶、文件名文本、快捷键字段",
+      "normalTests": ["window-ipc-source", "window-ipc-parameters", "preview-ready", "preview-close", "preview-payload", "preview-payload-parameters"],
+      "refusalTests": ["window-ipc-source", "window-ipc-parameters", "preview-payload-parameters", "preview-ready"]
+    },
+    {
+      "id": "browser",
+      "handler": "browser-view-controller.js",
+      "channels": ["browserview:open", "browserview:close", "browserview:setBounds", "browserview:applyTheme", "browserview:reload", "doubao:drag-start", "doubao:prepare-file-async"],
+      "role": "M",
+      "parameters": "网页选项、URL、分区、整数边界、主题；拖图载荷及已准备文件身份",
+      "normalTests": ["browser-owner", "browser-image-path", "browser-theme-desktop", "browser-drag-authorization", "browser-drag-parameters"],
+      "refusalTests": ["browser-ipc-source", "browser-ipc-parameters", "browser-drag-parameters", "browser-drag-authorization"],
+      "normalScope": "受控本地网页；第三方登录权限和真实系统拖拽不由此替代"
+    },
+    {
+      "id": "drag-clipboard",
+      "handler": "drag-clipboard-handler.js",
+      "channels": ["save-drag-image-and-copy", "create-temp-file-and-start-drag", "copy-to-clipboard", "get-window-bounds"],
+      "role": "MP",
+      "parameters": "图片/图标、单段建议文件名、输出设置、剪贴板文本；bounds无业务参数；配置输出按canvas-output用途确认",
+      "normalTests": ["drag-clipboard-parameters", "drag-start-failure", "system-ipc-source"],
+      "refusalTests": ["system-ipc-source", "drag-clipboard-parameters"],
+      "relatedEvidence": ["configured-output-authorization-20260918.json"],
+      "configuredOutputCommit": "e70d368",
+      "normalScope": "隔离文件及系统接口替身；配置画布/Gemini相关14/14不替代真实跨应用交互或最终累计"
+    },
+    {
+      "id": "shell",
+      "handler": "shell-handler.js",
+      "channels": ["shell-open-external"],
+      "role": "MP",
+      "parameters": "URL类型、长度与允许协议策略",
+      "normalTests": ["external-link-policy", "external-link-parameters"],
+      "refusalTests": ["system-ipc-source", "external-link-policy", "external-link-parameters"],
+      "normalScope": "链接策略和受控系统调用，不替代真实系统浏览器验收"
+    },
+    {
+      "id": "fonts",
+      "handler": "font-service-handler.js",
+      "channels": ["fonts:get-system-fonts"],
+      "role": "M",
+      "parameters": "无业务参数",
+      "normalTests": [],
+      "refusalTests": ["system-ipc-source"],
+      "status": "已确认来源守卫及拒绝用例；专门成功断言尚未定位，仅是证据关联状态，不等于测试不存在或产品缺陷"
+    },
+    {
+      "id": "environment",
+      "handler": "window-controller.js",
+      "channels": ["environment:sync"],
+      "role": "控制器持有的主窗/预览、顶层frame；非preload空白阶段还需固定来源",
+      "parameters": "无参数返回环境；路径参数只做文本校验和file URL转换",
+      "normalTests": ["preload-order", "window-sandbox"],
+      "refusalTests": ["window-sandbox"],
+      "status": "主代理复核window-sandbox：未登记窗口、非顶层frame返回null，非法路径拒绝及合法环境和file URL转换均有断言"
+    }
   ],
-  "evidenceOnlyUnresolved": ["fonts:get-system-fonts成功断言未单独定位", "environment:sync拒绝分支未单独定位"],
-  "scopeExclusions": ["文件用途授权归第5项，不重复拆分", "无handler的历史fal通道不新增", "不扩大威胁模型"],
-  "pending": ["F1/F2必要基线与相关回归", "write-file及配置授权相关提交后的最终累计验收"],
-  "external": { "platform-installers": "unverified", "real-system-interactions": "unverified", "third-party-and-ai-python": "unverified" }
+  "legacy": [
+    {
+      "channels": ["fal-get-history", "fal-validate-config"],
+      "state": "preload历史暴露，已读Gemini注册清单没有对应handler",
+      "action": "仅记录，不新增历史功能"
+    },
+    {
+      "channels": ["doubao:start-drag-sync"],
+      "state": "存在历史同步listener，但当前preload没有公开对应sendSync能力",
+      "tests": ["browser-sync-drag-authorization"],
+      "action": "保留既有事件级来源、参数和精确文件授权证据，不新增同步桥"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "status": "resolved-targeted",
+      "channels": ["hd:save-config", "hd:run-highres"],
+      "detail": "UI和高清默认参数已有fast，入口枚举遗漏由基线确认；最小修复将fast加入共享枚举，未知模式继续拒绝。",
+      "evidence": "hd-mode-compatibility-20260918.json",
+      "before": { "tests": 1, "passed": 0, "failed": 1, "exitCode": 1 },
+      "after": { "tests": 5, "passed": 5, "failed": 0, "cancelled": 0, "exitCode": 0 },
+      "commit": "d1351f0",
+      "verification": "已读取既有基线及定向证据，本轮未执行；提交标识由主任务提供，未运行Git核实",
+      "limit": "不是当前最终源码累计验收或真实Python验收"
+    },
+    {
+      "id": "F2",
+      "status": "resolved-targeted",
+      "channels": ["psd-get-info", "psd-validate-file"],
+      "detail": "合法字节数组被底层Buffer签名处理误判已由基线确认；仅在两个直接IPC入口经原类型/容量校验后归一化为Buffer，保留视图byteOffset和byteLength，不修改渲染引擎。",
+      "evidence": "psd-direct-compatibility-20260918.json",
+      "before": { "tests": 1, "passed": 0, "failed": 1, "exitCode": 1 },
+      "after": { "tests": 5, "passed": 5, "failed": 0, "cancelled": 0, "skipped": 0, "exitCode": 0 },
+      "coverage": ["合法字节数组、ArrayBuffer、Uint8Array、带偏移视图", "64x48及4通道头部信息", "非法类型拒绝、截断头部valid:false和原响应包络", "原来源与任务参数用例"],
+      "commit": "557e0f1",
+      "verification": "已读取既有基线及定向证据，本轮未执行；提交标识由主任务提供，未运行Git核实",
+      "limit": "合成26字节头部只验证原头部接口，不冒充完整PSD解码或最终累计"
+    }
+  ],
+  "relatedAuthorization": [
+    {
+      "scope": "原计划第5通用write-file和原手动导出兼容",
+      "status": "resolved-targeted",
+      "evidence": "file-write-authorization-20260918.json",
+      "resultField": "finalRelated",
+      "result": { "tests": 42, "passed": 42, "failed": 0, "cancelled": 0, "skipped": 0, "exitCode": 0 },
+      "commit": "0545d96",
+      "note": "保留基线及迭代失败；仅关联原授权单元，不重复拆工程，不替代最终累计"
+    },
+    {
+      "scope": "原计划第5配置画布拖拽及Gemini目录准备",
+      "status": "resolved-targeted",
+      "evidence": "configured-output-authorization-20260918.json",
+      "resultField": "relatedFinal",
+      "result": { "tests": 14, "passed": 14, "failed": 0, "cancelled": 0, "skipped": 0, "exitCode": 0 },
+      "commit": "e70d368",
+      "note": "只关闭canvas/Gemini本单元；该证据明确OCR用途预留未接入，不能把14/14推广为全部配置用途已验收"
+    }
+  ],
+  "evidenceOnlyUnresolved": [
+    "fonts:get-system-fonts成功断言未单独定位，仅是证据定位状态，不是已确认产品缺陷"
+  ],
+  "scopeExclusions": [
+    "文件用途授权归第5项，不重复拆分；OCR接入状态沿已有证据记录，不新建工程",
+    "无handler的历史fal通道不新增",
+    "不扩大威胁模型或新增预算",
+    "多个定向测试数量不可相加替代当前最终源码累计验收"
+  ],
+  "pending": [
+    "主代理已复核有限映射及environment:sync正反断言；OCR 33项、安全兼容19项定向回归均通过，原始失败保留",
+    "OCR配置输出用途已在提交7a93fce接入，真实OCR仍归既定第三类外部验收",
+    "当前最终源码对应的累计验收：实际测试数、退出码、参考与输入产物清单、out及提交仍需统一核对"
+  ],
+  "finalAcceptance": { "status": "unverified", "canFinish": false, "conclusion": "还不能收工" },
+  "external": {
+    "platform-installers": "unverified",
+    "real-system-interactions": "unverified",
+    "third-party-and-ai-python": "unverified"
+  }
 }

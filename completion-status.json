@@ -4,31 +4,30 @@
     "finish-psd-budgets": "completed",
     "finish-performance": "completed",
     "finish-python-lifecycle": "completed",
-    "finish-ipc-boundaries": "in_progress",
-    "finish-file-authorization": "in_progress",
-    "finish-web-permissions": "in_progress",
-    "finish-sandbox-csp": "in_progress",
+    "finish-ipc-boundaries": "completed",
+    "finish-file-authorization": "completed",
+    "finish-web-permissions": "completed",
+    "finish-sandbox-csp": "completed",
     "finish-config-sharing": "completed",
-    "finish-final-acceptance": "pending"
+    "finish-final-acceptance": "in_progress"
   },
   "unresolvedFailures": [],
-  "remainingLocalWork": [
-    "有限IPC：fast模式遗漏已修复并有5/5回归；PSD get-info/validate-file合法字节兼容基线仍待执行；有限清单证据整理仍待主代理核对。",
-    "可信文件授权：手动导出、画布拖拽、Gemini配置输出已通过定向回归；OCR专用输出授权仍未接入，HD使用既有专用输出能力。",
-    "网页权限与安全兼容：开发入口实际CSP、HTTP/HTTPS端口和路径兼容、本地视频正例仍待原计划内验证。",
-    "上述本地项完成后冻结最终源码，运行一次累计完整验收。"
-  ],
+  "remainingLocalWork": ["8项本地实施与定向验证完成；提交并冻结当前最终源码，执行一次累计完整验收并核实际数量、参考、输入产物及提交。"],
   "resolvedFailureEvidence": [
     "tests/evidence/file-read-history-20260918.json",
     "tests/evidence/application-task-shutdown-20260918.json",
     "tests/evidence/file-write-authorization-20260918.json",
     "tests/evidence/configured-output-authorization-20260918.json",
-    "tests/evidence/hd-mode-compatibility-20260918.json"
+    "tests/evidence/hd-mode-compatibility-20260918.json",
+    "tests/evidence/psd-direct-compatibility-20260918.json",
+    "tests/evidence/ocr-output-authorization-20260918.json",
+    "tests/evidence/security-compatibility-20260918.json"
   ],
   "scopeNotes": [
-    "已解决失败保留原始失败日志；已测限制不自动升级为新必做任务。",
-    "精确读取相关67/67、退出相关21/21、通用写入最终相关42/42、配置相关14/14、高清相关5/5均为定向验收，不能相加替代最终累计。",
-    "OCR专用配置用途尚未接入；真实OCR/Python业务仍属于既定外部验收，不删除该缺口。"
+    "原计划正文只读，沿用原9项待办；历史限制不自动升级为新必做任务。",
+    "定向测试不可相加替代当前最终累计验收。",
+    "门禁由主代理实际执行，不是常驻后台监控。",
+    "HTTPS为会话级localhost精确证书授信的隔离验证，不是公网真实服务验证；保留三类外部缺口。"
   ],
   "external": {
     "platform-installers": "unverified",

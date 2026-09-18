@@ -1,0 +1,28 @@
+{
+  "schema":1,
+  "status":"passed-targeted-not-final-acceptance",
+  "scope":"原第7项开发/生产双窗实际策略、本地视频和HTTP/HTTPS兼容；复用已有图片、画布、主题、快捷键、剪贴板与网页分区证据，不扩为新工程",
+  "before":{"directory":"temp/development-video-baseline-2-acceptance-8lccEu","tests":7,"passed":5,"failed":2,"durationMs":7188.360208,"exitCode":1},
+  "earlierLintFailure":{"directory":"temp/development-video-baseline-acceptance-A9LgkG","reason":"MediaRecorder须显式从window取浏览器全局；测试尚未执行"},
+  "fixtureCorrections":[
+    "Playwright原始网络头不可靠地暴露Electron onHeadersReceived改写；改用真实可信securitypolicyviolation.originalPolicy核验生效策略，保留真实reload、脚本阻断及未执行断言。没有给Vite人工添加策略。",
+    "录制四次同色绘制后立即停止未保证编码器生成媒体；改为不同色帧并等待真实dataavailable事件后停止。100ms是MediaRecorder数据交付周期，不是固定sleep或通过时间猜测。原尺寸、readyState断言保留。"
+  ],
+  "productionChanges":"本单元无生产代码修改，没有放宽CSP/webSecurity/bootstrap。",
+  "after":{
+    "directory":"temp/security-compatibility-after-acceptance-5S4IAs",
+    "tests":19,"passed":19,"failed":0,"cancelled":0,"skipped":0,"durationMs":9898.742458,
+    "checks":{"referencesBefore":0,"lint":0,"size":0,"build":0,"tests":0,"referencesAfter":0},
+    "manifestSha256":"187721fe0b08aa81123b5f7e6d4e4d1be9975226b7ab6ac24fb4e47c6ec30b37",
+    "baseHead":"7a93fce784a2a567b58fca9d4970fb7673af914e"
+  },
+  "coverage":[
+    "真实Vite开发主窗及预览挂载、reload、preload、可信CSP脚本拒绝；localhost HTTP随机端口及自定义路径的有CORS成功/无CORS拒绝",
+    "生产主窗及预览webSecurity/sandbox开启、实际CSP、HTTP随机端口路径CORS正反、正常退出和隔离目录恢复",
+    "HTTPS真实TLS连接、随机端口路径、两窗CORS正反，服务端实收Host/Origin和TLS版本",
+    "两窗真实解码本地产生的32x24 VP8 WebM Blob字节",
+    "网页会话分区、权限、webview附加和frame导航既有回归"
+  ],
+  "httpsTrust":"父Node临时生成localhost证书；仅测试会话对localhost和精确叶证书SHA256匹配授信，其余保留默认校验。没有忽略证书命令行、没有修改系统信任库；退出恢复默认并删除私钥。",
+  "limits":["回环测试不是公网服务或真实第三方登录验收；HTTPS使用隔离精确证书信任","视频正例验证浏览器本地媒体，不冒充用户磁盘视频业务或真实OCR","当前为定向验收；固定三类外部状态继续unverified"]
+}
