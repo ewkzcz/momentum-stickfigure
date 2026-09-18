@@ -404,7 +404,7 @@ export default {
       // 1、确认桌面目录选择能力并发起请求。
       try {
         if (window.fileSystem && window.fileSystem.selectFolder) {
-          const result = await window.fileSystem.selectFolder()
+          const result = await window.fileSystem.selectFolder({ purpose: 'export' })
           
           // 2、区分成功选择、主动取消与错误结果。
           if (result && result.success && result.path) {

@@ -1087,7 +1087,7 @@ const saveAllOutputs = async () => {
 
   isSavingOutputs.value = true
   try {
-    const result = await window.fileSystem.selectFolder()
+    const result = await window.fileSystem.selectFolder({ purpose: 'export' })
     if (!result?.success || !result.path) {
       return
     }
@@ -1296,10 +1296,10 @@ const saveImageToFolder = async (image, index, folderPath) => {
   try {
     const base64Data = await imageUrlToBase64(image.url)
     const fileName = generateFileName(index)
-    const filePath = `${folderPath}\\${fileName}`
+    const filePath = `${folderPath}${folderPath.endsWith('/') ? '' : '/'}${fileName}`
     // 2、检查桌面写入接口的实际保存结果。
     const result = await window.api.writeFile(filePath, base64Data)
-    if (!result?.success) {
+    if (result?.success !== true) {
       throw new Error(result?.error || '保存失败')
     }
   } catch (error) {

@@ -6,6 +6,7 @@ import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertText, assertBinaryPayload } from './ipc-parameter-policy.js'
 import { assertImageBase64 } from './template-image-parameters.js'
 import { assertOwnedFilePath, writeOwnedFile, grantSelectedReads } from './file-access-policy.js'
+import { writeExportFile } from './export-write-policy.js'
 
 /**
  * 注册图片写入与拖入文件落盘接口。
@@ -33,34 +34,9 @@ export function registerFileWriteHandler() {
       }
       console.log('写入文件:', filePath)
 
-      // 1、确保文件的父目录存在。
-      const dirPath = path.dirname(filePath)
-      if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true })
-        console.log('创建目录:', dirPath)
-      }
-
-      // 2、如果文件已存在，查找带递增序号的可用文件名。
-      let finalFilePath = filePath
-      if (fs.existsSync(finalFilePath)) {
-        const ext = path.extname(filePath)
-        const baseName = path.basename(filePath, ext)
-        const dir = path.dirname(filePath)
-        let counter = 1
-
-        // 循环查找可用的文件名
-        while (fs.existsSync(finalFilePath)) {
-          const newFileName = `${baseName}_${counter}${ext}`
-          finalFilePath = path.join(dir, newFileName)
-          counter++
-        }
-
-        console.log(`文件重命名：${path.basename(filePath)} -> ${path.basename(finalFilePath)}`)
-      }
-
-      // 3、将编码内容转换为字节并写入实际目标路径。
+      // 授权检查先于创建目录；独占写入保留重名编号且不覆盖现有文件。
       const buffer = Buffer.from(base64Data, 'base64')
-      fs.writeFileSync(finalFilePath, buffer)
+      const finalFilePath = writeExportFile(event.sender, filePath, buffer)
 
       console.log('文件写入成功:', finalFilePath)
       return {

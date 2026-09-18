@@ -287,19 +287,13 @@ export default {
             // 提取base64数据
             const base64Data = dataUrl.split(',')[1]
             // 构建完整文件路径
-            const filePath = exportPath ? 
-              exportPath.endsWith('\\') || exportPath.endsWith('/') ? 
-                `${exportPath}${fileInfo.fileName}` : 
-                `${exportPath}\\${fileInfo.fileName}` : 
-              fileInfo.fileName
-            
-            // 使用IPC写入文件（只传递两个参数）
-            await window.api.writeFile(filePath, base64Data)
+            const filePath = exportPath ? `${exportPath.replace(/[\\/]+$/, '')}/${fileInfo.fileName}` : fileInfo.fileName
+            const result = await window.api.writeFile(filePath, base64Data)
+            if (!result?.success) throw new Error(result?.error || '导出文件保存失败')
             console.log(`完整画面导出成功: ${filePath}`)
           } catch (error) {
-            console.error('文件保存失败，使用下载方式:', error)
-            // 降级到下载方式
-            downloadImage(dataUrl, fileInfo.fileName)
+            // 桌面写入失败必须向页面报告，不能下载到其他位置后仍声称所选目录导出成功。
+            throw error
           }
         } else {
           // 使用下载方式
@@ -377,19 +371,13 @@ export default {
             // 提取base64数据
             const base64Data = dataUrl.split(',')[1]
             // 构建完整文件路径
-            const filePath = exportPath ? 
-              exportPath.endsWith('\\') || exportPath.endsWith('/') ? 
-                `${exportPath}${fileInfo.fileName}` : 
-                `${exportPath}\\${fileInfo.fileName}` : 
-              fileInfo.fileName
-            
-            // 使用IPC写入文件（只传递两个参数）
-            await window.api.writeFile(filePath, base64Data)
+            const filePath = exportPath ? `${exportPath.replace(/[\\/]+$/, '')}/${fileInfo.fileName}` : fileInfo.fileName
+            const result = await window.api.writeFile(filePath, base64Data)
+            if (!result?.success) throw new Error(result?.error || '导出文件保存失败')
             console.log(`图层 "${layer.name}" 导出成功: ${filePath}`)
           } catch (error) {
-            console.error('文件保存失败，使用下载方式:', error)
-            // 降级到下载方式
-            downloadImage(dataUrl, fileInfo.fileName)
+            // 桌面写入失败必须向页面报告，不能下载到其他位置后仍声称所选目录导出成功。
+            throw error
           }
         } else {
           // 使用下载方式

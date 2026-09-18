@@ -23,6 +23,8 @@ test('文件IPC来源：预览窗口拒绝读写，主窗口保留合法文件�
     // 主窗正例先通过原生选择取得读取权限；预览来源拒绝和通用写入断言保持。
     await desktop.application.evaluate((_electron, input) => { globalThis.__momentumTest.openPaths = [input] }, input)
     assert.deepEqual(await desktop.page.evaluate(() => window.fileSystem.selectFile()), { success: true, canceled: false, paths: [input], path: input })
+    await desktop.application.evaluate((_electron, output) => { globalThis.__momentumTest.savePath = output }, output)
+    assert.equal((await desktop.page.evaluate(() => window.electronAPI.invoke('show-save-dialog', {}))).success, true)
     const allowed = await desktop.page.evaluate(async ({ input, output }) => ({
       exists: await window.electronAPI.invoke('check-file-exists', input),
       read: Array.from(await window.electronAPI.invoke('read-file', input)),

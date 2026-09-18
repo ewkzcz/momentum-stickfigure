@@ -12,6 +12,7 @@ import { assertDialogOptions, assertFileName, assertText } from './ipc-parameter
 import { assertImageBase64 } from './template-image-parameters.js'
 import { grantMediaFiles, saveTemporaryImage } from './local-media-authorization.js'
 import { grantSelectedReads } from './file-access-policy.js'
+import { grantExportFile, grantExportDirectory } from './export-write-policy.js'
 
 /**
  * 注册文件选择、临时图片保存与目录打开接口。
@@ -69,16 +70,18 @@ export function registerFolderSelectHandler() {
    * 1、显示绑定到调用窗口的目录选择器。
    * 2、返回首个目录路径或取消、失败状态。
    */
-  ipcMain.handle('select-folder', async (event) => {
+  ipcMain.handle('select-folder', async (event, options = {}) => {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的文件选择操作来源')
+      if (!options || typeof options !== 'object' || Array.isArray(options) || Object.keys(options).some(key => key !== 'purpose') ||
+        (options.purpose !== undefined && options.purpose !== 'export')) throw new Error('目录选择用途无效')
       // 1、取得调用窗口并显示目录选择器。
       const window = BrowserWindow.fromWebContents(event.sender)
       
       const result = await dialog.showOpenDialog(window, {
         properties: ['openDirectory'],
-        title: '选择项目根路径',
-        message: '请选择用于存储项目文件的根目录'
+        title: options.purpose === 'export' ? '选择导出文件夹' : '选择项目根路径',
+        message: options.purpose === 'export' ? '允许本窗口在所选文件夹内保存导出文件；不会授予读取或执行权限' : '请选择用于存储项目文件的根目录'
       })
       
       if (result.canceled) {
@@ -87,6 +90,8 @@ export function registerFolderSelectHandler() {
       
       // 2、取首个已选目录作为项目根路径。
       const folderPath = result.filePaths[0]
+      if (!isTrustedIpcSender(event)) throw new Error('文件选择来源已失效')
+      if (options.purpose === 'export') grantExportDirectory(event.sender, folderPath)
       console.log('选择的文件夹:', folderPath)
       
       return { 
@@ -182,6 +187,8 @@ export function registerFolderSelectHandler() {
       }
       // 2、把所选路径交给页面后续保存流程。
       const filePath = result.filePath
+      if (!isTrustedIpcSender(event)) throw new Error('文件选择来源已失效')
+      grantExportFile(event.sender, filePath)
       console.log('保存文件路径:', filePath)
       return {
         success: true,

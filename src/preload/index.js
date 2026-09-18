@@ -18,9 +18,9 @@ contextBridge.exposeInMainWorld('fileSystem', {
    * 处理流程：
    * 1、调用主进程文件夹对话框并返回选择结果。
    */
-  selectFolder: async () => {
-    // 1、等待主进程返回选择或取消状态。
-    return await ipcRenderer.invoke('select-folder')
+  selectFolder: async (options) => {
+    // 1、等待主进程返回选择或取消状态；用途由主进程验证并呈现在原生对话框。
+    return await ipcRenderer.invoke('select-folder', options)
   },
   /**
    * 选择图片文件。
@@ -427,7 +427,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * 处理流程：
    * 1、请求主进程显示对话框并返回选择结果。
    */
-  selectFolder: () => ipcRenderer.invoke('select-folder'),
+  selectFolder: (options) => ipcRenderer.invoke('select-folder', options),
   
   /**
    * 打开 PSD 文件选择器。

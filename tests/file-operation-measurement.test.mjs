@@ -13,6 +13,9 @@ test('大数据文件操作实测：六百万字符存储和8MiB读写的IPC影�
   const desktop = await launchDesktop()
   const result = { operations: {}, passed: false }
   try {
+    // 写入授权在计时前完成；不以渲染端配置字符串或读取选择替代原生输出选择。
+    await desktop.application.evaluate((_electron, root) => { globalThis.__momentumTest.openPaths = [root] }, desktop.root)
+    assert.equal((await desktop.page.evaluate(() => window.fileSystem.selectFolder({ purpose: 'export' }))).success, true)
     const measured = {}
     for (const operation of ['storage', 'write', 'read']) {
       if (operation === 'read') {

@@ -993,7 +993,7 @@ const generateFileName = (index) => {
  * 2、生成文件名并请求主进程写入，失败时向批量保存流程传递异常。
  */
 const saveImageToFolder = async (image, index, folderPath) => {
-  // 1、按来源选择读取方式，保留现有输出路径拼接约定。
+  // 1、按来源选择读取方式，使用两个平台均支持的斜杠拼接输出文件。
   try {
     // 如果是文件路径，直接读取
     if (image.url.startsWith('file://') || image.url.startsWith('/') || /^[a-zA-Z]:\\/.test(image.url)) {
@@ -1004,29 +1004,33 @@ const saveImageToFolder = async (image, index, folderPath) => {
       const reader = new FileReader()
       
       return new Promise((resolve, reject) => {
-        reader.onloadend = async () => {
-          const base64Data = reader.result.split(',')[1]
-          const fileName = generateFileName(index)
-          const filePath = `${folderPath}\\${fileName}`
-          
-          const result = await window.api.writeFile(filePath, base64Data)
-          if (result.success) {
+        reader.onload = async () => {
+          try {
+            const base64Data = reader.result.split(',')[1]
+            const fileName = generateFileName(index)
+            const filePath = `${folderPath}${folderPath.endsWith('/') ? '' : '/'}${fileName}`
+
+            const result = await window.api.writeFile(filePath, base64Data)
+            if (result?.success !== true) {
+              throw new Error(result?.error || '保存失败')
+            }
             resolve()
-          } else {
-            reject(new Error(result.error || '保存失败'))
+          } catch (error) {
+            reject(error)
           }
         }
-        reader.onerror = reject
+        reader.onerror = () => reject(reader.error || new Error('读取图片失败'))
+        reader.onabort = () => reject(new Error('读取图片已取消'))
         reader.readAsDataURL(blob)
       })
     } else {
       const base64Data = await imageUrlToBase64(image.url)
       const fileName = generateFileName(index)
-      const filePath = `${folderPath}\\${fileName}`
+      const filePath = `${folderPath}${folderPath.endsWith('/') ? '' : '/'}${fileName}`
       
       const result = await window.api.writeFile(filePath, base64Data)
-      if (!result.success) {
-        throw new Error(result.error || '保存失败')
+      if (result?.success !== true) {
+        throw new Error(result?.error || '保存失败')
       }
     }
   } catch (error) {
@@ -1048,9 +1052,9 @@ const saveAsAllImages = async () => {
 
   try {
     // 调用electron文件夹选择对话框
-    const folderResult = await window.fileSystem.selectFolder()
+    const folderResult = await window.fileSystem.selectFolder({ purpose: 'export' })
     
-    if (folderResult.canceled || !folderResult.success) {
+    if (!folderResult?.success || !folderResult.path) {
       isDownloading.value = false
       return
     }

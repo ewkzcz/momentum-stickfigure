@@ -1038,12 +1038,10 @@ export function useDialogCanvasRender({
         
         if (window.api && window.api.writeFile) {
           const base64Data = dataUrl.split(',')[1]
-          const filePath = exportPath.endsWith('\\') || exportPath.endsWith('/') ? 
-            `${exportPath}${fileName}` : 
-            `${exportPath}\\${fileName}`
-          
-          await window.api.writeFile(filePath, base64Data)
-          console.log('导出成功:', filePath)
+          const filePath = `${exportPath.replace(/[\\/]+$/, '')}/${fileName}`
+          const result = await window.api.writeFile(filePath, base64Data)
+          if (!result?.success) throw new Error(result?.error || '导出文件保存失败')
+          console.log('导出成功:', result.filePath)
         } else {
           // 降级方案：下载
           const link = document.createElement('a')

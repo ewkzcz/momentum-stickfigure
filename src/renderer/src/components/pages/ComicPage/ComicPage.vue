@@ -622,7 +622,7 @@ export default {
       try {
         // 使用Electron的IPC调用主进程的目录选择对话框
         if (window.fileSystem && window.fileSystem.selectFolder) {
-          const result = await window.fileSystem.selectFolder()
+          const result = await window.fileSystem.selectFolder({ purpose: 'export' })
           
           // 2、区分有效目录、主动取消和选择失败。
           if (result && result.success && result.path) {

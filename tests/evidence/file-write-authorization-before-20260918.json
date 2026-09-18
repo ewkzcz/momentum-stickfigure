@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "status": "failed-before",
+  "baseHead": "cd5e5530e43ef020c57979bc74c325365780488f",
+  "directory": "temp/file-write-authorization-before-acceptance-MS6mmv",
+  "tests": { "total": 6, "passed": 1, "failed": 5, "cancelled": 0, "durationMs": 4658.018458, "exitCode": 1 },
+  "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0 },
+  "findings": [
+    "真实Electron/preload/write-file在未选择、取消保存、配置仅有路径文本、只授读和仅选择兄弟文件五个场景均返回写入成功，违反原计划可信文件授权。",
+    "原生保存精确路径的中文内容正例通过；所有文件均为本轮隔离目录夹具，未触及用户文件。"
+  ],
+  "limits": "先行6项基线，不是完整写入兼容或最终累计；原生对话框使用既有bootstrap替身，所有保护保持开启。"
+}

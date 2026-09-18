@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "scope": "仅按原批准计划关闭已具备证据的本地实施分项，不代表最终累计或外部验收完成",
+  "closedLocalItems": {
+    "finish-psd-budgets": {
+      "evidence": ["tests/evidence/psd-queue-budget-20260915.json", "tests/evidence/psd-parse-budget-20260915.json", "tests/evidence/psd-budget-boundaries-20260915.json", "tests/evidence/psd-separated-measurement-20260915.json"],
+      "basis": "队列、输入、像素、图层、深度及输出预算和超限恢复均有定向证据；两指定素材各20轮记录RSS峰值、IPC分位数和启动取消结算。主代理读取边界与测量证据核对；不将未证明任意大文件RSS硬上限或解码中途取消性能追加为原计划必做。"
+    },
+    "finish-performance": {
+      "evidence": ["tests/evidence/list-render-measurement-20260915.json", "tests/evidence/psd-ui-resource-measurement-20260915.json", "tests/evidence/startup-page-measurement-20260915.json", "tests/evidence/file-read-history-20260918.json"],
+      "basis": "1000项列表120帧、20次选择请求/绘制观察、20轮真实PSD导入切换关闭、20次新进程启动和四页面各20轮、大数据文件20轮均有数据；未确认需要额外缓存等实现的热点。主代理逐份读取核对，不将观察限制改称产品失败。当前写入授权会继续复验既有文件操作测量。"
+    }
+  },
+  "remainingLocal": [
+    "可信写入及配置目录用途授权，保持合法导出/拖拽。",
+    "生产will-quit入口与已验收任务停止机制的衔接验证；原计划允许隔离受控Node进程，不要求突破bootstrap运行Python。",
+    "实际preload有限能力与业务handler、角色、正反用例对账，仅处理真实遗漏。",
+    "开发入口实际安全策略及原承诺的媒体/API兼容验证。",
+    "最终源码统一累计验收，旧定向数量不能相加。"
+  ],
+  "preservedBoundaries": [
+    "所有历史失败原始日志保留；已修复失败与未完成项目、外部未验证应分别列明。",
+    "测量是限定数据与当前平台观察，不改写为零泄漏、任意输入资源保证或OS清缓存冷启动。",
+    "原批准计划正文只读，复用原todo；不新增媒体大图总预算、无限压力矩阵或突破后台保护的必做项。"
+  ],
+  "external": { "platform-installers": "unverified", "real-system-interactions": "unverified", "third-party-and-ai-python": "unverified" },
+  "canFinish": false
+}

@@ -387,15 +387,16 @@ export function useCanvasOutputCoordinator({ currentPsdData, canvasRef, isSendin
 
       // 2、保存图片到临时文件，再把图片信息放入会话缓存
       const base64Data = dataURL.split(',')[1]
-      const tempDir = await window.api?.getTempDir?.()
-      if (!snapshot.isSessionCurrent()) return
-      const tempFilePath = tempDir ? `${tempDir}\\${fileName}` : fileName
-
-      console.log('[人物调整] 保存文件到:', tempFilePath)
+      let tempFilePath
 
       try {
-        await window.api?.writeFile(tempFilePath, base64Data)
-        console.log('[人物调整] 文件保存成功')
+        const saved = await window.fileSystem?.saveTempImage?.(base64Data, fileName)
+        if (!snapshot.isSessionCurrent()) return
+        if (saved?.success !== true || !saved.path) {
+          throw new Error(saved?.error || '临时图片保存失败')
+        }
+        tempFilePath = saved.path
+        console.log('[人物调整] 文件保存成功:', tempFilePath)
       } catch (error) {
         if (!snapshot.isSessionCurrent()) return
         console.error('[人物调整] 文件保存失败:', error)

@@ -2,7 +2,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import path from 'node:path'
-import { readFile, stat, writeFile } from 'node:fs/promises'
+import { readFile, stat, writeFile, mkdir } from 'node:fs/promises'
 import { launchDesktop } from './helpers/desktop.mjs'
 
 function failed(result, pattern = /./) {
@@ -20,6 +20,10 @@ test('文件写入：Base64、拖入字节、错误与重启持久化', { timeou
   let savedPath
   let draggedPath
   try {
+    // 明确选择隔离输出根；后续中文子目录和重名编号仍由真实生产写入创建。
+    await mkdir(path.join(root, '中文 空格'), { recursive: true })
+    await desktop.application.evaluate((_electron, root) => { globalThis.__momentumTest.openPaths = [root] }, root)
+    assert.equal((await desktop.page.evaluate(() => window.fileSystem.selectFolder({ purpose: 'export' }))).success, true)
     // 1、通过 preload 暴露的 writeFile 写入中文和空格路径，并验证同名自动编号。
     const write = (filePath, data) => desktop.page.evaluate(({ filePath, data }) => window.electronAPI.writeFile(filePath, data), { filePath, data })
     const encoded = Buffer.from(text).toString('base64')
