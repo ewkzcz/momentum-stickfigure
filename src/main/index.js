@@ -179,10 +179,16 @@ app.on('will-quit', (event) => {
     event.preventDefault()
     if (!psdShutdownStarted) {
       psdShutdownStarted = true
-      void Promise.all([stopPSDWorkers(), stopOwnedTasks()]).then(() => {
+      // 分别保留每个停止操作的原始错误；一个先拒绝不能遮蔽另一个后续清理失败。
+      const stopping = [stopPSDWorkers(), stopOwnedTasks()].map(promise => promise.catch(error => {
+        console.error('等待后台任务退出失败:', error)
+        throw error
+      }))
+      void Promise.allSettled(stopping).then(results => {
+        if (results.some(result => result.status === 'rejected')) return
         psdShutdownComplete = true
         setImmediate(() => app.quit())
-      }).catch(error => console.error('等待后台任务退出失败:', error))
+      })
     }
     return
   }

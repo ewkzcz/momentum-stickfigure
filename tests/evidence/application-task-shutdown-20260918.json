@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "baseHead": "cd5e5530e43ef020c57979bc74c325365780488f",
+  "status": "passed-targeted-not-final-acceptance",
+  "before": { "directory": "temp/application-task-shutdown-before-acceptance-lMtuwf", "tests": 20, "passed": 19, "failed": 1, "durationMs": 952.149125, "testsExitCode": 1, "otherChecksExitCode": 0 },
+  "failure": "实际生产will-quit回调使用Promise.all只报告首次停止拒绝，后续任务清理错误未保留在退出入口诊断。原始失败日志保留。",
+  "fix": "分别观察PSD与任务停止的原始错误，并等待allSettled；任何拒绝持续阻止退出，仅全部成功安排一次app.quit。没有改动Python或后台保护。",
+  "after": { "directory": "temp/application-task-shutdown-after-acceptance-SK2hD3", "tests": 21, "passed": 21, "failed": 0, "cancelled": 0, "durationMs": 13249.429, "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "testsExitCode": 0, "referencesAfter": 0 },
+  "coverage": ["实际index.js完整退出回调通过vm执行，不复制停止逻辑", "真实owned-process-tasks模块联动：在途等待、双停止、重复退出、成功重入及错误保留", "既有受控Node进程树成功/失败/超时/取消/后代清理与恢复", "真实Electron十轮预览/主窗窗口生命周期"],
+  "limits": ["受控app事件连接不等于真实Electron内启动Python；原批准计划允许隔离受控进程验证机制", "真实AI/Python及目标平台实际进程行为仍属第三类外部验收", "同轮目录result.json和manifest.json绑定输入/产物；这是含其他在途写入单元的工作区相关验证，不替代最终提交累计"]
+}
