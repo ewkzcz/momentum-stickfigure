@@ -58,7 +58,12 @@ async function fixture(t) {
       plugin.onResolve({ filter: /^(?:node:)?(?:electron|child_process|os)$/ }, args => ({ path: args.path.replace(/^node:/, ''), namespace: 'test' }))
       plugin.onLoad({ filter: /.*/, namespace: 'test' }, args => {
         const prelude = `const s=globalThis[${JSON.stringify(key)}];`
-        if (args.path === 'electron') return { contents: prelude + 'export const app={getPath:()=>s.root};export const ipcMain={handle:(k,v)=>s.handlers.set(k,v),removeHandler:k=>s.handlers.delete(k)};' }
+        if (args.path === 'electron') return { contents: prelude + `
+          export const app={getPath:()=>s.root};
+          export const ipcMain={handle:(k,v)=>s.handlers.set(k,v),removeHandler:k=>s.handlers.delete(k)};
+          export const BrowserWindow={fromWebContents:owner=>owner};
+          export const dialog={showOpenDialog:async (_owner,options)=>({canceled:false,filePaths:[options.defaultPath]})};
+        ` }
         if (args.path === 'os') return { contents: prelude + 'export default {homedir:()=>s.root};' }
         return { contents: prelude + `
           const cp=process.getBuiltinModule('child_process');
@@ -85,6 +90,8 @@ async function fixture(t) {
   const pythonHome = path.join(root, 'python-fixture')
   const videoPath = path.join(root, 'input.mp4')
   const outputDir = path.join(root, 'output')
+  // 原生 openDirectory 只能确认已存在的目录；夹具预建空目录，不绕过授权策略。
+  await mkdir(outputDir)
   await writeFile(pythonHome, '不是 Python，不可执行')
   await writeFile(videoPath, 'isolated input')
   const cache = path.join(root, '.paddlex', 'official_models')
@@ -154,13 +161,15 @@ for (const phase of ['connection', 'correction']) {
     assert.equal(f.state.records.length, phase === 'connection' ? 0 : 1)
     for (const record of f.state.records) assertExited(record)
     assert.equal((await readdir(f.root)).some(name => name.endsWith('.py')), false)
-    if (phase === 'correction') assert.deepEqual(await readdir(f.payload.outputDir), [])
-    else await assert.rejects(readdir(f.payload.outputDir), { code: 'ENOENT' })
+    assert.deepEqual(await readdir(f.payload.outputDir), [], '取消后预建的已确认目录仍为空')
+    // 输出授权按窗口缓存，需要一个随窗口销毁撤销授权的常驻监听器；任务监听器仍须清理。
+    const authorizedListeners = baselineListeners + 1
+    assert.equal(f.event.sender.listenerCount('destroyed'), authorizedListeners)
     hold = false
     const recovered = await f.invoke('process-video', payload)
     assert.equal(recovered.success, true)
     assert.equal(await readFile(recovered.data.outputPath, 'utf8'), '隔离纠错字幕')
-    assert.equal(f.event.sender.listenerCount('destroyed'), baselineListeners)
+    assert.equal(f.event.sender.listenerCount('destroyed'), authorizedListeners)
   })
 }
 

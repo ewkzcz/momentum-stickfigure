@@ -13,6 +13,8 @@ import { requestTaskResponse } from './task-http-request.mjs'
 import { buildApiUrl } from '../shared/api-url.js'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertLocalProcessOptions, assertText } from './ipc-parameter-policy.js'
+import { authorizeConfiguredOutput } from './configured-output-policy.js'
+import { writeOwnedFile } from './file-access-policy.js'
 
 // ==================== 常量定义 ====================
 
@@ -749,9 +751,10 @@ async function installEnvironment(pythonHome, useMirror, progressCallback) {
  * 3、运行脚本，收集字幕并转发处理进度。
  * 4、按需纠错后保存最终文本，始终清理临时脚本。
  */
-async function processVideo(payload, progressCallback) {
-  // 1、检查任务输入，在视频处理前验证所需的远程连接。
-  const { pythonHome, videoPath, outputDir, intervalSeconds, useAI, apiKey, apiBaseUrl, aiModel } = payload
+async function processVideo(payload, progressCallback, outputAuthorization) {
+  // 1、在已获输出授权的任务中检查输入，并验证所需的远程连接。
+  throwIfTaskCancelled()
+  const { pythonHome, videoPath, intervalSeconds, useAI, apiKey, apiBaseUrl, aiModel } = payload
   
   const pythonExec = resolvePythonExecutable(pythonHome)
   
@@ -778,12 +781,9 @@ async function processVideo(payload, progressCallback) {
     }
   }
 
-  // 2、创建输出目录，并准备本次任务的文件路径与临时脚本。
+  // 2、复核已授权输出根，并准备本次任务的文件路径与临时脚本。
   throwIfTaskCancelled()
-  const finalOutputDir = outputDir || DEFAULT_OUTPUT_DIR
-  if (!fs.existsSync(finalOutputDir)) {
-    fs.mkdirSync(finalOutputDir, { recursive: true })
-  }
+  const finalOutputDir = outputAuthorization.directory(outputAuthorization.root)
 
   // 生成输出文件名
   const videoName = path.basename(videoPath, path.extname(videoPath))
@@ -982,7 +982,8 @@ async function processVideo(payload, progressCallback) {
 
     // 只有最终结果才写入文件
     throwIfTaskCancelled()
-    fs.writeFileSync(outputPath, finalContent, 'utf-8')
+    outputAuthorization.directory(path.dirname(outputPath))
+    writeOwnedFile(outputPath, finalContent)
     console.log(`[Video OCR] 最终结果已保存: ${outputPath}`)
 
     console.log('[Video OCR] 全部处理完成')
@@ -1442,7 +1443,10 @@ export function registerVideoOcrServiceHandlers() {
       }
 
       assertLocalProcessOptions(payload)
-      const result = await runOwnedTask(event.sender, 'ocr', () => processVideo(payload, progressCallback))
+      const result = await runOwnedTask(event.sender, 'ocr', async () => {
+        const outputAuthorization = await authorizeConfiguredOutput(event, 'ocr-output', payload.outputDir || DEFAULT_OUTPUT_DIR, { signal: currentTaskSignal() })
+        return processVideo(payload, progressCallback, outputAuthorization)
+      })
       
       return {
         success: true,

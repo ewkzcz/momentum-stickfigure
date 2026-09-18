@@ -52,7 +52,24 @@ function verify(record) {
   const current = directory(record.path)
   if (current.canonical !== record.canonical || current.identity !== record.identity) throw new Error('输出目录已变化，请重新选择')
 }
-export async function authorizeConfiguredOutput(event, purpose, requested) {
+async function waitForConfirmation(pending, signal) {
+  if (!signal) return pending
+  let onAbort
+  try {
+    return await Promise.race([
+      pending,
+      new Promise((resolve, reject) => {
+        onAbort = () => reject(signal.reason)
+        signal.addEventListener('abort', onAbort, { once: true })
+        if (signal.aborted) onAbort()
+      })
+    ])
+  } finally {
+    signal.removeEventListener('abort', onAbort)
+  }
+}
+export async function authorizeConfiguredOutput(event, purpose, requested, { signal } = {}) {
+  signal?.throwIfAborted()
   const roles = purpose === 'canvas-output' ? ['main', 'preview'] : ['main']
   if (!isTrustedIpcSender(event, roles) || !purposes.has(purpose)) throw new Error('输出来源未授权')
   const root = absolute(requested || defaults[purpose][0])
@@ -64,10 +81,12 @@ export async function authorizeConfiguredOutput(event, purpose, requested) {
     grants.set(key, record)
   }
   if (!record) {
-    const result = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender), {
+    const result = await waitForConfirmation(dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender), {
       title: '确认本次配置输出目录', defaultPath: root,
       message: '请重新选择配置中的输出目录以授权本窗口保存文件；取消不会写入文件。', properties: ['openDirectory']
-    })
+    }), signal)
+    // 取消立即结束任务；迟到的原生对话框结果不能登记授权。
+    signal?.throwIfAborted()
     if (!isTrustedIpcSender(event, roles)) throw new Error('输出来源已失效')
     if (result.canceled || result.filePaths?.length !== 1 || absolute(result.filePaths[0]) !== root) throw new Error('输出目录未授权，请重新选择配置中的目录')
     grantConfiguredOutput(event.sender, purpose, root)
@@ -77,6 +96,7 @@ export async function authorizeConfiguredOutput(event, purpose, requested) {
   return {
     root,
     directory(target, create = false) {
+      signal?.throwIfAborted()
       state(event.sender); verify(record)
       const resolved = absolute(target)
       const relative = path.relative(root, resolved)

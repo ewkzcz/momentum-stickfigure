@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "status": "passed-targeted-not-final-acceptance",
+  "scope": "原第5项OCR配置输出授权，保留原任务生命周期和字幕保存语义",
+  "before": {"directory":"temp/ocr-output-before-acceptance-XEvRfA","tests":5,"passed":0,"failed":5,"durationMs":1329.491583,"exitCode":1},
+  "iteration": {"directory":"temp/ocr-output-after-acceptance-EKhK0c","stage":"lint","exitCode":1,"reason":"同期新增测试的浏览器fetch/AbortSignal须显式使用window，测试尚未执行；未改产品或放宽断言"},
+  "after": {
+    "directory":"temp/ocr-output-after-2-acceptance-CunOnt",
+    "tests":33,"passed":33,"failed":0,"cancelled":0,"skipped":0,"durationMs":98309.500708,
+    "checks":{"referencesBefore":0,"lint":0,"size":0,"build":0,"tests":0,"referencesAfter":0},
+    "manifestSha256":"5a30f42ed04a357852a8578a69af4bf4fc8e7ad9fac3a561e44ef59f3022e6e0",
+    "baseHead":"557e0f1c5a544bc6d2707b72f823fac7aacd4fb9"
+  },
+  "implementation":["runOwnedTask内先确认输出用途，再检查解释器、连接AI、创建临时脚本或运行进程","确认等待接受任务取消信号，取消立即结算，迟到结果不留下授权","最终保存再次核验授权目录身份，复用NOFOLLOW文件写入"],
+  "coverage":["真实Electron未授权拒绝优先于解释器检查","AI开关两种路径授权前均无文件、网络、进程副作用","原生确认中文目录后保存真实字幕字节且跨窗口拒绝","确认等待取消、同类互斥、跨窗口取消拒绝、迟到回答拒绝及重试","既有OCR受控Node进程及HTTP取消恢复、来源参数、画布/Gemini配置授权、页面取消和三种结果各20轮订阅回归"],
+  "fixtureAdjustment":"旧生命周期测试预建空目录匹配原生openDirectory契约，增加真实授权策略所需对话框边界；窗口销毁监听计入一个授权撤销监听，任务监听清理与取消后目录为空断言保留。",
+  "limits":["隔离Node协议输出不代表真实OCR/Python或AI服务验收","非最终累计；固定三类外部验收仍未验证"]
+}
