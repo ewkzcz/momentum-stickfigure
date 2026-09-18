@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { readFile, mkdtemp, rm } from 'node:fs/promises'
+import { assertOwnedFilePath } from '../src/main/file-access-policy.js'
 import { EventEmitter } from 'node:events'
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
@@ -25,8 +26,10 @@ for (const [file, register, unregister] of groups) test(`IPC注销契约：${fil
   ipcMain.handle = (name, callback) => { if (handlers.has(name)) throw new Error(`duplicate ${name}`); handlers.set(name, callback) }
   ipcMain.removeHandler = name => handlers.delete(name)
   const app = new EventEmitter()
-  app.getPath = () => '/unused'
-  const deps = { app, ipcMain, BrowserWindow: {}, shell: {}, dialog: {}, clipboard: {}, nativeImage: {}, nativeTheme: {}, globalShortcut: { unregisterAll() {} }, path, fs: { ...fs, existsSync: () => true }, os, is: { dev: false }, getHotkeysConfig: () => ({}), saveHotkeysConfig() {} }
+  const root = await mkdtemp(path.join(os.tmpdir(), 'momentum-ipc-disposal-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  app.getPath = () => root
+  const deps = { assertOwnedFilePath, app, ipcMain, BrowserWindow: {}, shell: {}, dialog: {}, clipboard: {}, nativeImage: {}, nativeTheme: {}, globalShortcut: { unregisterAll() {} }, path, fs: { ...fs, existsSync: () => true }, os, is: { dev: false }, getHotkeysConfig: () => ({}), saveHotkeysConfig() {} }
   const source = process.env.MOMENTUM_IPC_REVISION
     ? execFileSync('git', ['show', `${process.env.MOMENTUM_IPC_REVISION}:src/main/${file}.js`], { encoding: 'utf8' })
     : await readFile(new URL(`../src/main/${file}.js`, import.meta.url), 'utf8')

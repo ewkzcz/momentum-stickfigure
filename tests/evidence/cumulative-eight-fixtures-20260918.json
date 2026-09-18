@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "scope": "完整累计暴露的八项旧夹具不兼容；仅修改测试，不修改生产代码",
+  "before": {
+    "directory": "temp/remaining-defects-acceptance-guEMeD",
+    "head": "1d0367297a91c639acf4046ba3978d6f618becb9",
+    "manifestSha256": "96798bc8ed59e25ffc26727b3939aa6d072c9c5032166def7c4e707a0bbaf0b2",
+    "tests": 605,
+    "passed": 597,
+    "failed": 8,
+    "cancelled": 0,
+    "skipped": 0,
+    "exitCode": 1,
+    "durationMs": 1577069.577167,
+    "integrityErrors": []
+  },
+  "changes": [
+    {"file": "tests/file-payload-parameters.test.mjs", "reason": "合法写入未经过既有原生 export 用途授权", "preservedAssertions": "走生产 select-folder 授予隔离目录；非法载荷无目录副作用，合法写入字节一致；补非法拖入无临时目录副作用"},
+    {"file": "tests/file-selection.test.mjs", "reason": "打开对话框夹具返回不存在的文件，且旧用例将目录作为图片成功处理", "preservedAssertions": "预建普通文件，保存目标和缺失路径独立；保完整返回、选项透传、取消、异常、保存不落盘和图片字节；缺失文件与目录必须拒绝"},
+    {"file": "tests/ipc-handler-disposal.test.mjs", "reason": "剥离 import 的夹具未注入生产新增 assertOwnedFilePath 依赖", "preservedAssertions": "注入真实路径策略并使用独立临时根；保三轮注册注销和独立监听器断言"},
+    {"file": "tests/render-output-race.test.mjs", "reason": "四项失败来自夹具仍模拟已移除的 getTempDir/writeFile 跨页接口", "preservedAssertions": "适配当前 saveTempImage；保真实像素、冻结文件名、排队 watcher；迟到成功和失败均不得触发第二次保存、缓存、IPC、导航或提示"},
+    {"file": "tests/settings-hd-toolkit.test.mjs", "reason": "设置选择返回不存在的 Python 路径，生产普通文件校验正确拒绝", "preservedAssertions": "预建不可执行且不启动的占位文件和目录；保四字段、取消、保存前不持久化、共享磁盘、备份恢复和两次重启"}
+  ],
+  "after": {
+    "directory": "temp/cumulative-eight-fixtures-after-acceptance-sE0nWb",
+    "head": "1d0367297a91c639acf4046ba3978d6f618becb9",
+    "worktreeChangesIncluded": true,
+    "manifestSha256": "01fa0bfe1d62308bc906b8a76c6b3fb842b096bd0106fe6433c320912b4c019d",
+    "command": "node temp/verify-psd-unit.mjs cumulative-eight-fixtures-after file-payload-parameters file-selection ipc-handler-disposal render-output-race settings-hd-toolkit file-write-authorization file-read-authorization action-shared-refs",
+    "tests": 62,
+    "passed": 62,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 37717.006917,
+    "exitCode": 0,
+    "stages": {"references-before": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "references-after": 0},
+    "integrityError": null
+  },
+  "limits": [
+    "定向通过不能替代提交后当前源码的完整累计验收。",
+    "旧失败结果保留，不将夹具修改后的结果追记到旧累计。",
+    "不可执行 Python 路径只验证设置持久化，不验证真实 Python。",
+    "平台安装产物、真实系统交互、第三方登录权限及真实 AI/Python 仍未验证。"
+  ]
+}

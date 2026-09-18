@@ -16,12 +16,19 @@ test('文件载荷参数：解码前拒绝错误Base64和非字节数据且无�
   const desktop = await launchDesktop()
   const invoke = (channel, ...args) => desktop.page.evaluate(({ channel, args }) => window.electronAPI.invoke(channel, ...args), { channel, args })
   try {
+    // 写入必须先经原生目录选择明确授予 export 用途；非法载荷仍不得创建子目录。
+    await desktop.application.evaluate((_, root) => { globalThis.__momentumTest.openPaths = [root] }, desktop.root)
+    assert.deepEqual(await invoke('select-folder', { purpose: 'export' }), { success: true, path: desktop.root, canceled: false })
     const target = path.join(desktop.root, 'must-not-create', 'invalid.png')
     for (const data of ['%%%=', {}, [1, 2], null]) {
       assert.equal((await invoke('write-file', target, data)).success, false)
       await assert.rejects(access(path.dirname(target)), { code: 'ENOENT' })
     }
-    for (const data of ['not bytes', {}, [256], [1.5], [-1]]) assert.equal((await invoke('save-dragged-file', 'invalid.psd', data)).success, false)
+    const draggedDirectory = path.join(desktop.root, 'temp', 'momentum-stickfigure', 'dragged-files')
+    for (const data of ['not bytes', {}, [256], [1.5], [-1]]) {
+      assert.equal((await invoke('save-dragged-file', 'invalid.psd', data)).success, false)
+      await assert.rejects(access(draggedDirectory), { code: 'ENOENT' })
+    }
     const file = path.join(desktop.root, '中文 空格', 'image.png')
     assert.equal((await invoke('write-file', file, 'aGVsbG8=')).success, true)
     assert.equal(await readFile(file, 'utf8'), 'hello')

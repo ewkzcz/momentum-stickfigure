@@ -98,6 +98,10 @@ test('文件选择：完整返回、选项透传、真实图片与临时落盘�
     const folder = path.join(root, '中文 空格')
     await mkdir(folder, { recursive: true })
     const paths = [path.join(folder, '第一份.psd'), path.join(folder, '第二份.psd')]
+    // 通用打开选择会核验普通文件身份；保存目标和缺失图片使用独立路径，避免预建文件掩盖断言。
+    for (const file of paths) await writeFile(file, 'PSD selection fixture', { flag: 'wx' })
+    const savePath = path.join(folder, '待保存.psd')
+    const missingImagePath = path.join(folder, '不存在.png')
     const encodedImages = await desktop.page.evaluate(() => {
       // 1、用真实画布编码有效 PNG 和 JPEG 测试图片。
       const canvas = document.createElement('canvas')
@@ -148,27 +152,28 @@ test('文件选择：完整返回、选项透传、真实图片与临时落盘�
       await prepare(desktop, [paths[0]])
       assert.deepEqual(await call(desktop, 'select-file', input), { success: true, canceled: false, paths: [paths[0]], path: paths[0] })
       await checkDialog(desktop, 'open', { properties: ['openFile'], title: '选择文件', defaultPath: undefined, filters: undefined, message: undefined })
-      await prepare(desktop, [], null, paths[0])
-      assert.deepEqual(await call(desktop, 'show-save-dialog', input), { success: true, canceled: false, filePath: paths[0] })
+      await prepare(desktop, [], null, savePath)
+      assert.deepEqual(await call(desktop, 'show-save-dialog', input), { success: true, canceled: false, filePath: savePath })
       await checkDialog(desktop, 'save', { title: '保存文件', defaultPath: undefined, filters: undefined, message: undefined })
+      await assert.rejects(stat(savePath), { code: 'ENOENT' })
     }
     // 错误类型现在在原生对话框之前拒绝，不再静默丢弃筛选条件。
     assert.deepEqual(await call(desktop, 'select-file', { filters: '错误类型' }), { success: false, error: 'filters参数无效', canceled: false, paths: [] })
     assert.deepEqual(await call(desktop, 'show-save-dialog', { filters: '错误类型' }), { success: false, error: 'filters参数无效', canceled: false })
-    await prepare(desktop, [], null, paths[1])
-    assert.deepEqual(await call(desktop, 'show-save-dialog', options), { success: true, canceled: false, filePath: paths[1] })
+    await prepare(desktop, [], null, savePath)
+    assert.deepEqual(await call(desktop, 'show-save-dialog', options), { success: true, canceled: false, filePath: savePath })
     await checkDialog(desktop, 'save', options)
-    await assert.rejects(stat(paths[1]), { code: 'ENOENT' })
+    await assert.rejects(stat(savePath), { code: 'ENOENT' })
 
-    // 4、图片元数据和预览来自真实文件读取，覆盖扩展名大小写、缺失文件和局部预览失败。
+    // 4、图片元数据和预览来自真实文件读取；缺失文件和目录必须整批拒绝，不能返回空预览成功。
     await prepare(desktop, imagePaths)
     const images = await call(desktop, 'select-image-files')
     assert.deepEqual(images, { success: true, canceled: false, files: imagePaths.map((filePath, i) => ({ path: filePath, name: path.basename(filePath), size: imageBytes[i].length, previewUrl: `data:image/${i === 0 ? 'png' : 'jpeg'};base64,${imageBytes[i].toString('base64')}` })) })
     await checkDialog(desktop, 'open', { properties: ['openFile', 'multiSelections'], title: '选择图片文件', filters: [{ name: '图片', extensions: ['jpg', 'jpeg', 'png'] }] })
-    await prepare(desktop, [paths[0]])
-    assert.deepEqual(await call(desktop, 'select-image-files'), { success: false, error: `ENOENT: no such file or directory, stat '${paths[0]}'`, canceled: false })
+    await prepare(desktop, [missingImagePath])
+    assert.deepEqual(await call(desktop, 'select-image-files'), { success: false, error: `ENOENT: no such file or directory, lstat '${missingImagePath}'`, canceled: false })
     await prepare(desktop, [folder])
-    assert.deepEqual(await call(desktop, 'select-image-files'), { success: true, canceled: false, files: [{ path: folder, name: path.basename(folder), size: (await stat(folder)).size, previewUrl: null }] })
+    assert.deepEqual(await call(desktop, 'select-image-files'), { success: false, error: '文件类型或大小超过限制', canceled: false })
     results.push({ images })
 
     // 5、临时目录实际创建并保存完整图片字节，包含中文空格、覆盖、默认名称、空值和真实目录错误。

@@ -2,7 +2,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import path from 'node:path'
-import { readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { setTimeout as pollDelay } from 'node:timers/promises'
 import { launchDesktop } from './helpers/desktop.mjs'
 import { assertSamePixels, decodePng } from './helpers/images.mjs'
@@ -122,6 +122,12 @@ test('抠图高清设置迁移：四字段、取消、保存、磁盘共享、�
     outputDir: path.join(root, 'output/hd')
   }
   try {
+    // 原生打开选择要求路径真实存在；此处只验证设置持久化，不提供或启动真实 Python。
+    for (const directory of [path.dirname(expected.pythonHome), expected.removebgWeightsDir, expected.highresWeightsDir, expected.outputDir]) {
+      await mkdir(directory, { recursive: true })
+    }
+    await writeFile(expected.pythonHome, 'Non-executable Python path fixture; settings persistence only.\n', { flag: 'wx', mode: 0o600 })
+    assert.equal((await stat(expected.pythonHome)).mode & 0o111, 0, 'Python 路径夹具必须不可执行')
     await openSettings(desktop)
     const page = desktop.page
     assert.deepEqual(await values(page), { pythonHome: '', removebgWeightsDir: '', highresWeightsDir: '', outputDir: path.join(root, 'home/Pictures/hd-toolkit') })

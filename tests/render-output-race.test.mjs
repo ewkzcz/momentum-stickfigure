@@ -46,7 +46,11 @@ function setup(t, { injected = true } = {}) {
       readAsDataURL(blob) { blob.arrayBuffer().then(buffer => { this.result = `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`; this.onload() }) }
     },
     sessionStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
-    window: { electronAPI: { invoke: async (...args) => { calls.push(args); return { success: true } } }, api: { getTempDir: async () => '/tmp', writeFile: async (...args) => { writes.push(args) } } }
+    // 当前跳转协议只暴露 saveTempImage；路径由主进程响应决定，渲染端不拼接临时路径。
+    window: {
+      electronAPI: { invoke: async (...args) => { calls.push(args); return { success: true } } },
+      fileSystem: { saveTempImage: async (...args) => { writes.push(args); return { success: true, path: '/tmp/render-output-fixture/saved.png' } } }
+    }
   }
   for (const [key, value] of Object.entries(globals)) {
     const previous = Object.getOwnPropertyDescriptor(globalThis, key)
@@ -182,25 +186,38 @@ for (const method of ['sendCanvasToGenerate', 'handleJumpSelect', 'syncCanvasToP
       assert.equal(f.routes[0], method === 'handleJumpSelect' ? '/comic' : '/image-processing')
       if (method === 'handleJumpSelect') {
         assert.equal(payload.targetPage, 'comic')
-        assert.equal(payload.filePath, '/tmp\\red.png')
-        assert.equal(f.writes[0][1], payload.dataURL.split(',')[1])
+        assert.equal(payload.filePath, '/tmp/render-output-fixture/saved.png')
+        assert.deepEqual(f.writes, [[payload.dataURL.split(',')[1], 'red.png']])
       }
     }
   })
 }
 
-for (const phase of ['getTempDir', 'writeFile']) {
-  test(`jump session invalidation during ${phase} prevents subsequent effects`, async t => {
+// getTempDir/writeFile 已合并为一次 saveTempImage 调用；已发出的保存不可撤销，
+// 但会话失效后，无论成功或失败响应，都不能触发后续保存、缓存、跳转或提示。
+for (const success of [true, false]) {
+  test(`jump session invalidation during saveTempImage ignores ${success ? 'success' : 'failure'} response and prevents subsequent effects`, async t => {
     const f = setup(t)
     let release
-    window.api[phase] = () => new Promise(resolve => { release = resolve })
+    window.fileSystem.saveTempImage = (...args) => {
+      f.writes.push(args)
+      return new Promise(resolve => { release = resolve })
+    }
     const pending = f.output.handleJumpSelect('comic'); await flush()
     f.encodes[0].release(); await flush()
     assert.equal(typeof release, 'function')
-    f.coordinator.invalidate(); release('/tmp'); await pending
-    assert.equal(f.storage.size + f.routes.length, 0)
-    assert.equal(f.writes.length, 0)
+    assert.equal(f.writes.length, 1)
+    const [base64Data, fileName] = f.writes[0]
+    assert.deepEqual(await pixel({ dataURL: `data:image/png;base64,${base64Data}` }), red)
+    assert.equal(fileName, 'red.png')
+    assert.equal(f.storage.size + f.calls.length + f.routes.length + f.messages.length, 0)
+    f.coordinator.invalidate()
+    release(success ? { success: true, path: '/tmp/render-output-fixture/saved.png' } : { success: false, error: 'fixture save failure' })
+    await pending
+    assert.equal(f.storage.size + f.calls.length + f.routes.length, 0)
+    assert.deepEqual(f.writes, [[base64Data, fileName]])
     assert.equal(f.messages.length, 0)
+    assert.equal(f.isSendingToGenerate.value, false)
   })
 }
 

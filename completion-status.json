@@ -22,7 +22,8 @@
     "tests/evidence/psd-direct-compatibility-20260918.json",
     "tests/evidence/ocr-output-authorization-20260918.json",
     "tests/evidence/security-compatibility-20260918.json",
-    "tests/evidence/cumulative-fixture-recovery-20260918.json"
+    "tests/evidence/cumulative-fixture-recovery-20260918.json",
+    "tests/evidence/cumulative-eight-fixtures-20260918.json"
   ],
   "scopeNotes": [
     "原计划正文只读，沿用原9项待办；历史限制不自动升级为新必做任务。",
