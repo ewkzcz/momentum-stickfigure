@@ -8,6 +8,8 @@ import fs from 'fs'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertText } from './ipc-parameter-policy.js'
 import { assertDragImageParameters } from './drag-clipboard-parameters.js'
+import { authorizeConfiguredOutput } from './configured-output-policy.js'
+import { writeOwnedFile } from './file-access-policy.js'
 
 // ==================== 拖拽到剪映功能处理器 ====================
 
@@ -56,21 +58,8 @@ function registerDragToJianyingHandlers() {
 
       // 1、读取配置，决定保存目录。
       const config = stickfigureConfig || {}
-      let appDir
-
-      if (config.outputRoot && config.outputRoot.trim()) {
-        // 使用用户配置的路径
-        appDir = config.outputRoot
-      } else {
-        // 使用默认路径
-        const picturesDir = getPicturesDirectory()
-        appDir = path.join(picturesDir, 'MomentumStickFigure')
-      }
-
-      if (!fs.existsSync(appDir)) {
-        fs.mkdirSync(appDir, { recursive: true })
-        console.log('✅ 创建应用目录:', appDir)
-      }
+      const configured = await authorizeConfiguredOutput(event, 'canvas-output', config.outputRoot || undefined)
+      const appDir = configured.directory(configured.root, true)
 
       // 2、生成带时间戳的名称，并根据配置处理重名。
       const timestamp = Date.now()
@@ -108,7 +97,8 @@ function registerDragToJianyingHandlers() {
 
       // 3、将图片解码写入文件，随后复制输出路径。
       const buffer = Buffer.from(base64Data, 'base64')
-      fs.writeFileSync(filePath, buffer)
+      configured.directory(path.dirname(filePath))
+      writeOwnedFile(filePath, buffer)
 
       console.log('✅ 图片保存成功:', filePath)
 
@@ -189,18 +179,8 @@ function registerDragToJianyingHandlers() {
 
       // 读取配置，决定保存目录
       const config = stickfigureConfig || {}
-      let appDir
-
-      if (config.outputRoot && config.outputRoot.trim()) {
-        // 使用用户配置的路径
-        appDir = config.outputRoot
-      } else {
-        // 使用默认路径
-        const picturesDir = getPicturesDirectory()
-        appDir = path.join(picturesDir, 'MomentumStickFigure')
-      }
-
-      if (!fs.existsSync(appDir)) fs.mkdirSync(appDir, { recursive: true })
+      const configured = await authorizeConfiguredOutput(event, 'canvas-output', config.outputRoot || undefined)
+      const appDir = configured.directory(configured.root, true)
 
       const timestamp = Date.now()
       const fileName = (fileNameSuggestion && String(fileNameSuggestion).trim()) || `stickfigure_${timestamp}.png`
@@ -260,7 +240,7 @@ function registerDragToJianyingHandlers() {
 
           // 创建PSD专属文件夹
           if (!fs.existsSync(targetDir)) {
-            fs.mkdirSync(targetDir, { recursive: true })
+            configured.directory(targetDir, true)
             console.log(`📁 为PSD创建文件夹：${psdFolderName}`)
           } else {
             console.log(`📁 PSD文件夹已存在：${psdFolderName}`)
@@ -303,7 +283,8 @@ function registerDragToJianyingHandlers() {
       }
 
       const buffer = Buffer.from(base64Data, 'base64')
-      fs.writeFileSync(finalFilePath, buffer)
+      configured.directory(path.dirname(finalFilePath))
+      writeOwnedFile(finalFilePath, buffer)
 
       // 4、准备拖拽图标，并在窗口重新聚焦时通知页面收尾。
       let dragIcon = null

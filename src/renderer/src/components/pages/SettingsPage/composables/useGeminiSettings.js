@@ -141,7 +141,7 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
     try {
       isSelectingFolder.value = true
 
-      const result = await window.fileSystem.selectFolder()
+      const result = await window.fileSystem.selectFolder({ purpose: 'gemini-output' })
 
       if (result.success && result.path) {
         geminiConfig.projectRoot = result.path

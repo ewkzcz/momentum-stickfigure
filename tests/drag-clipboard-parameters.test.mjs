@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import path from 'node:path'
-import { readdir, readFile } from 'node:fs/promises'
+import { readdir, readFile, mkdir } from 'node:fs/promises'
 import { launchDesktop } from './helpers/desktop.mjs'
 
 test('拖拽图片参数：副作用前拒绝错误载荷、路径文件名和配置，随后恢复', { timeout: 60000 }, async () => {
@@ -34,6 +34,9 @@ test('拖拽图片参数：副作用前拒绝错误载荷、路径文件名和�
     }
     assert.equal((await invoke('copy-to-clipboard', ['中文 text'])).success, true)
     assert.equal(await desktop.application.evaluate(() => globalThis.__momentumTest.clipboard), '中文 text')
+    await mkdir(outputRoot, { recursive: true })
+    await desktop.application.evaluate((_electron, outputRoot) => { globalThis.__momentumTest.openPaths = [outputRoot] }, outputRoot)
+    assert.equal((await desktop.page.evaluate(() => window.fileSystem.selectFolder({ purpose: 'canvas-output' }))).success, true)
     for (let round = 0; round < 2; round++) {
       const result = await invoke('create-temp-file-and-start-drag', ['aGVsbG8=', null, '中文 空格.png', config])
       assert.equal(result.success, true)

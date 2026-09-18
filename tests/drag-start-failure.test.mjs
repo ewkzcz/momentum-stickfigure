@@ -2,7 +2,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import path from 'node:path'
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { launchDesktop } from './helpers/desktop.mjs'
 
 /**
@@ -28,6 +28,9 @@ test('系统拖拽启动失败：20轮不残留焦点订阅并保持写入和成
       window.webContents.startDrag = () => { throw new Error('受控系统拖拽启动失败') }
     })
     const root = path.join(desktop.root, 'drag-output')
+    await mkdir(root)
+    await desktop.application.evaluate((_electron, root) => { globalThis.__momentumTest.openPaths = [root] }, root)
+    assert.equal((await desktop.page.evaluate(() => window.fileSystem.selectFolder({ purpose: 'canvas-output' }))).success, true)
     for (let round = 0; round < 20; round++) {
       const response = await desktop.page.evaluate(({ root, round }) => window.electronAPI.invoke('create-temp-file-and-start-drag', 'aXNvbGF0ZWQ=', null, `failed-${round}.png`, { outputRoot: root }), { root, round })
       assert.deepEqual(response, { success: false, error: '受控系统拖拽启动失败' })

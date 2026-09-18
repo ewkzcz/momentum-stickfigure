@@ -2,7 +2,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import path from 'node:path'
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { setTimeout as pollDelay } from 'node:timers/promises'
 import { launchDesktop } from './helpers/desktop.mjs'
 import { assertSamePixels, decodePng } from './helpers/images.mjs'
@@ -57,6 +57,7 @@ async function waitForDisk(root, expected) {
 
 /** 选择目录。处理流程：1、只替代原生选择边界；2、点击真实浏览按钮。 */
 async function choose(desktop, paths) {
+  for (const directory of paths) await mkdir(directory, { recursive: true })
   // 1、空数组表示取消，业务处理器仍照常运行。
   await desktop.application.evaluate((_, value) => { globalThis.__momentumTest.openPaths = value }, paths)
   // 2、实际输入由原目录处理函数更新。

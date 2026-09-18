@@ -255,7 +255,7 @@ export function useStickfigureSettings({ message, showSaveRestartTip, appVersion
     try {
       isSelectingStickfigureFolder.value = true
 
-      const result = await window.fileSystem.selectFolder()
+      const result = await window.fileSystem.selectFolder({ purpose: 'canvas-output' })
 
       if (result.success && result.path) {
         stickfigureConfig.outputRoot = result.path

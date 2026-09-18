@@ -52,7 +52,7 @@ export function useDialogSettings({ message, showSaveRestartTip, appVersion, gem
     // 1、只更新对话工具表单，不影响其他工具的输出目录。
     try {
       isSelectingDialogFolder.value = true
-      const result = await window.fileSystem.selectFolder()
+      const result = await window.fileSystem.selectFolder({ purpose: 'canvas-output' })
 
       if (result.success && result.path) {
         dialogConfig.outputRoot = result.path

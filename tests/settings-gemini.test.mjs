@@ -2,7 +2,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import path from 'node:path'
-import { readFile, writeFile, stat } from 'node:fs/promises'
+import { readFile, writeFile, stat, mkdir } from 'node:fs/promises'
 import { setTimeout as pollDelay } from 'node:timers/promises'
 import { launchDesktop } from './helpers/desktop.mjs'
 import { assertSamePixels, decodePng } from './helpers/images.mjs'
@@ -64,6 +64,7 @@ async function save(page, message) {
 async function selectFolder(desktop, selected) {
   // 1、空数组代表取消，其他输入仍由原生产逻辑处理。
   await desktop.application.evaluate((_, paths) => { globalThis.__momentumTest.openPaths.push(...paths) }, selected)
+  for (const directory of selected) if (directory.trim() && path.isAbsolute(directory)) await mkdir(directory, { recursive: true })
   await item(desktop.page, '保存根目录').getByRole('button', { name: '选择文件夹', exact: true }).click()
   await desktop.page.waitForFunction(() => !document.querySelector('.settings-tab-content:not([style*="display: none"]) .n-button--loading'))
 }
@@ -165,12 +166,32 @@ test('生图设置：输入、选择取消重置、保存校验与URL规范化�
       assert.equal(await page.evaluate(key => localStorage.getItem(key), storageKey), unsaved)
     }
     await item(page, '中转站地址').locator('input').fill('  HTTPS://GEMINI.INVALID:443/gateway/v1///  ')
-    // 3、使用目录对话框边界注入异常返回值，验证只读字段对应的父级校验。
-    await selectFolder(desktop, ['   '])
+    // 非法原生返回如今在主进程先拒绝，界面保留原值而非接纳无效路径。
+    for (const invalid of ['   ', 'relative-project']) {
+      await selectFolder(desktop, [invalid])
+      await page.getByText('选择文件夹失败: 输出目录路径无效', { exact: true }).last().waitFor()
+      assert.equal((await values(page)).projectRoot, initial.projectRoot)
+      assert.equal(await page.evaluate(key => localStorage.getItem(key), storageKey), unsaved)
+    }
+    // 单独控制IPC返回，继续验证渲染侧空值/相对路径防御；随后立即恢复真实处理器。
+    await desktop.application.evaluate(({ ipcMain }) => {
+      globalThis.__originalFolderHandler = ipcMain._invokeHandlers.get('select-folder')
+      ipcMain.removeHandler('select-folder')
+      ipcMain.handle('select-folder', () => ({ success: true, path: '   ' }))
+    })
+    await item(page, '保存根目录').getByRole('button', { name: '选择文件夹', exact: true }).click()
     await save(page, '请选择项目根路径')
     assert.equal((await values(page)).baseUrl, expected.baseUrl, '路径校验之前已执行URL规范化')
-    await selectFolder(desktop, ['relative-project'])
+    await desktop.application.evaluate(({ ipcMain }) => {
+      ipcMain.removeHandler('select-folder')
+      ipcMain.handle('select-folder', () => ({ success: true, path: 'relative-project' }))
+    })
+    await item(page, '保存根目录').getByRole('button', { name: '选择文件夹', exact: true }).click()
     await save(page, '项目根路径必须是绝对路径')
+    await desktop.application.evaluate(({ ipcMain }) => {
+      ipcMain.removeHandler('select-folder')
+      ipcMain.handle('select-folder', globalThis.__originalFolderHandler)
+    })
     await selectFolder(desktop, [expected.projectRoot])
     await selectFolder(desktop, [])
     assert.equal((await values(page)).projectRoot, expected.projectRoot, '取消保留已有路径')

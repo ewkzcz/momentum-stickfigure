@@ -6,6 +6,7 @@
 
 import { ipcMain } from 'electron';
 import path from 'path';
+import { authorizeConfiguredOutput } from '../configured-output-policy.js';
 import { isTrustedIpcSender } from '../ipc-sender-policy.js';
 import { assertGeminiOptions, assertPathList, assertText } from '../ipc-parameter-policy.js';
 
@@ -13,13 +14,23 @@ import { assertGeminiOptions, assertPathList, assertText } from '../ipc-paramete
 import { apiWrapper } from './gemini-image-service.js';
 import {
   getConfig,
-  validateConfig,
-  createDefaultDirectories
+  validateConfig
 } from './gemini-image-config.js';
 import {
   validateImageFile,
   getImageInfo
 } from './gemini-image-utils.js';
+
+async function prepareOutput(event, options) {
+  for (const field of ['outputDir', 'editOutputDir', 'logDir']) {
+    if (typeof options[field] === 'string' && options[field].split(/[\\/]/).includes('..')) throw new Error('输出路径不允许父级回退');
+  }
+  const authorization = await authorizeConfiguredOutput(event, 'gemini-output', options.projectRoot);
+  const config = getConfig({ ...options, projectRoot: authorization.root });
+  for (const field of ['outputDir', 'editOutputDir', 'logDir']) authorization.directory(config[field]);
+  for (const field of ['outputDir', 'editOutputDir', 'logDir']) authorization.directory(config[field], true);
+  return config;
+}
 
 /**
  * 注册 Gemini 图像相关的 IPC 处理器
@@ -48,7 +59,7 @@ export function registerFalApiHandlers() {
       }
 
       // 创建必要的输出与日志目录
-      createDefaultDirectories(config);
+      Object.assign(config, await prepareOutput(event, options));
 
       // 只在前端显式指定宽高比时才透传到下游
       const apiParams = {
@@ -109,7 +120,7 @@ export function registerFalApiHandlers() {
         }
       }
 
-      createDefaultDirectories(config);
+      Object.assign(config, await prepareOutput(event, options));
 
       const editParams = {
         prompt: options.prompt,
@@ -233,8 +244,7 @@ export function registerFalApiHandlers() {
     try {
       if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
       assertGeminiOptions(config);
-      const fullConfig = getConfig(config);
-      createDefaultDirectories(fullConfig);
+      const fullConfig = await prepareOutput(event, config);
 
       return {
         success: true,
