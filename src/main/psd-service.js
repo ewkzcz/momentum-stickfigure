@@ -11,6 +11,12 @@ import { assertPsdTree } from './psd-tree-parameters.js';
 import { assertDetectionOptions } from './psd-detection-parameters.js';
 import { assertPsdTaskOptions, assertRecord, assertBinaryPayload } from './ipc-parameter-policy.js';
 
+function directPsdBytes(value) {
+    return ArrayBuffer.isView(value)
+        ? Buffer.from(value.buffer, value.byteOffset, value.byteLength)
+        : Buffer.from(value);
+}
+
 function deniedPsdSource(requestId, startTime) {
     return { success: false, status: 'error', message: '未授权的PSD操作来源', timestamp: new Date().toISOString(), requestId, processingTime: Date.now() - startTime };
 }
@@ -247,7 +253,7 @@ async function registerPSDApiHandlers() {
             const api = await loadPSDApi();
             console.log('收到PSD信息请求:', requestId);
             
-            const result = await api.getPSDInfo(options.fileBuffer);
+            const result = await api.getPSDInfo(directPsdBytes(options.fileBuffer));
             
             logger?.info(`PSD信息获取完成，耗时: ${Date.now() - startTime}ms`);
             
@@ -286,7 +292,7 @@ async function registerPSDApiHandlers() {
             const api = await loadPSDApi();
             console.log('收到PSD验证请求:', requestId);
             
-            const result = await api.validatePSDFile(options.fileBuffer);
+            const result = await api.validatePSDFile(directPsdBytes(options.fileBuffer));
             
             logger?.info(`PSD验证完成，耗时: ${Date.now() - startTime}ms`);
             
