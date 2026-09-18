@@ -178,6 +178,9 @@ app.on('browser-window-created', (_event, window) => {
     } else window.setBounds({ x: 0, y: 0, width: 1440, height: 1000 })
   }
 })
+// 仅同步执行构建产物的协议声明；所有上述隔离保护保持安装，不提前导入业务服务。
+require(path.join(path.dirname(process.env.MOMENTUM_TEST_ENTRY), 'application-scheme.cjs'))
+  .registerApplicationScheme({ app, protocol: electron.protocol })
 import(pathToFileURL(process.env.MOMENTUM_TEST_ENTRY).href).catch((error) => {
   console.error(error)
   app.exit(1)

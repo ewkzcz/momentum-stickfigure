@@ -11,8 +11,9 @@ test('会话响应策略：保持远程页面CSP和CORS原值，不替换视频�
     res.end('<!doctype html><title>headers retained</title><body>safe</body>')
   })
   server.listen(0, 'localhost'); await once(server, 'listening')
-  const desktop = await launchDesktop()
+  let desktop
   try {
+    desktop = await launchDesktop()
     const url = `http://localhost:${server.address().port}/video-policy`
     const result = await desktop.application.evaluate(async ({ net, session }, url) => {
       const responses = []
@@ -24,5 +25,11 @@ test('会话响应策略：保持远程页面CSP和CORS原值，不替换视频�
       return responses
     }, url)
     assert.deepEqual(result, [{ status: 200, csp, cors: 'https://allowed.invalid' }, { status: 403, csp, cors: 'https://allowed.invalid' }])
-  } finally { await desktop.close(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)) }
+  } finally {
+    // 启动或关闭失败也必须释放测试HTTP服务，保留原失败而不留下监听进程。
+    try { if (desktop) await desktop.close() } finally {
+      server.closeAllConnections()
+      await new Promise(resolve => server.close(resolve))
+    }
+  }
 })

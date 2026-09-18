@@ -1,13 +1,17 @@
 /**
  * 主进程入口：管理应用窗口、系统交互、内嵌网页以及各业务模块的进程通信。
  */
-import { app, BrowserWindow, dialog, Menu, MenuItem } from 'electron'
+import { app, BrowserWindow, dialog, Menu, MenuItem, protocol } from 'electron'
+import { ensureApplicationScheme, installApplicationProtocol } from './application-protocol.js'
 import { electronApp } from '@electron-toolkit/utils'
 import { createWindowController } from './window-controller.js'
 import { createBrowserViewController } from './browser-view-controller.js'
 import { getPicturesDirectory, registerDragToJianyingHandlers, unregisterDragToJianyingHandlers } from './drag-clipboard-handler.js'
 import { registerShellHandlers, unregisterShellHandlers } from './shell-handler.js'
 import path from 'path'
+
+// 生产ESM入口在ready前声明；受保护CJS启动器只复用同一模块已完成的真实声明。
+ensureApplicationScheme({ app, protocol })
 
 // 解决 Windows 下 Electron 中文乱码问题
 if (process.platform === 'win32') {
@@ -76,6 +80,7 @@ const {
  * 3、创建主窗口，绑定重新激活行为并注册快捷键。
  */
 app.whenReady().then(async () => {
+  installApplicationProtocol({ app, protocol, mainDirectory: __dirname })
   // 1、初始化系统识别信息与菜单外观。
   electronApp.setAppUserModelId('com.momentum.stickfigure.open')
   Menu.setApplicationMenu(null)

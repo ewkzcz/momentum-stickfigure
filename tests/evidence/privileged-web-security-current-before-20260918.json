@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "scope": "媒体提交后窗口网页安全修复前基线",
+  "head": "21138eb3e9d4fb792183e475857bc8481ea3824f",
+  "workingTreeCandidate": ["src/main/window-controller.js", "tests/privileged-web-security.test.mjs"],
+  "directory": "temp/privileged-web-security-current-before-acceptance-MRiqns",
+  "rawEvidence": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-X9HlnS/privileged-web-security.json",
+  "checks": {"referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 1, "referencesAfter": 0},
+  "reportedTests": {"total": 4, "passed": 1, "failed": 3, "durationMs": 1557.168166},
+  "businessFindings": ["主窗和预览实际webSecurity/sandbox开启断言通过", "主窗无CORS请求仍读取isolated-response", "预览无CORS请求仍读取isolated-response", "两个窗口有CORS正例亦可读取"],
+  "runnerFailure": "本次文件级失败还出现Node test runner Unable to deserialize cloned data due to invalid or unsupported version；不将其等同于第三个产品缺陷，不覆盖已输出的两个业务断言失败，不无限重跑",
+  "conclusion": "两窗跨域拒绝失败仍复现；下一单元需修复实际来源协议，不能仅提交webSecurity开关当作完成。还不能收工"
+}

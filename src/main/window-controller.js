@@ -7,6 +7,7 @@ import { is } from '@electron-toolkit/utils'
 import path from 'path'
 import os from 'node:os'
 import { pathToFileURL } from 'node:url'
+import { MAIN_APPLICATION_URL, PREVIEW_APPLICATION_URL } from './application-protocol.js'
 import { protectPrivilegedNavigation } from './privileged-navigation.js'
 import { registerTrustedWindow, isTrustedIpcSender } from './ipc-sender-policy.js'
 // 导入快捷键存储
@@ -43,10 +44,10 @@ export function createWindowController({ mainDirectory }) {
     }
   }
   ipcMain.on('environment:sync', environmentHandler)
-  const protectWindow = (window, preview = false) => {
-    const entry = is.dev && process.env.ELECTRON_RENDERER_URL
-      ? (preview ? `${process.env.ELECTRON_RENDERER_URL}/canvas-preview.html` : process.env.ELECTRON_RENDERER_URL)
-      : pathToFileURL(path.join(mainDirectory, preview ? '../renderer/canvas-preview.html' : '../renderer/index.html')).href
+  const windowEntry = (preview = false) => is.dev && process.env.ELECTRON_RENDERER_URL
+    ? (preview ? new URL('canvas-preview.html', `${process.env.ELECTRON_RENDERER_URL.replace(/\/$/, '')}/`).href : process.env.ELECTRON_RENDERER_URL)
+    : (preview ? PREVIEW_APPLICATION_URL : MAIN_APPLICATION_URL)
+  const protectWindow = (window, entry, preview = false) => {
     installPrivilegedPermissions(window.webContents.session)
     protectPrivilegedNavigation(window.webContents, entry)
     registerTrustedWindow(window.webContents, entry, preview ? 'preview' : 'main')
@@ -74,24 +75,25 @@ export function createWindowController({ mainDirectory }) {
         nodeIntegration: false,
         contextIsolation: true,
         enableRemoteModule: false,
-        webSecurity: false, // 允许跨域请求
+        webSecurity: true,
         devTools: true,
         webviewTag: true // 启用 webview 标签
       }
     })
 
-    protectWindow(mainWindow)
+    const entry = windowEntry()
+    protectWindow(mainWindow, entry)
 
     // 仅自有HTTP开发入口可以设置应用策略；第三方页面、媒体和预检保留原响应。
     mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
       const developmentEntry = is.dev && process.env.ELECTRON_RENDERER_URL
       const appEntries = developmentEntry
-        ? [new URL(developmentEntry).href, new URL('canvas-preview.html', `${developmentEntry.replace(/\/$/, '')}/`).href]
+        ? [new URL(windowEntry()).href, new URL(windowEntry(true)).href]
         : []
       const responseUrl = new URL(details.url)
       responseUrl.hash = ''
       responseUrl.search = ''
-      if (!appEntries.includes(responseUrl.href) || details.resourceType !== 'mainFrame') {
+      if (!['http:', 'https:'].includes(responseUrl.protocol) || !appEntries.includes(responseUrl.href) || details.resourceType !== 'mainFrame') {
         callback({ responseHeaders: details.responseHeaders })
         return
       }
@@ -99,9 +101,7 @@ export function createWindowController({ mainDirectory }) {
 
       // 设置 Content Security Policy
       responseHeaders['Content-Security-Policy'] = [
-        is.dev
-          ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: http://localhost:* ws://localhost:*; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:*; style-src 'self' 'unsafe-inline' http://localhost:*; img-src 'self' data: blob: https: http://localhost:*; font-src 'self' data:; connect-src 'self' https: http://localhost:* ws://localhost:*; frame-src 'self' https:; media-src * data: blob: https: http:; frame-ancestors 'none';"
-          : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; frame-src 'self' https:; media-src * data: blob: https: http:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+        "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: http://localhost:* ws://localhost:*; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:*; style-src 'self' 'unsafe-inline' http://localhost:*; img-src 'self' data: blob: https: http://localhost:*; font-src 'self' data:; connect-src 'self' https: http://localhost:* ws://localhost:*; frame-src 'self' https:; media-src * data: blob: https: http:; frame-ancestors 'none';"
       ]
 
       callback({ responseHeaders })
@@ -175,12 +175,8 @@ export function createWindowController({ mainDirectory }) {
 
     // 主窗和预览会话权限由protectWindow统一安装，默认拒绝系统敏感权限。
 
-    // 4、开发环境加载开发服务，打包环境加载本地入口。
-    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-    } else {
-      mainWindow.loadFile(path.join(mainDirectory, '../renderer/index.html'))
-    }
+    // 4、开发环境保留 Vite HTTP 入口；生产使用受限静态应用协议。
+    mainWindow.loadURL(entry)
 
     if (is.dev) mainWindow.webContents.openDevTools()
 
@@ -252,12 +248,13 @@ export function createWindowController({ mainDirectory }) {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
-            webSecurity: false,
+            webSecurity: true,
             devTools: true
           }
         })
 
-        protectWindow(canvasPreviewWindow, true)
+        const entry = windowEntry(true)
+        protectWindow(canvasPreviewWindow, entry, true)
 
         // 设置最高的置顶层级（screen-saver-level），确保始终在所有窗口之上
         canvasPreviewWindow.setAlwaysOnTop(true, 'screen-saver')
@@ -286,11 +283,7 @@ export function createWindowController({ mainDirectory }) {
         })
 
         // 加载预览页面
-        if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-          await canvasPreviewWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/canvas-preview.html`)
-        } else {
-          await canvasPreviewWindow.loadFile(path.join(mainDirectory, '../renderer/canvas-preview.html'))
-        }
+        await canvasPreviewWindow.loadURL(entry)
 
         console.log('[预览窗口] 创建成功')
         return { success: true, existed: false }
@@ -654,12 +647,13 @@ export function createWindowController({ mainDirectory }) {
                   nodeIntegration: false,
                   contextIsolation: true,
                   enableRemoteModule: false,
-                  webSecurity: false,
+                  webSecurity: true,
                   devTools: true
                 }
               })
 
-              protectWindow(canvasPreviewWindow, true)
+              const entry = windowEntry(true)
+              protectWindow(canvasPreviewWindow, entry, true)
 
               // 开发者工具策略
 
@@ -684,11 +678,7 @@ export function createWindowController({ mainDirectory }) {
               })
 
               // 加载预览页面
-              if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-                await canvasPreviewWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/canvas-preview.html`)
-              } else {
-                await canvasPreviewWindow.loadFile(path.join(mainDirectory, '../renderer/canvas-preview.html'))
-              }
+              await canvasPreviewWindow.loadURL(entry)
 
               console.log('[快捷键] 预览窗口创建成功')
             } catch (error) {
