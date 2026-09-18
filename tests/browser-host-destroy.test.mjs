@@ -1,4 +1,4 @@
-/** 网页宿主销毁回归：仅本地HTTP、真实预览窗口与原IPC，不修改后台保护。 */
+/** 网页宿主销毁回归：本地HTTP、真实主窗口及生产激活恢复，不修改后台保护。 */
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
@@ -42,27 +42,42 @@ for (const pending of [false, true]) {
       desktop = await launchDesktop()
       console.log(`网页宿主销毁证据：${desktop.root}`)
       for (let round = 0; round < 5; round++) {
-        const opened = desktop.application.waitForEvent('window')
-        assert.equal((await desktop.page.evaluate(() => window.electronAPI.invoke('canvas-preview-create'))).success, true)
-        const other = await opened
-        await other.waitForFunction(() => typeof window.electronAPI?.invoke === 'function')
+        const other = desktop.page
         const input = { url: `http://localhost:${server.address().port}/host-${round}`, partition: 'persist:regression-host-destroy' }
         hold = pending
         const requested = new Promise(resolve => { arrived = resolve })
         await other.evaluate(input => { window.__hostOpen = window.electronAPI.invoke('browserview:open', input).catch(() => null) }, input)
-        if (pending) await requested
+        if (pending) {
+          let timer
+          try {
+            await Promise.race([requested, other.evaluate(() => window.__hostOpen).then(result => {
+              throw new Error(`请求抵达前网页打开已结算：${JSON.stringify(result)}`)
+            }), new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('本地网页请求未抵达')), 10000) })])
+          } finally { clearTimeout(timer) }
+        }
         else assert.deepEqual(await other.evaluate(() => window.__hostOpen), { success: true })
         // 2、销毁真实宿主，不调用browserview:close或手动销毁内嵌网页。
         const closed = other.waitForEvent('close')
         await desktop.application.evaluate(({ BrowserWindow }) => {
-          const host = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('canvas-preview'))
-          if (!host) throw new Error('未找到真实预览宿主')
+          const host = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('/index.html'))
+          if (!host) throw new Error('未找到真实主窗口宿主')
           host.destroy()
         })
         await closed
         reply?.end('<!doctype html><title>late</title>')
         const resources = await released(desktop.application)
-        // 3、存活主窗口仍能以相同地址创建并正常关闭。
+        // 3、走生产activate入口重建合法主窗，不赋予预览窗口网页操作权限。
+        const reopening = desktop.application.waitForEvent('window', {
+          predicate: async page => {
+            try {
+              await page.waitForURL(url => url.protocol === 'momentum-app:' && url.pathname === '/index.html')
+              return true
+            } catch { return false }
+          }
+        })
+        await desktop.application.evaluate(({ app }) => app.emit('activate'))
+        desktop.page = await reopening
+        await desktop.page.waitForFunction(() => document.querySelector('#app')?.children.length > 0)
         hold = false
         assert.deepEqual(await desktop.page.evaluate(input => window.electronAPI.invoke('browserview:open', input), input), { success: true })
         assert.deepEqual(await desktop.page.evaluate(input => window.electronAPI.invoke('browserview:close', input), input), { success: true })

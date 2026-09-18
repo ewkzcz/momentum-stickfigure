@@ -22,7 +22,7 @@ const desktopWindow = {
 before(async () => {
   await mkdir(path.join(repository, 'temp'), { recursive: true })
   output = await mkdtemp(path.join(repository, 'temp/action-shared-refs-'))
-  globalThis.__sharedRefTestBoundary = { messages, handlers, desktopWindow }
+  globalThis.__sharedRefTestBoundary = { messages, handlers, desktopWindow, showOpenDialog: async () => ({ canceled: true, filePaths: [] }) }
   const exports = ['useLayerTree', 'useCanvasRender', 'usePresetData', 'usePreviewSyncSubscriptions', 'useDragHandlers', 'usePartImageDrag']
   await build({
     configFile: false, logLevel: 'error', ssr: { noExternal: ['naive-ui', 'electron'] },
@@ -36,7 +36,7 @@ before(async () => {
       load(id) {
         if (id === '\0shared-ref-entry') return exports.map(name => `export { ${name} } from ${JSON.stringify(path.join(pageDirectory, `composables/${name}.js`))}`).join('\n') + `\nexport { registerDragToJianyingHandlers } from ${JSON.stringify(path.join(repository, 'src/main/drag-clipboard-handler.js'))}\nexport { registerTrustedWindow } from ${JSON.stringify(path.join(repository, 'src/main/ipc-sender-policy.js'))}`
         if (id === '\0naive-ui') return `const message = new Proxy({}, { get: (_, method) => (...args) => globalThis.__sharedRefTestBoundary.messages.push({ method, args }) }); export const useMessage = () => message; export const useDialog = () => ({});`
-        if (id === '\0electron') return `const boundary = globalThis.__sharedRefTestBoundary; export const BrowserWindow = { fromWebContents: () => boundary.desktopWindow }; export const ipcMain = { handle: (name, callback) => boundary.handlers.set(name, callback) }; export const clipboard = { writeText() {} }; export const nativeImage = { createFromDataURL: () => ({ resize() { return this } }) };`
+        if (id === '\0electron') return `const boundary = globalThis.__sharedRefTestBoundary; export const BrowserWindow = { fromWebContents: () => boundary.desktopWindow }; export const dialog = { showOpenDialog: (...args) => boundary.showOpenDialog(...args) }; export const ipcMain = { handle: (name, callback) => boundary.handlers.set(name, callback) }; export const clipboard = { writeText() {} }; export const nativeImage = { createFromDataURL: () => ({ resize() { return this } }) };`
       }
     }],
     build: { ssr: 'shared-ref-entry', outDir: output, emptyOutDir: false, rollupOptions: { output: { entryFileNames: 'modules.mjs' } } }
@@ -170,6 +170,18 @@ test('早期创建的真实拖拽读取图层优先级，主进程强制重命�
   setGlobal(t, 'localStorage', { getItem: () => JSON.stringify(config) })
   const sender = { mainFrame: { url: 'file:///isolated/index.html' }, isDestroyed: () => false, once() {} }
   modules.registerTrustedWindow(sender, sender.mainFrame.url, 'main')
+  // 仅替换原生目录选择边界；输出授权、目录身份校验及写入仍走生产策略。
+  const boundary = globalThis.__sharedRefTestBoundary
+  const originalShowOpenDialog = boundary.showOpenDialog
+  let directorySelections = 0
+  boundary.showOpenDialog = async (owner, options) => {
+    assert.equal(owner, desktopWindow)
+    assert.equal(options.defaultPath, root)
+    assert.deepEqual(options.properties, ['openDirectory'])
+    directorySelections++
+    return { canceled: false, filePaths: [root] }
+  }
+  t.after(() => { boundary.showOpenDialog = originalShowOpenDialog })
   setGlobal(t, 'window', { electronAPI: { createTempFileAndStartDrag: async (...args) => {
     calls.push(args)
     return handlers.get('create-temp-file-and-start-drag')({ sender, senderFrame: sender.mainFrame }, ...args)
@@ -187,6 +199,7 @@ test('早期创建的真实拖拽读取图层优先级，主进程强制重命�
   tree.layerTreeData.value = tree.buildLayerTree(deps.currentPsdData.value)
   const initial = await drag.createTempFileAndDrag()
   assert.equal(initial.success, true)
+  assert.equal(directorySelections, 1, '首次拖拽必须经生产策略确认配置输出目录')
   assert.equal(calls[0][3].forceRename, false, '部件模式尊重覆盖设置')
   assert.equal(calls[0][3].psdBaseName, '原始_完整_名称')
   assert.equal(path.dirname(initial.filePath), path.join(root, '原始_完整_名称'))
@@ -209,6 +222,7 @@ test('早期创建的真实拖拽读取图层优先级，主进程强制重命�
     assert.equal(calls.at(-1)[3].forceRename, true)
     assert.match(calls.at(-1)[2], /^原始_完整_名称_前手_\d+\.png$/)
   }
+  assert.equal(directorySelections, 1, '同一窗口后续拖拽复用生产策略登记的目录授权')
   assert.equal(currentPsdFile.value.name, '原始_完整 名称.psd', '输出名称清理不得修改 PSD 原名')
   assert.equal(config.forceRename, false, '导出不得修改持久化覆盖设置')
 })

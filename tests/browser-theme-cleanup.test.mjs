@@ -4,7 +4,7 @@ import { controllerFixture } from './helpers/browser-controller-fixture.mjs'
 for (const action of ['close', 'replace', 'navigation', 'reload', 'host', 'view', 'unregister']) {
   test(`主题任务释放：${action}取消延迟任务且不改变后续主题`, async () => {
     const f = await controllerFixture()
-    await f.invoke('open', { theme: 'dark', nativeTheme: true })
+    assert.equal((await f.invoke('open', { theme: 'dark', nativeTheme: true })).success, true)
     if (action === 'navigation') f.views[0].webContents.emit('did-navigate')
     if (action === 'reload') await f.invoke('reload')
     if (action === 'replace') await f.invoke('open', { theme: 'light', nativeTheme: true })
@@ -22,9 +22,10 @@ for (const action of ['close', 'replace', 'navigation', 'reload', 'host', 'view'
 
 test('主题任务：有效视图仍应用主题且跨窗口关闭互不取消', async () => {
   const f = await controllerFixture()
-  const other = new f.Host()
-  await f.invoke('open', { theme: 'dark', nativeTheme: true })
-  await f.invoke('open', { theme: 'light', nativeTheme: true }, other)
+  // 两个宿主均通过真实策略登记为main，检验窗口隔离而非绕过来源校验。
+  const other = f.createMainHost()
+  assert.equal((await f.invoke('open', { theme: 'dark', nativeTheme: true })).success, true)
+  assert.equal((await f.invoke('open', { theme: 'light', nativeTheme: true }, other)).success, true)
   await f.invoke('close')
   assert.equal(f.timers.size, 3)
   await f.flush()
