@@ -199,7 +199,7 @@ export function usePsdHistory({ psdFiles, processFile, message }) {
    * 处理流程：
    * 1、读取历史并检查桌面文件接口
    * 2、过滤已打开路径，逐个检查、读取和处理剩余文件
-   * 3、保留可用路径并汇总加载、已打开和跳过数量
+   * 3、保留全部历史，汇总加载、已打开和跳过数量；失败需原生选择重新确认。
    */
   const loadPsdFromHistory = async () => {
     // 1、历史或桌面接口不可用时提前反馈
@@ -227,12 +227,10 @@ export function usePsdHistory({ psdFiles, processFile, message }) {
       // 2、先过滤出尚未打开的文件，再逐个验证和加载
       const toLoad = []
       const alreadyOpened = []
-      const validPaths = []
       
       for (const filePath of history) {
         if (openedPaths.has(filePath)) {
           alreadyOpened.push(filePath)
-          validPaths.push(filePath) // 已打开的仍保留在历史中
         } else {
           toLoad.push(filePath)
         }
@@ -265,7 +263,7 @@ export function usePsdHistory({ psdFiles, processFile, message }) {
           const exists = await window.electronAPI?.checkFileExists?.(filePath)
           
           if (!exists) {
-            console.log(`⏭️ 文件不存在，跳过: ${filePath}`)
+            console.log(`⏭️ 文件未获授权或暂不可用，保留历史: ${filePath}`)
             skipCount++
             continue
           }
@@ -289,7 +287,6 @@ export function usePsdHistory({ psdFiles, processFile, message }) {
           
           // 处理文件
           await processFile(file, false)
-          validPaths.push(filePath)
           successCount++
         } catch (error) {
           console.error(`❌ 加载文件失败: ${filePath}`, error)
@@ -297,13 +294,10 @@ export function usePsdHistory({ psdFiles, processFile, message }) {
         }
       }
       
-      // 3、清理进度提示，删除不可用历史并汇总本轮结果
+      // 3、失败包括未授权、取消及临时读取错误，不能据此删除或缩减历史文本。
       message.destroyAll()
-      
-      // 更新历史记录，只保留有效的路径
-      if (validPaths.length !== history.length) {
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(validPaths))
-        console.log('🔄 已清理无效的历史记录')
+      if (skipCount > 0) {
+        message.warning('部分历史文件未获授权或暂不可读。请使用“上传”的原生文件选择重新确认；历史记录已保留。')
       }
       
       // 显示最终结果

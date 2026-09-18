@@ -60,6 +60,23 @@ test('应用协议映射：固定静态根、规范路径、响应与注册顺�
         assert.equal((await handler({ url, method: 'GET' })).status, 404, url)
       }
     })
+    await context.test('仅固定入口的 #/ 路由重载映射原入口，资源解析及其他边界保持拒绝', async () => {
+      for (const entry of [MAIN_APPLICATION_URL, PREVIEW_APPLICATION_URL]) {
+        for (const fragment of ['#/login', '#/action-expression', '#/home?tab=中文', '#/../../outside.js']) {
+          const url = entry + fragment
+          assert.equal(await resolveApplicationResource(root, url), null, '底层文件解析仍不接受hash')
+          const response = await handler({ url, method: 'GET' })
+          assert.equal(response.status, 200)
+          assert.equal(await response.text(), await (await handler({ url: entry, method: 'GET' })).text(), 'hash仅客户端路由，不能选择其他文件')
+          assert.equal(response.headers.get('Content-Security-Policy'), APPLICATION_CSP)
+        }
+      }
+      for (const url of ['momentum-app://bundle/index.html?x=1#/login', 'momentum-app://evil/index.html#/login',
+        'momentum-app://bundle/assets/app.js#/login', 'momentum-app://bundle/missing.html#/login',
+        'momentum-app://bundle/assets/../index.html#/login', 'momentum-app://bundle/index.html#other']) {
+        assert.equal((await handler({ url, method: 'GET' })).status, 404, url)
+      }
+    })
     await context.test('canonical 边界拒绝目录符号链接越界并允许根内资源', async () => {
       const outside = path.join(temporary, 'renderer-outside')
       await mkdir(outside)

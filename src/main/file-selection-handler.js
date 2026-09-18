@@ -11,6 +11,7 @@ import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertDialogOptions, assertFileName, assertText } from './ipc-parameter-policy.js'
 import { assertImageBase64 } from './template-image-parameters.js'
 import { grantMediaFiles, saveTemporaryImage } from './local-media-authorization.js'
+import { grantSelectedReads } from './file-access-policy.js'
 
 /**
  * 注册文件选择、临时图片保存与目录打开接口。
@@ -47,6 +48,8 @@ export function registerFolderSelectHandler() {
         return { success: false, canceled: true, filePaths: [] }
       }
       
+      if (!isTrustedIpcSender(event)) throw new Error('文件选择来源已失效')
+      grantSelectedReads(event.sender, result.filePaths, { skipMissing: true })
       console.log('选择的PSD文件:', result.filePaths)
       
       return { 
@@ -129,7 +132,13 @@ export function registerFolderSelectHandler() {
         return { success: false, canceled: true, paths: [] }
       }
       const paths = result.filePaths
-      await grantMediaFiles(event.sender, paths.filter(file => /\.(png|jpe?g|webp)$/i.test(file)))
+      if (!isTrustedIpcSender(event)) throw new Error('文件选择来源已失效')
+      // 两种能力分别登记；媒体校验失败时不登记通用读取，读取登记失败则撤销本次媒体能力。
+      const media = await grantMediaFiles(event.sender, paths.filter(file => /\.(png|jpe?g|webp)$/i.test(file)))
+      try {
+        if (!isTrustedIpcSender(event)) throw new Error('文件选择来源已失效')
+        grantSelectedReads(event.sender, paths)
+      } catch (error) { media.rollback(); throw error }
       console.log('选择的文件:', paths)
       return {
         success: true,

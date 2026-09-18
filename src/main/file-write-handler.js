@@ -5,7 +5,7 @@ import path from 'path'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 import { assertText, assertBinaryPayload } from './ipc-parameter-policy.js'
 import { assertImageBase64 } from './template-image-parameters.js'
-import { assertOwnedFilePath, writeOwnedFile } from './file-access-policy.js'
+import { assertOwnedFilePath, writeOwnedFile, grantSelectedReads } from './file-access-policy.js'
 
 /**
  * 注册图片写入与拖入文件落盘接口。
@@ -117,6 +117,7 @@ export function registerFileWriteHandler() {
         ? Buffer.from(arrayBuffer.buffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
         : Buffer.from(arrayBuffer)
       writeOwnedFile(filePath, buffer)
+      grantSelectedReads(event.sender, [filePath])
 
       console.log('拖拽文件已保存到:', filePath)
       return {

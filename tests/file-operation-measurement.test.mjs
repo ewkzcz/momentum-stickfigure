@@ -13,13 +13,23 @@ test('大数据文件操作实测：六百万字符存储和8MiB读写的IPC影�
   const desktop = await launchDesktop()
   const result = { operations: {}, passed: false }
   try {
-    const measured = await desktop.page.evaluate(async root => {
+    const measured = {}
+    for (const operation of ['storage', 'write', 'read']) {
+      if (operation === 'read') {
+        // 原生选择边界沿用隔离替身；真实生产授读发生在计时之前，不从写入隐式继承权限。
+        for (let index = 0; index < 20; index++) {
+          const file = path.join(desktop.root, `measure-${index}.bin`)
+          await desktop.application.evaluate((_electron, selected) => { globalThis.__momentumTest.openPaths = [selected] }, file)
+          assert.deepEqual(await desktop.page.evaluate(() => window.electronAPI.invoke('select-file', {})), {
+            success: true, canceled: false, paths: [file], path: file
+          })
+        }
+      }
+      measured[operation] = await desktop.page.evaluate(async ({ root, operation }) => {
       const text = 'x'.repeat(6000000)
       const binary = 'a'.repeat(8 * 1024 * 1024)
       const encoded = btoa(binary)
-      const results = {}
-      for (const operation of ['storage', 'write', 'read']) {
-        const durations = [], probes = []
+      const durations = [], probes = []
         for (let index = 0; index < 20; index++) {
           const start = performance.now()
           const file = `${root}/measure-${index}.bin`
@@ -37,11 +47,10 @@ test('大数据文件操作实测：六百万字符存储和8MiB读写的IPC影�
           } else if (!value.success) throw new Error(value.error || '文件操作失败')
           await probe
         }
-        results[operation] = { durations, probes }
-      }
-      if (!(await window.electronAPI.storage.removeItem('isolated-large-measurement')).success) throw new Error('测量键清理失败')
-      return results
-    }, desktop.root)
+      return { durations, probes }
+      }, { root: desktop.root, operation })
+    }
+    assert.equal((await desktop.page.evaluate(() => window.electronAPI.storage.removeItem('isolated-large-measurement'))).success, true, '测量键清理失败')
     for (const [name, values] of Object.entries(measured)) result.operations[name] = { duration: summarize(values.durations), ipc: summarize(values.probes), raw: values }
     result.passed = true
     console.log(JSON.stringify(Object.fromEntries(Object.entries(result.operations).map(([name, value]) => [name, { duration: value.duration, ipc: value.ipc }]))))

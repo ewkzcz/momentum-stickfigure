@@ -46,6 +46,7 @@ test('文件写入：Base64、拖入字节、错误与重启持久化', { timeou
     const second = await drag('原始/文件?:名.bin', [9, 8, 7])
     assert.deepEqual(second, { success: true, filePath: draggedPath, originalName: '原始/文件?:名.bin' })
     assert.deepEqual([...await readFile(draggedPath)], [9, 8, 7])
+    assert.deepEqual(await desktop.page.evaluate(async filePath => Array.from(await window.electronAPI.readFile(filePath)), draggedPath), [9, 8, 7], '成功拖入写盘应登记新的精确读取身份')
 
     // 3、非法参数和父目录冲突必须返回失败对象，而非抛出或伪造成功。
     failed(await desktop.page.evaluate(() => window.electronAPI.writeFile()))
@@ -74,6 +75,13 @@ test('文件写入：Base64、拖入字节、错误与重启持久化', { timeou
     assert.equal(await readFile(target, 'utf8'), text)
     assert.equal(await readFile(savedPath, 'utf8'), '第二份')
     assert.deepEqual([...await readFile(draggedPath)], [9, 8, 7])
+    // 重启只保留磁盘数据，不恢复权限；通过原生选择重新确认后核验旧字节。
+    const selected = [target, savedPath, draggedPath]
+    assert.equal(await desktop.page.evaluate(filePath => window.electronAPI.readFile(filePath), target), null)
+    await desktop.application.evaluate((_electron, files) => { globalThis.__momentumTest.openPaths = files }, selected)
+    assert.deepEqual(await desktop.page.evaluate(() => window.fileSystem.selectFile({ multiple: true })), {
+      success: true, canceled: false, paths: selected, path: null
+    })
     for (const [filePath, bytes] of [[target, [...Buffer.from(text)]], [savedPath, [...Buffer.from('第二份')]], [draggedPath, [9, 8, 7]]]) {
       assert.deepEqual(await desktop.page.evaluate(async filePath => Array.from(await window.electronAPI.readFile(filePath)), filePath), bytes)
     }

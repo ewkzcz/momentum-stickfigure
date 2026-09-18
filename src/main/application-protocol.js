@@ -78,7 +78,11 @@ export function createApplicationProtocolHandler(rendererRoot) {
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return new globalThis.Response(null, { status: 405, headers: { ...headers, Allow: 'GET, HEAD' } })
     }
-    const resource = await resolveApplicationResource(root, request.url)
+    // Electron 自定义协议重载会保留 hash 路由；仅固定 HTML 入口的 #/ 路由不参与资源寻址。
+    // 不归一化路径，不剥离 query，也不给其他静态资源或任意 hash 增加回退。
+    const entryRoute = typeof request.url === 'string' &&
+      [MAIN_APPLICATION_URL, PREVIEW_APPLICATION_URL].find(entry => request.url.startsWith(`${entry}#/`))
+    const resource = await resolveApplicationResource(root, entryRoute || request.url)
     if (!resource) return new globalThis.Response(null, { status: 404, headers })
     try {
       // 同一个可信构建根也用于 HEAD；不存在任意路径兜底或 index 回退。

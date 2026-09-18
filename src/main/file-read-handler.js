@@ -1,13 +1,13 @@
 /** 文件读取处理器：保留本地存在性检查、原始字节读取及失败返回约定。 */
 import { ipcMain } from 'electron'
-import fs from 'fs'
+import { checkSelectedRead, readSelectedFile } from './file-access-policy.js'
 import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 /**
  * 注册本地文件存在性检查与读取接口。
  * 处理流程：
- * 1、查询路径存在性，异常时返回否定结果。
- * 2、读取文件字节，文件缺失或读取失败时返回空值。
+ * 1、核验调用窗口的精确文件授权及当前身份，异常时返回否定结果。
+ * 2、读取已授权文件字节，文件缺失或读取失败时返回空值。
  */
 export function registerFileOperationHandlers() {
   // 1、检查文件是否存在。
@@ -20,7 +20,7 @@ export function registerFileOperationHandlers() {
     if (!isTrustedIpcSender(event)) return false
     try {
       // 1、将路径检查结果直接返回页面。
-      const exists = fs.existsSync(filePath)
+      const exists = checkSelectedRead(event.sender, filePath)
       console.log('检查文件存在:', filePath, exists)
       return exists
     } catch (error) {
@@ -39,14 +39,10 @@ export function registerFileOperationHandlers() {
   ipcMain.handle('read-file', async (event, filePath) => {
     if (!isTrustedIpcSender(event)) return null
     try {
-      // 1、确认路径存在，避免无效文件读取。
+      // 1、精确授权及身份检查先于读取，失败保持 null 契约。
       console.log('读取文件:', filePath)
-      if (!fs.existsSync(filePath)) {
-        console.error('文件不存在:', filePath)
-        return null
-      }
-      // 2、保留文件原始字节供页面按用途解析。
-      const buffer = fs.readFileSync(filePath)
+      // 2、从禁止跟随最终符号链接的描述符取得原始字节。
+      const buffer = readSelectedFile(event.sender, filePath)
       console.log('文件读取成功:', filePath)
       return buffer
     } catch (error) {

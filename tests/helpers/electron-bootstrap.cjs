@@ -119,7 +119,11 @@ for (const name of ['rename', 'copyFile', 'link', 'symlink']) {
 for (const name of ['open', 'openSync', 'createWriteStream']) {
   const original = fs[name]
   fs[name] = function (target, flags, ...args) {
-    if (name === 'createWriteStream' || typeof flags === 'number' || /[wa+]/.test(flags || '')) assertWritable(target)
+    // 数字 flags 仅豁免明确的只读组合；写访问、创建/截断及未知位仍检查隔离边界。
+    const readOnlyMask = fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK
+    const numericReadOnly = typeof flags === 'number' && Number.isSafeInteger(flags) && flags >= 0 &&
+      flags <= 0x7fffffff && (flags & ~readOnlyMask) === fs.constants.O_RDONLY
+    if (name === 'createWriteStream' || (typeof flags === 'number' && !numericReadOnly) || /[wa+]/.test(flags || '')) assertWritable(target)
     return original.call(fs, target, flags, ...args)
   }
 }
