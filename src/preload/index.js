@@ -180,6 +180,11 @@ contextBridge.exposeInMainWorld('creativeApi', {
   exportScript: (options) => ipcRenderer.invoke('creative-script-export', options),
   saveImage: (options) => ipcRenderer.invoke('creative-save-image', options),
   listModels: (options) => ipcRenderer.invoke('creative-list-models', options),
+  listHistory: (options) => ipcRenderer.invoke('creative-history-list', options),
+  addHistory: (options) => ipcRenderer.invoke('creative-history-add', options),
+  updateHistory: (options) => ipcRenderer.invoke('creative-history-update', options),
+  deleteHistory: (options) => ipcRenderer.invoke('creative-history-delete', options),
+  readHistoryMedia: (options) => ipcRenderer.invoke('creative-history-media', options),
   onTextDelta: (callback) => subscribeCreative('creative-llm-delta', callback),
   onAgentEvent: (callback) => subscribeCreative('creative-agent-event', callback)
 })

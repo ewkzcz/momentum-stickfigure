@@ -19,11 +19,11 @@ export const RECOMMENDED_SKILLS = [
 ]
 
 export const USAGE_STEPS = [
-  { title: '配置文本模型', text: '在本页左侧填写文本模型的地址、密钥和模型名，点“测试连接”。Agent 和剧本创作台都靠它思考。' },
+  { title: '配置文本模型', text: '在「设置 → 文本模型设置」中填写文本模型的地址、密钥和模型名，点“测试连接”。Agent 和剧本创作台都靠它思考。' },
   { title: '获取 Skill', text: '点“安装内置 Skills”得到 3 个现成的；或在“获取更多”里打开 GitHub 仓库，下载 ZIP 解压。' },
   { title: '放进文件夹', text: '把含 SKILL.md 的那个目录（见每项的“放入目录”）整个复制到 Skills 文件夹，例如 skills/seedance/SKILL.md。' },
   { title: '刷新并启用', text: '点“刷新”，在列表中打开开关。Skill 默认不启用，只有你打开的才会被使用。' },
-  { title: '去对应入口使用', text: 'AI 生图插件 →「Agent 增强」；AI 视频创作 →「Agent 增强」；剧本创作台 → 项目设定里勾选剧本 Skills。' }
+  { title: '去对应入口使用', text: 'AI绘图 →「Agent 增强」；视频创作台 →「Agent 增强」；剧本创作台 → 项目设定里勾选剧本 Skills。' }
 ]
 
 // 示例对话展示的是“用户怎么说、Agent 怎么做”，不是成品。

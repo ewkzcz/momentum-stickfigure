@@ -8,8 +8,6 @@
         <n-button text type="primary" size="small" @click="router.push({ name: 'settings-creative' })">管理 Skills</n-button>
       </n-space>
       <n-space align="center" :size="12">
-        <n-select v-if="mode === 'image'" v-model:value="aspectRatio" :options="RATIO_OPTIONS" size="small" style="width: 130px;" />
-        <n-text v-else depth="3" class="video-params">{{ videoParamsText }}</n-text>
         <n-tooltip>
           <template #trigger>
             <n-space align="center" :size="4"><n-switch v-model:value="allowGenerate" size="small" /><n-text>自动生成</n-text></n-space>
@@ -18,6 +16,9 @@
         </n-tooltip>
       </n-space>
     </div>
+
+    <ImageParamsBar v-if="mode === 'image'" v-model:ratio="aspectRatio" :disabled="running" />
+    <VideoParamsBar v-else :disabled="running" />
 
     <div ref="timelineRef" class="agent-timeline">
       <div v-if="!timeline.length" class="agent-empty">
@@ -70,8 +71,10 @@
 /** 图片/视频创作 Agent 面板：用大白话描述需求，Agent 结合已启用 Skills 写提示词并调用生成。 */
 import { ref, computed, watch, nextTick, onActivated, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMessage, NSpace, NText, NTag, NButton, NSelect, NSwitch, NTooltip, NImage, NInput, NSpin } from 'naive-ui'
+import { useMessage, NSpace, NText, NTag, NButton, NSwitch, NTooltip, NImage, NInput, NSpin } from 'naive-ui'
 import SkillUsageExample from './SkillUsageExample.vue'
+import ImageParamsBar from './ImageParamsBar.vue'
+import VideoParamsBar from './VideoParamsBar.vue'
 import { useAgentRun } from './useAgentRun.js'
 import { useCreativeConfig } from './useCreativeConfig.js'
 
@@ -79,7 +82,6 @@ const props = defineProps({ mode: { type: String, required: true } })
 const emit = defineEmits(['handoff'])
 
 const HANDOFF_KEY = 'creative-handoff'
-const RATIO_OPTIONS = ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '21:9'].map((value) => ({ label: `比例 ${value}`, value }))
 const router = useRouter()
 const message = useMessage()
 const { buildAgentImageConfig, buildAgentVideoConfig, refreshSkills } = useCreativeConfig()
@@ -92,10 +94,6 @@ const timelineRef = ref(null)
 const placeholder = computed(() => props.mode === 'image'
   ? '用大白话描述想要的图片，例如：画一个在雨夜霓虹街头撑伞的火柴人，做成电影海报（Enter 发送，Shift+Enter 换行）'
   : '描述想要的视频，例如：一个简笔画小人从左边跑进画面，停下来挥手，镜头缓慢推近（Enter 发送）')
-const videoParamsText = computed(() => {
-  const video = buildAgentVideoConfig()
-  return `${video.model} · ${video.resolution} · ${video.duration}秒 · ${video.aspectRatio}（在“直接生成”中修改）`
-})
 
 /** 发送；处理流程：1、清空输入框并交给运行控制器。 */
 const handleSend = () => {

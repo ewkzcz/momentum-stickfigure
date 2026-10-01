@@ -6,7 +6,7 @@
  *   script-projects  剧本项目文件夹（读写项目、导出）
  *   gemini-output    AI 生图输出目录（Agent 生成图片与保存）
  */
-import { ipcMain } from 'electron';
+import { app, ipcMain } from 'electron';
 import axios from 'axios';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,6 +19,7 @@ import { callLlm } from './llm-client.js';
 import { listSkills, readSkill, readSkillFile, installBuiltinSkills, buildSkillContext } from './skill-store.js';
 import { runCreativeAgent } from './agent-runner.js';
 import { listProjects, loadProject, saveProject, deleteProject, exportMarkdown } from './script-store.js';
+import { addRecord, listRecords, updateRecord, deleteRecords, readMedia } from './history-store.js';
 import { buildApiUrl } from '../../shared/api-url.js';
 
 const CHANNELS = [
@@ -26,8 +27,12 @@ const CHANNELS = [
   'creative-llm-test', 'creative-llm-generate', 'creative-agent-run', 'creative-cancel',
   'creative-script-list', 'creative-script-load', 'creative-script-save', 'creative-script-delete', 'creative-script-export',
   'creative-save-image',
-  'creative-list-models'
+  'creative-list-models',
+  'creative-history-list', 'creative-history-add', 'creative-history-update', 'creative-history-delete', 'creative-history-media'
 ];
+
+/** 历史记录目录；处理流程：1、放在应用数据目录下，随应用配置一起隔离。 */
+const historyRoot = () => path.join(app.getPath('userData'), 'creative-history');
 const running = new Map();
 
 /**
@@ -137,7 +142,7 @@ export function registerCreativeHandlers() {
     const root = skillIds?.length ? await authorizedRoot(event, 'skills-root', skillsRoot) : '';
     let image = imageConfig;
     if (mode === 'image' && allowGenerate) {
-      // 图片生成需要日志目录授权，与 AI 生图插件一致。
+      // 图片生成需要日志目录授权，与 AI绘图一致。
       assertGeminiOptions(imageConfig);
       const output = await prepareOutput(event, imageConfig);
       image = { ...imageConfig, logPath: output.logFile, savePath: output.outputDir };
@@ -194,6 +199,50 @@ export function registerCreativeHandlers() {
   });
 
   registerModelListHandler();
+  registerHistoryHandlers();
+}
+
+/**
+ * 注册生成记录通道。
+ * 处理流程：
+ * 1、查询、新增、改名/收藏/置顶、删除（含批量）、读取原图。
+ */
+function registerHistoryHandlers() {
+  // 1、生成记录。
+  handle('creative-history-list', async (_event, { kind, mode, keyword, favoriteOnly }) => {
+    if (kind !== undefined) assertEnum(kind, ['image', 'video'], '记录类型');
+    if (mode !== undefined) assertEnum(mode, ['direct', 'agent'], '生成方式');
+    if (keyword !== undefined) assertText(keyword, 200, '关键词');
+    return listRecords(historyRoot(), { kind, mode, keyword, favoriteOnly: favoriteOnly === true });
+  });
+  handle('creative-history-add', async (_event, { record }) => {
+    assertRecord(record, '历史记录');
+    assertEnum(record.kind, ['image', 'video'], '记录类型');
+    assertEnum(record.mode, ['direct', 'agent'], '生成方式');
+    for (const key of ['title', 'prompt', 'input', 'reply']) if (record[key] !== undefined) assertText(record[key], 512 * 1024, key);
+    for (const key of ['images', 'videos']) {
+      if (record[key] === undefined) continue;
+      if (!Array.isArray(record[key]) || record[key].length > 20) throw new TypeError(`${key}参数无效`);
+      for (const item of record[key]) assertText(item, 64 * 1024 * 1024, key);
+    }
+    if (record.params !== undefined) assertRecord(record.params, '生成参数');
+    return addRecord(historyRoot(), record);
+  });
+  handle('creative-history-update', async (_event, { id, patch }) => {
+    assertText(id, 64, '记录ID');
+    assertRecord(patch, '修改内容');
+    if (patch.title !== undefined) assertText(patch.title, 100, '名称');
+    return updateRecord(historyRoot(), id, patch);
+  });
+  handle('creative-history-delete', async (_event, { ids }) => {
+    if (!Array.isArray(ids) || ids.length === 0 || ids.length > 2000) throw new TypeError('删除列表无效');
+    for (const id of ids) assertText(id, 64, '记录ID');
+    return { removed: deleteRecords(historyRoot(), ids) };
+  });
+  handle('creative-history-media', async (_event, { id, index }) => {
+    assertText(id, 64, '记录ID');
+    return readMedia(historyRoot(), id, index);
+  });
 }
 
 /**

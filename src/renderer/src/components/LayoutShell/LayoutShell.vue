@@ -192,13 +192,14 @@ const iconMap = {
   'dialog': '💬',
   'dialog-frame': '🖼️',
   'generation': '🤖',
-  'generate': '🍌',
+  'generate': '🎨',
   'hd-toolkit': '🪄',
   'video-subtitle-ocr': '📝',
   'script-studio': '📜',
   'video-studio': '🎬',
   'settings-creative': '🧩',
   'settings-video': '🎬',
+  'settings-llm': '💬',
   'settings': '⚙️',
   'settings-stickfigure': '🎨',
   'settings-hotkeys': '⌨️',
@@ -281,24 +282,24 @@ const menuOptions = [
     key: 'generation',
     children: [
       {
-        label: '图像处理插件',
-        key: 'image-processing'
-      },
-      {
-        label: 'AI生图插件',
+        label: 'AI绘图',
         key: 'generate'
-      },
-      {
-        label: '抠图高清插件',
-        key: 'hd-toolkit'
       },
       {
         label: '剧本创作台',
         key: 'script-studio'
       },
       {
-        label: 'AI视频创作',
+        label: '视频创作台',
         key: 'video-studio'
+      },
+      {
+        label: '图像处理',
+        key: 'image-processing'
+      },
+      {
+        label: '抠图高清',
+        key: 'hd-toolkit'
       }
     ]
   },
@@ -323,7 +324,11 @@ const menuOptions = [
         key: 'settings-video'
       },
       {
-        label: 'Skills与模型设置',
+        label: '文本模型设置',
+        key: 'settings-llm'
+      },
+      {
+        label: 'Skills设置',
         key: 'settings-creative'
       },
       {

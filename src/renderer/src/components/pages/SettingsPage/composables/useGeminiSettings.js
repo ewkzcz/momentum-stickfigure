@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import { normalizeApiBaseUrl } from '@shared/api-url.js'
 import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-config.js'
 import { createGeminiBackupSnapshot } from './settingsArchive.js'
+import { useImageParams } from '@renderer/components/creative/useImageParams.js'
 
 /**
  * 创建生图设置状态与操作。
@@ -97,8 +98,9 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
         return
       }
 
-      // 2、保存时统一编辑与生成结果的输出位置。
+      // 2、保存时统一编辑与生成结果的输出位置；模型等参数以生图页共享的最新值为准。
       geminiConfig.editOutputDir = geminiConfig.outputDir
+      Object.assign(geminiConfig, useImageParams())
 
       // 保存配置到本地存储（包括用户选择的baseUrl）
       localStorage.setItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY, JSON.stringify(geminiConfig))

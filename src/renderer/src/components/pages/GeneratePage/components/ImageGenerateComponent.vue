@@ -123,6 +123,9 @@
               </div>
             </div>
 
+            <!-- 模型参数：与 Agent 增强共用 -->
+            <ImageParamsBar :disabled="isGenerating" />
+
             <!-- 灵感、比例和生成按钮 -->
             <div>
               <n-space :size="12" align="center" style="width: 100%;">
@@ -241,6 +244,9 @@ import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-c
 import { buildGeminiDragConfig } from '@renderer/utils/geminiOutputConfig.js'
 import { filterGeminiExceptionMessage } from '@renderer/utils/errorFilters.js'
 import { buildImageModelParams } from '@renderer/utils/imageRequestOptions.js'
+import { IMAGE_RATIO_OPTIONS } from '@shared/image-models.js'
+import ImageParamsBar from '@renderer/components/creative/ImageParamsBar.vue'
+import { saveHistory } from '@renderer/components/creative/useGenerationHistory.js'
 import PromptTemplateTrigger from '@renderer/components/shared/PromptTemplateTrigger.vue'
 
 // 定义事件
@@ -391,19 +397,8 @@ const promptTemplates = [
   }
 ]
 
-// 宽高比选项配置
-const aspectRatioOptions = [
-  { label: '原始尺寸', value: 'original' },
-  { label: '1:1 (正方形)', value: '1:1' },
-  { label: '4:3 (横版)', value: '4:3' },
-  { label: '3:4 (竖版)', value: '3:4' },
-  { label: '16:9 (宽屏)', value: '16:9' },
-  { label: '9:16 (竖屏)', value: '9:16' },
-  { label: '2:3 (竖版)', value: '2:3' },
-  { label: '3:2 (横版)', value: '3:2' },
-  { label: '1:2 (竖版)', value: '1:2' },
-  { label: '21:9 (超宽)', value: '21:9' }
-]
+// 宽高比选项：与 Agent 增强共用同一份列表
+const aspectRatioOptions = IMAGE_RATIO_OPTIONS
 
 // 当前选中的模板
 const selectedTemplate = ref('')
@@ -890,6 +885,15 @@ const handleGenerate = async () => {
       }))
       
       generatedImages.value = imageData
+
+      // 写入生成记录（失败不影响结果展示）。
+      saveHistory({
+        kind: 'image',
+        mode: 'direct',
+        prompt: formData.prompt,
+        params: { ...buildImageModelParams(userConfig), aspectRatio: formData.aspectRatio, ...(hasFiles ? { inputImages: fileList.value.length } : {}) },
+        images
+      })
 
       // 更新任务状态为完成
       taskStore.updateTaskStatus(task.id, TaskStatus.COMPLETED, { 

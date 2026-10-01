@@ -22,6 +22,20 @@ export const IMAGE_TIER_OPTIONS = [
   { label: '4K', value: '4k' }
 ]
 
+// 直接生成与 Agent 增强共用的比例选项；“原始尺寸”表示不传尺寸，由接口决定。
+export const IMAGE_RATIO_OPTIONS = [
+  { label: '原始尺寸', value: 'original' },
+  { label: '1:1 正方形', value: '1:1' },
+  { label: '16:9 宽屏', value: '16:9' },
+  { label: '9:16 竖屏', value: '9:16' },
+  { label: '4:3 横版', value: '4:3' },
+  { label: '3:4 竖版', value: '3:4' },
+  { label: '3:2 横版', value: '3:2' },
+  { label: '2:3 竖版', value: '2:3' },
+  { label: '1:2 竖版', value: '1:2' },
+  { label: '21:9 超宽', value: '21:9' }
+]
+
 export const MAX_IMAGE_COUNT = 10
 const MAX_PIXELS = 3840 * 2160
 const TIER_LONG_EDGE = { '2k': 2560, '4k': 3840 }

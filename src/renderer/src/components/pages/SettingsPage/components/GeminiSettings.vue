@@ -15,8 +15,8 @@
 
     <n-form-item label="生图模型" path="model">
       <n-select
-        :value="config.model"
-        @update:value="value => emit('update-field', 'model', value)"
+        :value="imageParams.model"
+        @update:value="value => { imageParams.model = value; emit('update-field', 'model', value) }"
         :options="IMAGE_MODEL_OPTIONS"
         filterable
         tag
@@ -32,15 +32,15 @@
     <template v-if="isOpenAiModel">
       <n-form-item label="图像质量" path="quality">
         <n-select
-          :value="config.quality"
-          @update:value="value => emit('update-field', 'quality', value)"
+          :value="imageParams.quality"
+          @update:value="value => { imageParams.quality = value; emit('update-field', 'quality', value) }"
           :options="IMAGE_QUALITY_OPTIONS"
         />
       </n-form-item>
       <n-form-item label="清晰度档位" path="imageTier">
         <n-select
-          :value="config.imageTier"
-          @update:value="value => emit('update-field', 'imageTier', value)"
+          :value="imageParams.imageTier"
+          @update:value="value => { imageParams.imageTier = value; emit('update-field', 'imageTier', value) }"
           :options="IMAGE_TIER_OPTIONS"
         />
         <template #feedback>
@@ -51,8 +51,8 @@
       </n-form-item>
       <n-form-item label="每次生成张数" path="numImages">
         <n-input-number
-          :value="config.numImages"
-          @update:value="value => emit('update-field', 'numImages', value || 1)"
+          :value="imageParams.numImages"
+          @update:value="value => { imageParams.numImages = value || 1; emit('update-field', 'numImages', value || 1) }"
           :min="1"
           :max="MAX_IMAGE_COUNT"
           :precision="0"
@@ -156,6 +156,7 @@
 /** Gemini 生图设置表单：展示父级配置并转发输入、路径与重置事件。 */
 import { computed } from 'vue'
 import RelaySignupLink from '@renderer/components/shared/RelaySignupLink.vue'
+import { useImageParams } from '@renderer/components/creative/useImageParams.js'
 import {
   IMAGE_MODEL_OPTIONS,
   IMAGE_QUALITY_OPTIONS,
@@ -171,8 +172,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update-field', 'select-project-root', 'reset-project-root'])
 
-const isOpenAiModel = computed(() => resolveImageProtocol(props.config.model) === 'openai')
-
+// 模型等参数与生图页共用同一份设置，任一处修改都即时生效。
+const imageParams = useImageParams()
+const isOpenAiModel = computed(() => resolveImageProtocol(imageParams.model) === 'openai')
 </script>
 
 <style scoped>

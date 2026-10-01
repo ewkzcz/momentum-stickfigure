@@ -1,32 +1,8 @@
 <template>
+  <SettingsShell>
   <div class="skills-page">
     <div class="skills-columns">
       <div class="skills-left">
-        <n-card title="文本模型" size="small">
-          <template #header-extra><n-text depth="3">剧本创作台与图片/视频 Agent 共用</n-text></template>
-          <n-form label-placement="left" label-width="80px" size="small">
-            <n-form-item label="接口地址">
-              <n-input v-model:value="config.llm.baseUrl" placeholder="https://api.aixoras.com" />
-            </n-form-item>
-            <n-form-item label="API 密钥">
-              <n-input v-model:value="config.llm.apiKey" type="password" show-password-on="click" placeholder="文本模型的 API 密钥（仅保存在本机）" />
-            </n-form-item>
-            <n-form-item label="模型">
-              <n-input v-model:value="config.llm.model" placeholder="例如 gpt-5.5、deepseek-chat，由平台分配" />
-            </n-form-item>
-            <n-form-item label="协议">
-              <n-radio-group v-model:value="config.llm.protocol">
-                <n-radio-button value="chat">Chat Completions</n-radio-button>
-                <n-radio-button value="responses">Responses</n-radio-button>
-              </n-radio-group>
-            </n-form-item>
-            <n-space>
-              <n-button type="primary" @click="handleSaveLlm">保存</n-button>
-              <n-button :loading="testing" @click="handleTestLlm">测试连接</n-button>
-            </n-space>
-          </n-form>
-        </n-card>
-
         <n-card title="Skills 文件夹" size="small">
           <n-input-group>
             <n-input :value="config.skillsRoot" readonly placeholder="默认：文稿/MomentumCreative/skills" />
@@ -98,16 +74,18 @@
       </n-drawer-content>
     </n-drawer>
   </div>
+  </SettingsShell>
 </template>
 
 <script setup>
-/** Skills与模型设置（设置菜单下）：配置文本模型，管理 Skills 文件夹、内置 Skills 安装和逐个启用。 */
+/** Skills设置（设置菜单下）：管理 Skills 文件夹、内置 Skills 安装、逐个启用，以及获取与使用指引。 */
 import { ref, reactive, computed, onMounted, onActivated } from 'vue'
 import {
-  useMessage, NCard, NForm, NFormItem, NInput, NInputGroup, NRadioGroup, NRadioButton, NButton, NSpace, NText, NAlert,
+  useMessage, NCard, NInput, NInputGroup, NButton, NSpace, NText, NAlert,
   NTabs, NTab, NTabPane, NTag, NSwitch, NEmpty, NDrawer, NDrawerContent, NSteps, NStep, NDivider
 } from 'naive-ui'
 import { useCreativeConfig } from '@renderer/components/creative/useCreativeConfig.js'
+import SettingsShell from '@renderer/components/shared/SettingsShell.vue'
 import SkillGuideCard from '@renderer/components/creative/SkillGuideCard.vue'
 import SkillUsageExample from '@renderer/components/creative/SkillUsageExample.vue'
 import { USAGE_STEPS } from '@renderer/components/creative/skillGuide.js'
@@ -126,33 +104,12 @@ const { config, skills, skillsError, skillsLoading, saveConfig, refreshSkills, t
 const category = ref('all')
 const rightTab = ref('installed')
 const exampleMode = ref('image')
-const testing = ref(false)
 const installing = ref(false)
 const drawer = reactive({ show: false, title: '', content: '' })
 
 const visibleSkills = computed(() => category.value === 'all' ? skills.value : skills.value.filter((item) => item.category === category.value))
 
-/** 保存文本模型配置；处理流程：1、写入本地存储并提示。 */
-const handleSaveLlm = () => {
-  // 1、地址末尾斜杠由主进程规范化。
-  if (saveConfig()) message.success('文本模型配置已保存')
-  else message.error('保存失败：本地存储不可用')
-}
 
-/** 测试连接；处理流程：1、保存后发送一条极短请求，2、展示模型回复或错误。 */
-const handleTestLlm = async () => {
-  // 1、测试使用当前表单值。
-  saveConfig()
-  testing.value = true
-  try {
-    const result = await window.creativeApi.testLlm({ llm: { ...config.llm } })
-    // 2、反馈结果。
-    if (result?.success) message.success(`连接成功：${result.data.text || '（空回复）'}`)
-    else message.error(`连接失败：${result?.message || '未知错误'}`, { duration: 6000 })
-  } finally {
-    testing.value = false
-  }
-}
 
 /** 选择 Skills 文件夹；处理流程：1、系统对话框授权，2、保存路径并刷新列表。 */
 const handleSelectFolder = async () => {
@@ -211,10 +168,7 @@ onActivated(refreshSkills)
 
 <style scoped>
 .skills-page {
-  height: 100%;
-  overflow: auto;
-  padding: 16px;
-  background: var(--theme-background);
+  padding-top: 8px;
 }
 
 .skills-columns {

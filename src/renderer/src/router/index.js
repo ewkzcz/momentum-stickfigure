@@ -17,6 +17,7 @@ import ScriptStudioPage from '../components/pages/ScriptStudioPage/ScriptStudioP
 import VideoStudioPage from '../components/pages/VideoStudioPage/VideoStudioPage.vue'
 import SkillsCenterPage from '../components/pages/SkillsCenterPage/SkillsCenterPage.vue'
 import VideoSettingsPage from '../components/pages/VideoSettingsPage/VideoSettingsPage.vue'
+import TextModelSettingsPage from '../components/pages/TextModelSettingsPage/TextModelSettingsPage.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -113,6 +114,7 @@ const router = createRouter({
     // 创作相关设置子页面：归在设置菜单下，页面独立实现（SettingsPage 已达规模上限）。
     { path: '/settings/creative', name: 'settings-creative', component: SkillsCenterPage, meta: { keepAlive: true } },
     { path: '/settings/video', name: 'settings-video', component: VideoSettingsPage, meta: { keepAlive: true } },
+    { path: '/settings/llm', name: 'settings-llm', component: TextModelSettingsPage, meta: { keepAlive: true } },
     { 
       path: '/settings/hd-toolkit', 
       name: 'settings-hd-toolkit', 

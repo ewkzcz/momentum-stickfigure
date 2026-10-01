@@ -3,6 +3,7 @@ import { ref, reactive, onBeforeUnmount } from 'vue'
 import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-config.js'
 import { resolveGeminiProjectRoot } from '@renderer/utils/geminiOutputConfig.js'
 import { resolveVideoConnection } from '@renderer/components/creative/useVideoSettings.js'
+import { saveHistory } from '@renderer/components/creative/useGenerationHistory.js'
 
 const POLL_INTERVAL_MS = 4000
 const MAX_POLL_MINUTES = 30
@@ -28,6 +29,7 @@ export function useVideoTask(message) {
   const task = reactive({ taskId: '', status: 'idle', progress: 0, url: '', error: '', savedPath: '' })
   const isBusy = ref(false)
   let timer = null
+  let lastRequest = null
   let deadline = 0
 
   /** 停止轮询；处理流程：1、清除定时器并释放忙碌状态。 */
@@ -68,6 +70,11 @@ export function useVideoTask(message) {
       if (result.data.status === 'completed') {
         task.url = result.data.url
         if (!task.url) task.error = '任务已完成但未返回视频地址'
+        else if (lastRequest) {
+          // 写入生成记录（失败不影响结果展示）。
+          const { prompt, referenceImages, ...params } = lastRequest
+          saveHistory({ kind: 'video', mode: 'direct', prompt, params: { ...params, taskId: task.taskId, ...(referenceImages?.length ? { referenceImages: referenceImages.length } : {}) }, videos: [task.url] })
+        }
         stopPolling()
         return
       }
@@ -97,6 +104,7 @@ export function useVideoTask(message) {
     // 2、清空上一次结果。
     Object.assign(task, { taskId: '', status: 'queued', progress: 0, url: '', error: '', savedPath: '' })
     isBusy.value = true
+    lastRequest = { ...options }
     const result = await window.videoApi.submit({ ...base, ...options })
     if (!result?.success) {
       task.status = 'failed'

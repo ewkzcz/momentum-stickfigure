@@ -137,7 +137,7 @@ export function useScriptStudio(message) {
     // 1、同一时间只运行一个生成。
     if (generating.value || !project.value) return
     if (!config.llm.apiKey || !config.llm.model) {
-      message.error('请先在「设置 → Skills与模型设置」中配置文本模型')
+      message.error('请先在「设置 → 文本模型设置」中配置文本模型')
       return
     }
     generating.value = path

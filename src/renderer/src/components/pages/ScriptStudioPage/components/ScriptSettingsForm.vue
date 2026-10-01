@@ -45,7 +45,7 @@
             <n-checkbox v-for="skill in skills" :key="skill.id" :value="skill.id" :label="skill.name" />
           </n-space>
         </n-checkbox-group>
-        <n-text v-if="!skills.length" depth="3" class="hint">没有已启用的剧本 Skill，请到「设置 → Skills与模型设置」安装并启用。</n-text>
+        <n-text v-if="!skills.length" depth="3" class="hint">没有已启用的剧本 Skill，请到「设置 → Skills设置」安装并启用。</n-text>
       </div>
     </n-form-item>
   </n-form>

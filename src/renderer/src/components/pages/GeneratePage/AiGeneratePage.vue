@@ -6,6 +6,9 @@
     :enter="{ opacity: 1, transition: { duration: 500 } }"
   >
     <div class="page-content">
+      <aside class="history-column">
+        <GenerationHistoryPanel kind="image" />
+      </aside>
       <n-tabs
         v-model:value="activeTab"
         type="card"
@@ -26,11 +29,12 @@
 </template>
 
 <script setup>
-/** AI 生图页：“直接生成”与“Agent 增强”两种方式。 */
+/** AI 生图页：左侧生成记录，右侧“直接生成”与“Agent 增强”两种方式，参数共用。 */
 import { ref } from 'vue'
 import { NTabs, NTabPane } from 'naive-ui'
 import ImageGenerateComponent from './components/ImageGenerateComponent.vue'
 import CreativeAgentPanel from '@renderer/components/creative/CreativeAgentPanel.vue'
+import GenerationHistoryPanel from '@renderer/components/creative/GenerationHistoryPanel.vue'
 
 const activeTab = ref('generate')
 const imageGenerateRef = ref(null)
