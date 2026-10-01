@@ -16,6 +16,11 @@
         <n-tab-pane name="generate" tab="谷歌中转" display-directive="show">
           <ImageGenerateComponent ref="imageGenerateRef" @generated="handleGenerated" @edited="handleEdited" />
         </n-tab-pane>
+        <n-tab-pane name="agent" tab="Agent 增强" display-directive="show">
+          <div class="agent-tab-wrapper">
+            <CreativeAgentPanel mode="image" @handoff="activeTab = 'agent'" />
+          </div>
+        </n-tab-pane>
         <n-tab-pane name="log" tab="谷歌日志" display-directive="show">
           <GenerationLogComponent @rerun="handleRerun" />
         </n-tab-pane>
@@ -54,6 +59,7 @@
 import { ref } from 'vue'
 import { NTabs, NTabPane } from 'naive-ui'
 import ImageGenerateComponent from './components/ImageGenerateComponent.vue'
+import CreativeAgentPanel from '@renderer/components/creative/CreativeAgentPanel.vue'
 import GenerationLogComponent from './components/GenerationLogComponent.vue'
 import DoubaoWebComponent from './components/DoubaoWebComponent.vue'
 import BaiduRembgComponent from './components/BaiduRembgComponent.vue'
@@ -65,6 +71,7 @@ import JiMengComponent from './components/JiMengComponent.vue'
 // 响应式数据
 const activeTab = ref('generate')
 const imageGenerateRef = ref(null) // 子组件引用
+
 
 /**
  * 切换当前工具标签。

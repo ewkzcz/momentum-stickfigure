@@ -196,6 +196,7 @@ const iconMap = {
   'hd-toolkit': '🪄',
   'video-subtitle-ocr': '📝',
   'video-studio': '🎬',
+  'settings-creative': '🧩',
   'settings': '⚙️',
   'settings-stickfigure': '🎨',
   'settings-hotkeys': '⌨️',
@@ -310,6 +311,10 @@ const menuOptions = [
       {
         label: 'AI生图设置',
         key: 'settings-gemini'
+      },
+      {
+        label: 'Skills与模型设置',
+        key: 'settings-creative'
       },
       {
         label: '抠图高清设置',
