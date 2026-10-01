@@ -1656,7 +1656,7 @@ onMounted(() => {
   window.addEventListener('paste', handlePaste)
   
   // 监听拖拽完成事件
-  const dragFinishedUnsubscribe = window.electronAPI?.onDragFinished?.((eventData) => {
+  const dragFinishedUnsubscribe = window.electronAPI?.on?.('drag-finished', (eventData) => {
     console.log('📁 拖拽完成，文件已保存:', eventData?.filePath)
     message.success('图片已保存并可拖拽到其他应用')
     setTimeout(() => cleanupDrag(), 100)

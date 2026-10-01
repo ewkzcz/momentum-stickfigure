@@ -472,8 +472,8 @@ onMounted(async () => {
   await updateWindowBounds()
 
   // 2、系统拖拽完成后提示结果，并等待手势结束再清理浮层
-  if (window.electronAPI?.onDragFinished) {
-    dragFinishedUnsubscribe = window.electronAPI.onDragFinished((eventData) => {
+  if (window.electronAPI?.on) {
+    dragFinishedUnsubscribe = window.electronAPI.on('drag-finished', (eventData) => {
       if (eventData?.filePath) {
         message.success('图片已保存，可拖拽到其他应用')
       }

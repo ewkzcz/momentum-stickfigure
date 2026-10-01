@@ -722,7 +722,7 @@ async function startProcess() {
   
   if (!config.pythonHome) {
     message.error('Python环境未配置，请先在【设置 > 抠图高清设置】中配置Python路径')
-    router.push('/settings')
+    router.push('/settings/hd-toolkit')
     return
   }
   

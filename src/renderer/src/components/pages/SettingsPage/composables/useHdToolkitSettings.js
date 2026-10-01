@@ -40,6 +40,22 @@ export function useHdToolkitSettings({ message, showSaveRestartTip, appVersion, 
   }
 
   /**
+   * 推导抠图高清默认输出目录。
+   * 处理流程：
+   * 1、按当前用户主目录拼接与主进程一致的输出目录。
+   * 2、主目录不可用时返回空值，交由主进程回落到自身默认值。
+   */
+  const getDefaultOutputDir = () => {
+    // 1、与主进程 DEFAULT_OUTPUT_DIR 保持同一约定，避免写死本机路径。
+    const homedir = window.env?.homedir || ''
+    if (!homedir) return ''
+
+    // 2、依平台分隔符拼接，Windows 外使用正斜杠。
+    const separator = window.env?.platform === 'win32' ? '\\' : '/'
+    return [homedir, 'Pictures', 'hd-toolkit'].join(separator)
+  }
+
+  /**
    * 初始化抠图高清路径配置。
    * 处理流程：
    * 1、读取保存值并兼容旧版 Path 后缀字段。
@@ -336,7 +352,7 @@ export function useHdToolkitSettings({ message, showSaveRestartTip, appVersion, 
     hdToolkitConfig.pythonHome = imported.pythonHome || imported.pythonPath || getDefaultHdToolkitPath('python-env\\python3\\python.exe')
     hdToolkitConfig.removebgWeightsDir = imported.removebgWeightsDir || imported.removebgWeightsPath || getDefaultHdToolkitPath('python-env\\weights\\removebg')
     hdToolkitConfig.highresWeightsDir = imported.highresWeightsDir || imported.highresWeightsPath || getDefaultHdToolkitPath('python-env\\weights\\highres')
-    hdToolkitConfig.outputDir = imported.outputDir || imported.outputPath || 'C:\\Users\\Asus\\Pictures\\hd-toolkit'
+    hdToolkitConfig.outputDir = imported.outputDir || imported.outputPath || getDefaultOutputDir()
 
     // 保存到 localStorage（用规范键名）
     localStorage.setItem('hd-toolkit-config', JSON.stringify({
