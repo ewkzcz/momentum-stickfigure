@@ -1051,7 +1051,7 @@ export function useCanvasRender(deps) {
               位置: `(${x}, ${y})`,
               尺寸: `${width}x${height}`,
               图片尺寸: `${img.width}x${img.height}`,
-              透明度: (layer.opacity || 255) / 255,
+              透明度: (layer.opacity !== undefined ? layer.opacity : 255) / 255,
               Canvas像素尺寸: `${canvasWidth}x${canvasHeight}`,
               Canvas显示尺寸: `${canvasStyle.value.width} x ${canvasStyle.value.height}`,
               滚动模式: scrollMode.value,
@@ -1073,14 +1073,9 @@ export function useCanvasRender(deps) {
             ctx.imageSmoothingEnabled = true
             ctx.imageSmoothingQuality = 'high'
             
-            // 设置透明度
-            let opacity = (layer.opacity !== undefined ? layer.opacity : 255) / 255
-            
-            if (opacity < 0.1 && layer.opacity > 0) {
-              debugWarn(`⚠️ 图层 ${layer.name} 透明度异常: ${opacity} (原始值: ${layer.opacity})，调整为不透明`)
-              opacity = 1.0
-            }
-            
+            // 设置透明度（主进程已把 PSD 透明度规范为 0~255）
+            const opacity = (layer.opacity !== undefined ? layer.opacity : 255) / 255
+
             ctx.globalAlpha = opacity
             debugLog(`🎨 设置透明度: ${opacity} (原始值: ${layer.opacity})`)
             

@@ -459,11 +459,8 @@ export const renderLayerToContext = async (ctx, layer, canvasWidth, canvasHeight
           ctx.imageSmoothingEnabled = true
           ctx.imageSmoothingQuality = 'high'
           
-          // 设置透明度
-          let opacity = (layer.opacity !== undefined ? layer.opacity : 255) / 255
-          if (opacity < 0.1 && layer.opacity > 0) {
-            opacity = 1.0
-          }
+          // 设置透明度（主进程已把 PSD 透明度规范为 0~255）
+          const opacity = (layer.opacity !== undefined ? layer.opacity : 255) / 255
           ctx.globalAlpha = opacity
           
           // 设置混合模式
@@ -564,11 +561,8 @@ export const drawLayerImage = async (ctx, layer) => {
         ctx.imageSmoothingEnabled = true
         ctx.imageSmoothingQuality = 'high'
         
-        // 设置透明度
-        let opacity = (layer.opacity !== undefined ? layer.opacity : 255) / 255
-        if (opacity < 0.1 && layer.opacity > 0) {
-          opacity = 1.0
-        }
+        // 设置透明度（主进程已把 PSD 透明度规范为 0~255）
+        const opacity = (layer.opacity !== undefined ? layer.opacity : 255) / 255
         ctx.globalAlpha = opacity
         
         // 设置混合模式

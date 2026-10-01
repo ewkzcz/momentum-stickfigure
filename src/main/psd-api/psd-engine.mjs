@@ -208,13 +208,11 @@ function processLayers(layers, options = {}, parentIndex = 0) {
 
     for (let index = 0; index < layers.length; index++) {
         const layer = layers[index];
-        // 处理透明度：ag-psd返回的opacity范围是0-255
-        // 如果值异常小（< 10）且不为0，可能是PSD文件问题，设为255（完全不透明）
-        let opacityValue = (layer.opacity !== undefined ? layer.opacity : 255);
-        if (opacityValue > 0 && opacityValue < 10) {
-            console.warn(`图层 ${layer.name || '未命名'} 透明度异常: ${opacityValue}，调整为255`);
-            opacityValue = 255;
-        }
+        // 处理透明度：ag-psd 返回的 opacity 是 0~1 的比例值
+        // （见 ag-psd psdReader：layer.opacity = readUint8(reader) / 0xff），
+        // 这里统一换算成下游约定的 0~255 整数，缺省按完全不透明处理。
+        const opacityRatio = (layer.opacity !== undefined ? layer.opacity : 1);
+        const opacityValue = Math.round(Math.min(Math.max(opacityRatio, 0), 1) * 255);
 
         // 判断图层类型：优先识别调整图层
         let layerType = 'layer';
@@ -635,7 +633,7 @@ async function renderSingleLayer(ctx, layer, canvasWidth, canvasHeight, psdWidth
 
         // 2、临时应用图层透明度并绘制图像。
         const oldAlpha = ctx.globalAlpha;
-        ctx.globalAlpha = (layer.opacity || 255) / 255;
+        ctx.globalAlpha = (layer.opacity !== undefined ? layer.opacity : 255) / 255;
 
         // 绘制图层
         if (layer.canvas) {
