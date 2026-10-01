@@ -40,7 +40,10 @@ function readIdentity(filePath) {
 }
 
 function readStatIdentity(stat) {
-  return `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}:${stat.ctimeMs}`
+  // 不纳入 dev：Electron 的 asar fs 包装在 Windows 上令 lstat 的 dev 为 0，
+  // 而同一文件 fstat 返回真实卷号，两者不可比会使所有读取被误判为身份变化。
+  // 卷维度的区分由 canonical 真实路径比对覆盖，文件身份以 ino 及大小时间戳判定。
+  return `${stat.ino}:${stat.size}:${stat.mtimeMs}:${stat.ctimeMs}`
 }
 
 /** 仅原生文件选择或成功保存拖入文件调用；全批检查后登记，失败不改变旧能力。 */
