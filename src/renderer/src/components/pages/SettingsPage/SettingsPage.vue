@@ -105,7 +105,7 @@
           </div>
       </div>
         
-      <!-- 纳米香蕉生图设置 -->
+      <!-- AI生图设置 -->
       <div v-show="activeTab === 'gemini'" class="settings-tab-content">
           <div class="settings-content">
             <GeminiSettings
@@ -400,7 +400,7 @@ const loadConfig = async () => {
         // 恢复简笔画配置
         restoreStickfigureSettingsFromBackup(restoreResult)
 
-        // 恢复纳米香蕉配置
+        // 恢复AI生图配置
         restoreGeminiSettingsFromBackup(restoreResult)
 
         // 恢复快捷键配置
@@ -440,7 +440,7 @@ const loadConfig = async () => {
   }
 }
 
-// ==================== 纳米香蕉配置管理 ====================
+// ==================== AI生图配置管理 ====================
 
 
 // ==================== 配置导入导出功能 ====================

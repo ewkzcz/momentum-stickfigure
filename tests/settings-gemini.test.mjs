@@ -156,9 +156,9 @@ test('生图设置：输入、选择取消重置、保存校验与URL规范化�
     await layout(desktop, 'initial', evidence)
     const unsaved = await page.evaluate(key => localStorage.getItem(key), storageKey)
     // 2、空密钥优先失败，随后覆盖 URL 的全部拒绝分支。
-    await save(page, '请输入纳米香蕉生图API密钥')
+    await save(page, '请输入AI生图API密钥')
     await item(page, 'API 密钥').locator('input').fill('   ')
-    await save(page, '请输入纳米香蕉生图API密钥')
+    await save(page, '请输入AI生图API密钥')
     await item(page, 'API 密钥').locator('input').fill(fakeKey)
     for (const [url, error] of [['', '请填写中转站地址'], ['not-a-url', '中转站地址必须是完整的 HTTP 或 HTTPS 地址'], ['ftp://gemini.invalid', '中转站地址仅支持 HTTP 或 HTTPS，且不能包含账号、查询参数或片段'], ['https://u:p@gemini.invalid', '中转站地址仅支持 HTTP 或 HTTPS，且不能包含账号、查询参数或片段'], ['https://gemini.invalid?q=1', '中转站地址仅支持 HTTP 或 HTTPS，且不能包含账号、查询参数或片段'], ['https://gemini.invalid#fragment', '中转站地址仅支持 HTTP 或 HTTPS，且不能包含账号、查询参数或片段']]) {
       await item(page, '中转站地址').locator('input').fill(url)

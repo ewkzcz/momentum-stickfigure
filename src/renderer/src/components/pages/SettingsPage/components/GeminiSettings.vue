@@ -71,7 +71,7 @@
       />
       <template #feedback>
         <n-text depth="3" style="font-size: 12px;">
-          用于调用纳米香蕉生图服务的API密钥
+          用于调用 AI 生图与视频服务的 API 密钥
         </n-text>
       </template>
     </n-form-item>

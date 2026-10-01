@@ -1,6 +1,6 @@
 /**
  * Gemini Image API 前端配置文件
- * 用于配置纳米香蕉（Gemini）生图服务
+ * 用于配置 AI 生图与视频服务（Gemini / OpenAI 协议）
  */
 
 import { normalizeApiBaseUrl } from '@shared/api-url.js'

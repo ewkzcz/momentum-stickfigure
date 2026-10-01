@@ -44,7 +44,7 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
     }
   }
 
-  // API 配置（纳米香蕉生图）
+  // API 配置（AI生图）
   const geminiConfig = reactive({
     apiKey: '',
     baseUrl: '',
@@ -71,7 +71,7 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
 
       // 1、校验服务连接信息和项目路径后才写入配置。
       if (!geminiConfig.apiKey.trim()) {
-        message.error('请输入纳米香蕉生图API密钥', {
+        message.error('请输入AI生图API密钥', {
           duration: 4000,
           keepAliveOnHover: true
         })
@@ -122,9 +122,9 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
         console.warn('⚠️ 自动备份失败（不影响保存）:', backupError)
       }
 
-      showSaveRestartTip('纳米香蕉生图配置保存成功！')
+      showSaveRestartTip('AI生图配置保存成功！')
     } catch (error) {
-      console.error('保存纳米香蕉配置失败:', error)
+      console.error('保存AI生图配置失败:', error)
       message.error('保存失败: ' + error.message, {
         duration: 5000,
         keepAliveOnHover: true
@@ -197,7 +197,7 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
       if (localStorage.getItem('fal-config')) {
         localStorage.removeItem('fal-config')
       }
-      console.log('✅ 纳米香蕉配置已从备份恢复')
+      console.log('✅ AI生图配置已从备份恢复')
     }
   }
 
@@ -276,7 +276,7 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
       if (localStorage.getItem('fal-config')) {
         localStorage.removeItem('fal-config')
       }
-      console.log('[设置页] 纳米香蕉配置已导入并更新到界面')
+      console.log('[设置页] AI生图配置已导入并更新到界面')
     }
   }
 

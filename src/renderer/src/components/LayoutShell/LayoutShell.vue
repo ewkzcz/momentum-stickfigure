@@ -303,7 +303,7 @@ const menuOptions = [
         key: 'settings-hotkeys'
       },
       {
-        label: '纳米香蕉生图设置',
+        label: 'AI生图设置',
         key: 'settings-gemini'
       },
       {
