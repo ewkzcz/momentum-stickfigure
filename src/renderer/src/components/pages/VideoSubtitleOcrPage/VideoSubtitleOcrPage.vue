@@ -143,6 +143,7 @@
                     <span style="font-size: 16px;">🔑</span>
                   </template>
                 </n-input>
+                <RelaySignupLink />
               </div>
 
               <div class="control-field">
@@ -300,6 +301,7 @@ import {
   useMessage 
 } from 'naive-ui'
 import { useRouter } from 'vue-router'
+import RelaySignupLink from '@renderer/components/shared/RelaySignupLink.vue'
 import { useTheme } from '../../../utils/composables/useTheme'
 import './VideoSubtitleOcrPage.css'
 

@@ -62,13 +62,16 @@
     </template>
 
     <n-form-item label="API 密钥" path="apiKey" required>
-      <n-input
-        :value="config.apiKey"
-        @update:value="value => emit('update-field', 'apiKey', value)"
-        type="password"
-        placeholder="请输入 API 密钥"
-        show-password-on="click"
-      />
+      <div style="width: 100%;">
+        <n-input
+          :value="config.apiKey"
+          @update:value="value => emit('update-field', 'apiKey', value)"
+          type="password"
+          placeholder="请输入 API 密钥"
+          show-password-on="click"
+        />
+        <RelaySignupLink />
+      </div>
       <template #feedback>
         <n-text depth="3" style="font-size: 12px;">
           用于调用 AI 生图与视频服务的 API 密钥
@@ -153,6 +156,7 @@
 <script setup>
 /** Gemini 生图设置表单：展示父级配置并转发输入、路径与重置事件。 */
 import { computed } from 'vue'
+import RelaySignupLink from '@renderer/components/shared/RelaySignupLink.vue'
 import {
   IMAGE_MODEL_OPTIONS,
   IMAGE_QUALITY_OPTIONS,
