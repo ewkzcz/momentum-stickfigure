@@ -1,0 +1,184 @@
+{
+  "head": "3eae6c069743a8897231f89b6915f3bf7238badf",
+  "originalPageLines": 3072,
+  "pageLines": 2745,
+  "reduction": 327,
+  "modules": [
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/composables/useCommonControlLayerSync.js",
+      "lines": 258,
+      "sha256": "bff198b9e3d27712520c7966211c62ca8b633baf2e7ba7c881d50949e8e93199"
+    },
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/composables/usePreviewSyncSubscriptions.js",
+      "lines": 121,
+      "sha256": "da053ba07fe9efeda932849cfaab336e146758ac90332249acc3c72e30b38be0"
+    }
+  ],
+  "scriptOutsideByteEqual": true,
+  "reverseCallbackAstEqual": true,
+  "watches": {
+    "total": 20,
+    "keptEarly": 7,
+    "common": 11,
+    "preview": 2,
+    "sourceCallbackOptionsAndOrderEqual": true,
+    "sources": [
+      "partItemSize",
+      "partItemSize",
+      "currentTab",
+      "enableCanvasHover",
+      "enablePresetHover",
+      "[templates1, currentTab]",
+      "[templates2, currentTab]",
+      "showBackground",
+      "showFront",
+      "showSide",
+      "showBack",
+      "showShadow",
+      "showWeapon",
+      "showBackHair",
+      "showShakeHead",
+      "showHoldSword",
+      "showBackHandSword",
+      "showDownwardSlash",
+      "[selectedParts, currentTab]",
+      "currentPsdData"
+    ]
+  },
+  "reconstruction": {
+    "originalTopLevelNodes": 229,
+    "currentTopLevelNodes": 216,
+    "expandedNodes": 229,
+    "strictAstEqual": true,
+    "sha256": "74aa4a4c0da9748a7d33deb2fd4ef47683536872142a6c678db3e214f38d6dc6",
+    "method": "只展开两域工厂/显式注册及原引用接线；不移除或忽略其他顶层节点"
+  },
+  "lifecycle": {
+    "nodes": 6,
+    "names": [
+      "onMounted",
+      "onUnmounted",
+      "onMounted",
+      "onActivated",
+      "onUnmounted",
+      "onBeforeRouteLeave"
+    ],
+    "callbacksAndRelativePositionsUnchanged": true,
+    "addedRemovedCleanup": 0,
+    "subscriptionScope": "所有13项watch均在setup原相对顺序同步注册，沿用Vue组件自动停止；没有新增手动stop"
+  },
+  "timing": {
+    "timerIdentifierMap": {
+      "syncDebounceTimer": "syncDebounceTimer",
+      "psdSwitchSyncTimer": "psdSwitchSyncTimer"
+    },
+    "allPageTimingCalls": 21,
+    "callbacksAndDelaysEqual": true,
+    "previewTimerClearCalls": 3,
+    "previewUnmountTimerCleanupBefore": 0,
+    "previewUnmountTimerCleanupAfter": 0,
+    "dispose": "原无页面清理位置，因此不新增dispose或清理"
+  },
+  "dependencies": {
+    "commonFactory": [
+      "showBackground",
+      "showFront",
+      "showSide",
+      "showBack",
+      "showShadow",
+      "showWeapon",
+      "showBackHair",
+      "showShakeHead",
+      "showHoldSword",
+      "showBackHandSword",
+      "showDownwardSlash",
+      "selectedPresetId",
+      "originalHandleLayerVisibilityChange"
+    ],
+    "commonRegistration": [
+      "layerTreeData",
+      "setLayerVisibilityByName",
+      "renderAllLayers",
+      "logRenderTrigger"
+    ],
+    "previewRegistration": [
+      "selectedParts",
+      "currentTab",
+      "currentPsdData",
+      "isRenderingTemplatePreview",
+      "isRendering",
+      "canvasRef",
+      "syncCanvasToPreview"
+    ],
+    "finalReferenceInitializationChecked": true,
+    "allExistingGetterNodesEqual": 38,
+    "outputLoggerClosureLateReadUnchanged": true,
+    "newGetters": 0,
+    "newRefReactiveProxy": 0,
+    "explanation": "反向同步只接已就绪的11项控件和预设ref；layerTreeData/renderAllLayers/isRendering等在唯一initCanvasRender之后的原尾部注册点接入最终引用，controlPriority保持页面原getter。"
+  },
+  "originalPsdSessionChecks": [
+    "currentPsdFile.value?.id === psdFile.id",
+    "currentPsdFile.value?.id === currentPsdId",
+    "currentPsdFile.value?.id === currentPsdId",
+    "currentPsdFile.value?.id === psdId"
+  ],
+  "parentReview": { "ast": "20个watch按原顺序注册、生命周期6项及定时器调用等价，展开两域工厂后页面229节点等价；无新增ref或清理", "fullResultReadback": "EPpA1g原始结果25/25通过，353927.632084ms", "referenceCheck": "264文件再次逐项保护通过", "knownScreenshotInstability": "整合面板跨运行截图2像素偏移在原HEAD和迁移后均出现，未改断言或样式", "temporaryAuditRemoved": true },
+  "unchanged": [
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/composables/useLayerTree.js",
+      "sha256": "cbb6b6129813baa3741d13974f4cd8aa985fb0103f17b29b3f20f57374dc8106"
+    },
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasRender.js",
+      "sha256": "bfa8a402775297db2c5a50d828637e7b893e3b09e3b183bec5f3873d07ec25d2"
+    },
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/composables/usePsdSession.js",
+      "sha256": "01c727f36f3dfc92cfaf3a6f6ec7d0ceacba3c8e0ef141b02c1e6bb9425fc4fc"
+    },
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/composables/usePartSelectionCoordinator.js",
+      "sha256": "4e28c96bdbe2d3bcf17d9fb52e1393ab0acafa474e2d2e821c1fc7b8759c825f"
+    },
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasOutputCoordinator.js",
+      "sha256": "45fdc57bc8e10d1b36aa9fcb1a5bd273b7c0d53ae2f8834c08fe90007c672114"
+    },
+    {
+      "path": "tests/integrated-controls.test.mjs",
+      "sha256": "cd5741a3ad8d172d413a797890595e581dabdc2e7d962d8ceff6311f4622cd21"
+    },
+    {
+      "path": "tests/part-selection.test.mjs",
+      "sha256": "55c66728738579ccfe4f6e978c3968c445d1d0058532eb6b4780da152f7ae8ba"
+    },
+    {
+      "path": "tests/canvas-output.test.mjs",
+      "sha256": "7ea6da7e308e28dfedf90a8489983a51a3a32aaa9ba8fb809e2391d657d927d2"
+    },
+    {
+      "path": "tests/layer-render-completion.test.mjs",
+      "sha256": "ee7e609f1c5a12a717a5e02dad8024f1b91d00d37d4e989800089ce450494ba7"
+    },
+    {
+      "path": "tests/psd-session-hair.test.mjs",
+      "sha256": "83c16c949018f879d0be7a7ba3e387325b33b40cfab2b3d71c23b481407d809e"
+    },
+    {
+      "path": "tests/diagnose-part-selection-original.mjs",
+      "sha256": "2ce5363f19cf4a31214b94959c2ff0261abc1f1e6651643641ec41c5a85e8c35"
+    }
+  ],
+  "referenceFiles": 264,
+  "referenceDigestSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+  "originalReferences": {
+    "files": 260,
+    "sha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde"
+  },
+  "limitations": [
+    "AST比较证明迁移源码结构等价；不把公开界面测试未触发的运行时路径宣称为新增覆盖。",
+    "原正面恢复和组合标签双击诊断不修改；预览偶发握手问题不混修。"
+  ]
+}

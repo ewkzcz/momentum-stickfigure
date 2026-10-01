@@ -1,0 +1,83 @@
+{
+  "head": "5fb99cd341db0694310cac4b660a195ee6fdc957",
+  "before": {
+    "rebuiltWith": "npm run build",
+    "targeted": "temp/layer-render-acceptance-p7l9lS",
+    "tests": 5,
+    "fullRunInThisTask": false
+  },
+  "after": {
+    "rebuiltWith": "npm run build",
+    "targeted": "temp/layer-render-acceptance-onnbnM",
+    "targetedTests": 5,
+    "fullCommand": "MOMENTUM_PART_SELECTION_BEFORE=<before-directory> node tests/verify-layer-render-completion.mjs all",
+    "fullEvidence": "temp/layer-render-acceptance-TongXs",
+    "fullTests": 21,
+    "fail": 0,
+    "skipped": 0,
+    "durationMs": 255383
+  },
+  "counts": {
+    "psd": 154,
+    "hover": 28,
+    "session": 28
+  },
+  "selectionResults": {
+    "before": {
+      "desktopId": "momentum-regression-0LHxHL",
+      "sceneCount": 30,
+      "scenesSha256": "9d8573a446ce8323e3cf52988a22b927d16b4e097092e634e10071d95d71b14b"
+    },
+    "targeted": {
+      "desktopId": "momentum-regression-Xw4hrN",
+      "sceneCount": 30,
+      "scenesSha256": "9d8573a446ce8323e3cf52988a22b927d16b4e097092e634e10071d95d71b14b"
+    },
+    "full": {
+      "desktopId": "momentum-regression-0cBipI",
+      "sceneCount": 30,
+      "scenesSha256": "9d8573a446ce8323e3cf52988a22b927d16b4e097092e634e10071d95d71b14b"
+    }
+  },
+  "tabResults": {
+    "before": {
+      "desktopId": "momentum-regression-e0BigF",
+      "count": 32,
+      "scenesSha256": "ca2f10aacce095656ef74e1ee88b78479113f5353d1b168a5eee97f4f950135e"
+    },
+    "targeted": {
+      "desktopId": "momentum-regression-6EQDRi",
+      "count": 32,
+      "scenesSha256": "ca2f10aacce095656ef74e1ee88b78479113f5353d1b168a5eee97f4f950135e"
+    },
+    "full": {
+      "desktopId": "momentum-regression-uxXRTJ",
+      "count": 32,
+      "scenesSha256": "ca2f10aacce095656ef74e1ee88b78479113f5353d1b168a5eee97f4f950135e"
+    }
+  },
+  "originalIssues": {
+    "beforeTests": 2,
+    "beforeFail": 2,
+    "afterTests": 2,
+    "afterFail": 2,
+    "preservedStrictAssertions": true,
+    "diagnosticsExcludedFromDefaultGlob": true,
+    "actualPngAndDomEqual": true,
+    "record": "tests/evidence/part-selection-original-issues-20260907.json"
+  },
+  "references": {
+    "files": 260,
+    "sha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde",
+    "totalFiles": 264,
+    "allSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "overridesUnchanged": true
+  },
+  "parentReview": { "ast": "17声明逆向恢复三个getter后，整个页面可执行语句/监听等价，模板style逐字不变", "targeted": { "tests": 1, "passed": 1, "failed": 0, "durationMs": 26469.522792 }, "fullResultReadback": "TongXs原始result.json确认为21/21，测试255001.175208ms", "referenceCheck": "264文件再次逐项保护检查通过", "temporaryAuditRemoved": true },
+  "validation": {
+    "ast": "tests/evidence/part-selection-ast-20260907.json",
+    "lintPassed": true,
+    "diffCheckPassed": true
+  },
+  "rawFullLogSha256": "2c17a3735ed5af44f1c52f83612bea922cc5e067e045bb7a0137280e03c1da7d"
+}

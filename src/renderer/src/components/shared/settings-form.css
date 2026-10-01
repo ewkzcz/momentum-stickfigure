@@ -1,0 +1,19 @@
+/* 独立设置子页面的表单样式：与设置页各标签保持一致 */
+.settings-form .n-form-item {
+  margin-bottom: 18px;
+}
+
+.settings-form .n-form-item:last-child {
+  margin-bottom: 0;
+}
+
+.save-button-container {
+  text-align: left;
+  margin-top: 24px;
+  margin-left: 120px;
+  padding-bottom: 12px;
+}
+
+.field-full {
+  width: 100%;
+}

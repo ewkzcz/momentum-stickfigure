@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "scope": "字幕提取桥接异常后的独立进度订阅回收",
+  "baselineCommit": "2d6c2b4bd910618afb18603edb76561a13160f3b",
+  "changes": ["startProcess调用局部持有取消函数，替代没有其他生产引用的window.__videoOcrUnsubscribe", "正常响应仍在原位置取消；finally补做异常路径清理并保证isProcessing复位", "未改主进程服务、IPC、任务参数、页面模板样式及成功后的原2秒隐藏定时器"],
+  "baseline": {
+    "provenance": "temp/ocr-task-subscription-before-1789279274945",
+    "result": "3项2通过1失败，67590.515791ms",
+    "reject": "momentum-regression-sBgsnB：首轮异常结束后无关IPC进度覆盖处理失败提示；独立消费者仍收到消息",
+    "failure": "momentum-regression-TccvSC：正常失败响应20轮通过",
+    "success": "momentum-regression-GYgclN：成功响应20轮通过",
+    "sourceSupplement": "temp/ocr-task-source.test.mjs从生产Vue执行函数原文：原版2通过1失败，修后3通过；不冒充Electron证据"
+  },
+  "candidate": {
+    "provenance": "temp/ocr-task-subscription-candidate-1789279779781",
+    "result": "字幕三路径各20轮，加四类preload各20轮，4/4通过，86302.094ms",
+    "roots": ["momentum-regression-2wJB0n", "momentum-regression-4xfH3c", "momentum-regression-bjYXcZ", "momentum-regression-GoFYNR"],
+    "formal": "temp/ocr-task-subscription-formal-1789279961511：正式tests/ocr-task-subscription.test.mjs实际3/3通过，84857.009542ms",
+    "formalRoots": ["momentum-regression-OhBq5Y", "momentum-regression-cgcvPq", "momentum-regression-v88GbG"],
+    "build": "index-DM3C8v18.js、index-oru2u_u5.css，预览及main产物名称保持原样"
+  },
+  "checks": ["生产修改后build、渐进lint、严格规模和git diff --check通过", "原desktop helper未改，测试全程真实隔离Electron与preload；仅环境检测和任务结果在主进程边界受控，禁用安装清理", "真实IPC屏障后检查公开DOM和独立消费者，未访问Vue私有状态，源/out溯源稳定"],
+  "precedingFullRegression": "2d6c2b4的temp/layer-render-acceptance-L3wMuF：70项69通过1失败、0跳过、2295441ms；人物生命周期6knzDT在keepalive-16连接目标关闭且缺清理文件，失联进程被定点TERM后运行器继续；冻结266参考不变。源码未改独立复跑gVbuYI通过332469.724333ms，不能称间歇问题已修复",
+  "boundaries": ["生产Python常规异常被主进程包装为success:false；reject只代表IPC/桥接拒绝，不声称每次Python失败都有残留", "没有真实Python、AI或外网调用，没有新增视觉变更或专属RGBA对照", "未覆盖在途卸载、跨实例任务重叠、环境安装清理订阅、成功后立即重试、真实进程取消", "最新完整回归在本修复之前且有一失败；全仓26静态问题、PSD Worker、安全及安装包仍待处理"]
+}

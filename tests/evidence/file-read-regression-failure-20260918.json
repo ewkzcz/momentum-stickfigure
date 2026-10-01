@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "status": "failed-regression-follow-up",
+  "baseHead": "7484e6d927ee6576748e1d207267d88f42a76f03",
+  "directory": "temp/file-read-psd-lifecycle-after-acceptance-QG1vXP",
+  "tests": { "total": 10, "passed": 1, "failed": 7, "cancelled": 2, "durationMs": 386220.555208, "exitCode": 1 },
+  "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0 },
+  "findings": [
+    "原始PSD及synthetic读取被bootstrap的typeof flags === number条件误归类为越界写；生产使用O_RDONLY|O_NOFOLLOW|O_NONBLOCK。原素材与参考前后检查通过，不代表实际发生素材写入。",
+    "人物页在hash=/login后reload等待Vue挂载超时；desktop.log记录404，独立于只读open误判，需独立验证应用协议。",
+    "38/38读取相关定向结果保留在temp/file-read-history-compatibility-after-acceptance-4WknsG，不得用于抵消本轮失败。"
+  ],
+  "rawDesktopRoots": [
+    "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-L6QCAb",
+    "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-Sgoa8v",
+    "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-TAOfeF"
+  ],
+  "openFlagsBaseline": {
+    "command": "node --test tests/bootstrap-open-flags.test.mjs",
+    "total": 3, "passed": 2, "failed": 1, "durationMs": 60.707541,
+    "failure": "数字严格只读flags用例Error: outside blocked；写入/未知flags拒绝及隔离目录内写入用例通过。",
+    "scope": "执行实际bootstrap包装代码段的受控fs单元，不是外部系统验收。"
+  },
+  "limits": "尚未修复复验全部失败；未提交，最终累计及三类外部验收未完成。"
+}

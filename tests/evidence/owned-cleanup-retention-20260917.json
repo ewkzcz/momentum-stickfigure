@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "scope": "任务作用域清理失败保留与嵌套错误传播；独立定向验收，非最终累计验收",
+  "headAtValidation": "0017ddde3b2c22d618f4423c98bb132e45c7b8ed",
+  "workingTreeWasDirty": true,
+  "changedProduction": ["src/main/owned-process-tasks.mjs"],
+  "before": {
+    "directory": "temp/media-admission-owned-cleanup-before-acceptance-mGC3c4",
+    "total": 6, "passed": 3, "failed": 3, "durationMs": 1788.861875,
+    "ownedTaskTests": {"total": 5, "passed": 3, "failed": 2},
+    "reproduced": ["来源销毁后已结算的清理失败被停止检查遗漏", "嵌套AggregateError内的PROCESS_CLEANUP_FAILED被停止检查吞掉"],
+    "otherFailure": "媒体准入测试失败与本次修复独立，仍未解决"
+  },
+  "after": {
+    "directory": "temp/owned-cleanup-retention-after-acceptance-0gXwr3",
+    "command": "node temp/verify-psd-unit.mjs owned-cleanup-retention-after owned-process-tasks managed-process hd-process-lifecycle ocr-process-lifecycle",
+    "total": 31, "passed": 31, "failed": 0, "cancelled": 0, "skipped": 0, "durationMs": 5569.697333,
+    "ownedTaskTests": 9,
+    "checks": {"referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0}
+  },
+  "behavior": [
+    "任务删除前保存未解决清理失败，退出等待全部当前任务后报告历史及当前失败",
+    "嵌套AggregateError与cause循环安全遍历，保留原错误对象和稳定PROCESS_CLEANUP_FAILED码",
+    "重复停止不清空失败；取消按owner/kind隔离；普通业务错误不误报",
+    "错误集合按对象身份保留，不额外持有task/owner；错误图自身引用在失败未解决期间保留"
+  ],
+  "limits": [
+    "新增错误传播测试是受控任务机制测试，不等于真实Electron活子树退出或真实Python模型验收",
+    "HD相关定向回归使用当前未提交媒体候选与测试，不能称远端包含媒体修复",
+    "共9项owned-process-tasks测试，以实际文件与运行结果为准，完成报告中的10项计数不准确",
+    "测试后新增本证据或提交会改变输入清单，以上不能用作当前最终累计验收",
+    "媒体准入、两窗跨域、其余计划项及三类外部验收仍未完成"
+  ],
+  "conclusion": "两项已复现的任务清理错误传播失败经定向复验解决；还不能收工"
+}

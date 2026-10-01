@@ -1,0 +1,10 @@
+{
+  "baselineCommit": "2413683f4dda1070d99d45fd9a540b861d1facaa",
+  "scope": "对话设置域维护唯一配置reactive、两个忙碌ref及初始化/选目录/保存三个原函数。",
+  "baseline": {"provenance": "temp/dialog-domain-baseline-1789255942185", "archive": "DBtXDO", "dialog": "URm8WJ", "passed": 2, "durationMs": 69415},
+  "candidate": {"provenance": "temp/dialog-domain-candidate-1789256362881", "archive": "WhR5B6", "dialog": "j2aijI", "passed": 2, "durationMs": 68880, "sourceAndBuildStable": true},
+  "checks": ["temp/verify-dialog-settings-extraction.mjs：3函数正文注释、状态唯一及初值、读取存储原位置、父页剩余脚本、模板样式一致", "npm run lint通过，仅追加新模块", "严格规模扫描超限0", "重新生产build通过", "git diff --check通过"],
+  "coverage": ["对话设置原版计算样式及截图零差异", "目录选择取消、日期开关、保存拒绝、实际磁盘备份和完整重启", "跨域草稿备份、四域导出及取消、旧字段导入、共享与独立高清磁盘、重启严格对照"],
+  "preserved": ["旧对话配置直接JSON解析，不补齐缺失字段", "目录只做原非空验证", "只有对话保存备份附dialogConfig；导入和手动导出继续不处理对话", "loadInitialDialogConfig仍为私有function声明，同步读取位于原dialogConfig初始化位置"],
+  "limits": ["未调用真实AI/Python或更改真实配置", "父页面跨域加载与导入仍未收敛", "本项为定向2项，不代表候选全量回归", "预览间歇空白未定位，全仓eslint最近仍26 errors"]
+}

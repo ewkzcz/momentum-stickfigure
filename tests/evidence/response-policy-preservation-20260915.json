@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-15",
+  "scope": "移除第三方页面CSP/CORS响应全局改写",
+  "baseline": { "directory": "temp/response-policy-preservation-before-acceptance-Nvn5h1", "passed": 0, "failed": 1, "finding": "通过真实Electron默认会话net.fetch请求localhost视频路径：原站CSP被应用开发CSP替换，GET及OPTIONS的允许来源被改为*；OPTIONS实际仍403而非注释声称204。" },
+  "after": { "directory": "temp/response-policy-preservation-after-acceptance-rWR84a", "passed": 9, "failed": 0, "durationMs": 7358.300541, "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "changes": [
+    "window-controller响应策略仅限明确ELECTRON_RENDERER_URL对应自有主框架入口；第三方、媒体、预检的原CSP/CORS和状态保留。",
+    "移除无效果的OPTIONS onBeforeRequest及全局视频/预检CORS改写。",
+    "删除browser-view-controller对defaultSession追加宽松CSP的重复响应监听，避免相互覆盖。"
+  ],
+  "limitations": [
+    "本单元仅恢复第三方响应完整性；开发入口CSP文本和生产file入口meta策略尚待后续恢复。",
+    "主窗与预览webSecurity仍false，不将响应头检查冒充浏览器同源阻断验收。",
+    "net.fetch使用真实Chromium网络和默认会话访问受控localhost，不是页面CSP执行测试。Node网络与子进程等bootstrap保护未关闭。",
+    "第三方登录、真实远程媒体与用户自定义API仍属外部验收。",
+    "9项是定向回归，不是当前累计完整验收。"
+  ]
+}

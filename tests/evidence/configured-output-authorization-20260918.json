@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "status": "passed-targeted-not-final-acceptance",
+  "baseHead": "0545d96",
+  "scope": "原计划第5项配置输出目录用途授权；配置文本不恢复写入权限，拖拽和Gemini目录创建均需本窗口用途授权",
+  "before": { "directory": "temp/configured-output-before-acceptance-Dc5aP5", "tests": 3, "passed": 0, "failed": 3, "durationMs": 3148.641542, "exitCode": 1 },
+  "after": { "directory": "temp/configured-output-after-acceptance-g8hZWL", "tests": 3, "passed": 3, "failed": 0, "durationMs": 2596.859834, "exitCode": 0, "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0 } },
+  "implementation": [
+    "配置路径仅作为偏好；canvas-output、gemini-output、ocr-output用途建立窗口隔离授权，关闭窗口后撤销。",
+    "默认输出目录只允许固定默认根；自定义配置目录需重新通过原生目录选择确认，拒绝配置文本、相对路径、父级回退、越界和符号链接。",
+    "拖拽图片及Gemini目录准备在实际创建和写入前复核授权根；模型输入目录不授通用写权限。"
+  ],
+  "relatedFinal": { "directory": "temp/configured-output-final-2-acceptance-40b0Ar", "tests": 14, "passed": 14, "failed": 0, "cancelled": 0, "skipped": 0, "durationMs": 56621.848375, "manifestSha256": "c2e13d8af3b78e732f75a0e078888875df77f37a43655d3883d79ecb8f8ca4a2", "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0 } },
+  "iterations": [
+    { "directory": "temp/configured-output-final-acceptance-z5Kkvn", "tests": 10, "passed": 9, "failed": 1, "exitCode": 1 },
+    { "directory": "temp/configured-output-related-acceptance-6zCFuc", "tests": 22, "passed": 19, "failed": 3, "exitCode": 1 },
+    { "directory": "temp/configured-output-related-2-acceptance-LdxZ37", "tests": 14, "passed": 13, "failed": 1, "exitCode": 1 }
+  ],
+  "testAdaptations": [
+    "拖拽正例先创建隔离目录并经生产select-folder明确canvas-output授权；原字节、编号、20轮失败监听及恢复断言保留。",
+    "设置目录选择夹具原来返回不存在的目录，改为先创建目录以匹配原生目录选择；没有放宽生产目录身份校验。",
+    "生图非法选择现在由主进程更早拒绝，新增拒绝并保留表单值断言；原渲染侧空白/相对路径保存断言通过受控IPC返回单独保留，随后恢复生产处理器。最初尝试替换冻结的contextBridge函数无效，改控制真实IPC返回，不关闭任何bootstrap保护。"
+  ],
+  "limitations": ["OCR用途预留但尚未接入OCR服务；该本地实现仍待完成，不能转写为外部缺口。真实OCR业务另属既定外部验收。", "本轮仅关闭配置画布拖拽和Gemini目录准备单元；不冒充完整文件授权或最终累计验收。"]
+}

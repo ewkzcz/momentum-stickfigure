@@ -1,0 +1,36 @@
+{
+  "baselineCommit": "3148578b7d20c99ec2e1b9b7f450ad5be3f73ff0",
+  "scope": "集中五种保存备份的同步快照组装及四域草稿手动导出；保留原读取、求值、异常和异步边界，导出状态原位唯一。",
+  "mechanicalCheck": "temp/verify-settings-archive-extraction.mjs：五组完整快照AST和顺序、展开后保存函数、导出正文与注释、页面和高清剩余脚本、模板样式全部一致。",
+  "baseline": {
+    "archive": "momentum-settings-archive-0l2lal",
+    "repeat": "momentum-settings-archive-eQ4MTj",
+    "provenance": ["temp/settings-archive-baseline-repeat-1789252773397", "temp/settings-archive-baseline-compare-1789252860653"],
+    "result": "干净3148578对应构建，首次完整通过，再严格重复通过；仅规范随机隔离根与exportTime；src/out/HEAD运行前后不变。",
+    "settingsVisualBaseline": "六页沿用干净e9be21b重建原版s8tcFg/fAZBvk/l1q0uh/RjfCgL/9zOtyO/dmHRCd，见hd-settings-domain-20260912.json。"
+  },
+  "candidate": {
+    "provenance": "temp/settings-archive-candidate-1789253542742",
+    "archive": "momentum-settings-archive-GtucrS",
+    "settingsRoots": ["uJmFTY", "z8YA05", "ASQ7uD", "MqAf6K", "V3k0pR", "Jy8Yol", "N6Hkc0", "SiJkNx", "VlGf3r"],
+    "result": "重新构建后归档探针及全部settings-*.test.mjs串行17/17通过，0跳过，173999ms；完整src/out/HEAD运行前后不变。六页计算样式及截图对原版零差异。",
+    "rendererBundle": "index-CmZ2W2Ti.js",
+    "rendererStyles": "index-DSHMUA1x.css",
+    "previewBundleUnchanged": "canvas-preview-U2KRGNUF.js"
+  },
+  "covered": [
+    "人物、快捷键、高清、对话保存备份保留未保存生图草稿，其他非本次保存域来自localStorage；只有对话保存备份包含dialogConfig。",
+    "真实UI四域草稿导出含假密钥，不持久化草稿；导出和导入原生取消不改变UI、存储和文件。",
+    "旧字段、falConfig、false值经真实JSON导入，校验UI、本地共享存储、独立高清后端磁盘和完整重启。",
+    "全部已有设置测试覆盖生图保存、字段校验、真实备份轮换、失败恢复、快捷键和各页保存重启。"
+  ],
+  "checks": ["npm run lint通过，原清单仅追加新模块", "严格规模扫描超限0", "npm run build通过", "git diff --check通过"],
+  "retainedFailures": ["首个临时探针Z9lzqa误以“是”精确定位真实“是（推荐）”而失败；修正定位后重新采原版，不改业务或放宽字段断言。", "历史完整回归0mPJGN剪切组预览空白仍未定位；最新3148578完整CIEqAX虽65/65通过，不作为该间歇问题已修复的证据。"],
+  "limits": [
+    "跨域loadConfig和handleImportSettings仍在父页，设置职责尚未全部完成。",
+    "版本确认关闭、Escape或遮罩路径、导入中途故障和旧备份覆盖导入优先级未覆盖。",
+    "保留原字段差异：导入忽略对话和第五快捷键、空快捷键恢复默认；高清备份恢复与后端加载仍并发。",
+    "未调用真实AI/Python，未改真实配置、密钥、Python环境或冻结参考。",
+    "本项17项定向通过，不冒充此候选完整全量回归；全仓eslint历史27错误仍未清零。"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-13",
+  "subject": "PSD结算前已取消请求拒绝迟到成功",
+  "baselineHead": "b605116b27deb6de6be500e3c722f3ebf9526a4a",
+  "remoteFailure": {"url": "https://github.com/ewkzcz/momentum-stickfigure/actions/runs/34754915532", "tests": 16, "passed": 15, "failed": 1, "root": "momentum-regression-UQCc2j", "failure": "sender destroyed测试期望parsed:false实际true", "artifacts": "temp/ci-run-34754915532"},
+  "localReproduction": {"provenance": "temp/psd-late-cancel-1789299833841", "root": "momentum-regression-8XvxbX", "passed": false, "method": "真实Worker message到达时销毁真实预览窗口，原生产IPC在销毁后仍返回解析成功"},
+  "change": "只在队列settle时、清空signal之前再次检查aborted；已有错误不覆盖，仅拒绝结算前取消的成功结果。exit屏障和解析算法保持不变",
+  "candidate": {"initialProvenance": "temp/psd-late-cancel-candidate-1789299892720", "originalProbeRoot": "momentum-regression-Xf0Z3a", "initialPassed": 7, "formalProvenance": "temp/psd-late-formal-1789300014194", "formalPassed": 7, "formalDurationMs": 10920.401792, "formalRoots": ["momentum-regression-cvFDP2", "momentum-regression-A2Gc9S", "momentum-regression-UrLKMQ", "momentum-regression-bRPU3t"], "coverage": ["online和message阶段各五轮销毁均取消并恢复", "既有跨窗口拒绝和队列20轮生命周期通过", "批量取消及缓存/卸载三路径通过"]},
+  "checks": {"build": true, "progressiveLint": true, "queueLint": true, "strictSize": true, "diffCheck": true},
+  "limits": ["首次远端失败保留，不改原断言或禁用测试", "新远端CI结果待推送后核实", "最近88项全量属于c2f0a70，不覆盖当前修复", "本项不改变已结算任务或撤销成功导入结果"]
+}

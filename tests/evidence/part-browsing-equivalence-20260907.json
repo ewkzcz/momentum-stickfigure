@@ -1,0 +1,192 @@
+{
+  "head": "9b23f0629744e37e55d76dd0ccb148619cf2b71e",
+  "originalLines": 3577,
+  "pageLines": 3072,
+  "reduction": 505,
+  "modules": [
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/composables/usePartSearch.js",
+      "lines": 220,
+      "sha256": "12aead2f9a51e051bd8dd7a63068d558648a96cfafc7d84f11f3b9a6b39e9936",
+      "declarationsTextAndAstEqual": [
+        "showSearchModal",
+        "highlightedPartPath",
+        "isSearchTriggeredSwitch",
+        "searchModalRef",
+        "openSearchModal",
+        "allPartsForSearch",
+        "handPartsForSearch",
+        "originalHandPartsForSearch",
+        "handleSearchResult",
+        "handleSearchResultConfirm",
+        "scrollToPartInList"
+      ],
+      "noWatchLifecycleProxy": true,
+      "exactDependencyWiring": true
+    },
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/composables/usePartBrowsing.js",
+      "lines": 374,
+      "sha256": "d32d5d46754972ce2f2bfbae774cce2e9480e15b7e1d478d7cccce5b2761d30e",
+      "declarationsTextAndAstEqual": [
+        "handleSizeInputConfirm",
+        "visiblePartsList",
+        "selectedParts",
+        "selectedPart",
+        "isPartActive",
+        "hasRenderedContent",
+        "currentPartsList",
+        "emptyStateText"
+      ],
+      "noWatchLifecycleProxy": true,
+      "exactDependencyWiring": true
+    }
+  ],
+  "getterReadPoints": [
+    {
+      "declaration": "allPartsForSearch",
+      "getter": "getPresets",
+      "original": "presets",
+      "line": 55
+    },
+    {
+      "declaration": "handleSearchResult",
+      "getter": "getPartTabs",
+      "original": "partTabs",
+      "line": 109
+    },
+    {
+      "declaration": "handleSearchResult",
+      "getter": "getSelectedPresetId",
+      "original": "selectedPresetId",
+      "line": 123
+    },
+    {
+      "declaration": "handleSearchResult",
+      "getter": "getRenderAllLayers",
+      "original": "renderAllLayers",
+      "line": 124
+    },
+    {
+      "declaration": "handleSearchResultConfirm",
+      "getter": "getSelectPart",
+      "original": "selectPart",
+      "line": 181
+    },
+    {
+      "declaration": "scrollToPartInList",
+      "getter": "getCurrentPartsList",
+      "original": "currentPartsList",
+      "line": 199
+    },
+    {
+      "declaration": "visiblePartsList",
+      "getter": "getVirtualScroll",
+      "original": "virtualScroll",
+      "line": 42
+    },
+    {
+      "declaration": "selectedParts",
+      "getter": "getLayerTreeData",
+      "original": "layerTreeData",
+      "line": 78
+    },
+    {
+      "declaration": "selectedParts",
+      "getter": "getAllPartsListsMap",
+      "original": "allPartsListsMap",
+      "line": 82
+    },
+    {
+      "declaration": "isPartActive",
+      "getter": "getUserInteracted",
+      "original": "userInteracted",
+      "line": 131
+    },
+    {
+      "declaration": "hasRenderedContent",
+      "getter": "getPartTabs",
+      "original": "partTabs",
+      "line": 150
+    },
+    {
+      "declaration": "hasRenderedContent",
+      "getter": "getPresets",
+      "original": "presets",
+      "line": 165
+    },
+    {
+      "declaration": "hasRenderedContent",
+      "getter": "getSelectedPresetId",
+      "original": "selectedPresetId",
+      "line": 165
+    },
+    {
+      "declaration": "hasRenderedContent",
+      "getter": "getTemplates1",
+      "original": "templates1",
+      "line": 172
+    },
+    {
+      "declaration": "hasRenderedContent",
+      "getter": "getSelectedTemplate1Id",
+      "original": "selectedTemplate1Id",
+      "line": 172
+    },
+    {
+      "declaration": "hasRenderedContent",
+      "getter": "getTemplates2",
+      "original": "templates2",
+      "line": 174
+    },
+    {
+      "declaration": "hasRenderedContent",
+      "getter": "getSelectedTemplate2Id",
+      "original": "selectedTemplate2Id",
+      "line": 174
+    },
+    {
+      "declaration": "currentPartsList",
+      "getter": "getPartTabs",
+      "original": "partTabs",
+      "line": 203
+    },
+    {
+      "declaration": "currentPartsList",
+      "getter": "getVirtualScroll",
+      "original": "virtualScroll",
+      "line": 325
+    }
+  ],
+  "runtimeChecks": [
+    "工厂 getter 零调用及空初始化",
+    "后赋值图层树而非旧占位",
+    "userVisible 不受 visible 过滤影响",
+    "单个/多个/null 选中形态",
+    "代理与组合选中",
+    "模板和预设短路读序",
+    "列表先读取目录，nextTick 内再读取 virtualScroll",
+    "可见切片与空状态惰性",
+    "搜索创建 getter 零调用",
+    "搜索先目录、nextTick 后当前列表、200ms 回调时读取最新 selectPart",
+    "保留 100/9000/200ms 原定时器及原滚动公式"
+  ],
+  "protectedHashes": {
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/useLayerTree.js": "9dd0cb3899b253140ff8a384687ab022c86e55b0e421a9f31bf8aa1ca1ac6faa",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasRender.js": "eac97c72d36019f9178f2902f949a604109fcd6fdca6e2cac6164e37fef65889",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/usePartSelectionCoordinator.js": "bd9b6cbf136dc4b5c32869091b4b030f46c526029ebd69a8f111e6d86bb51fd7",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/usePartTabLayout.js": "051ba43951f24148ef0e305b3169074907f0fdad88e4c02975b33d08786c2e25",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/useExpressionAnalysis.js": "3995daca6dde6612fd0f4ca24bac251fa08001ef36757bfc0966645f9db6615f",
+    "src/renderer/src/components/pages/ActionExpressionPage/composables/useVirtualScroll.js": "b63c2cbeae72571c2c30eb6ad27cddb796ab5e113a8760f3e4b39f7975eb7fa0",
+    "src/renderer/src/components/pages/ActionExpressionPage/components/PartSearchModal.vue": "452c7d78f6416a49a32e4e55582dc583180f88a10c5fc70418c64f7c4291668f",
+    "tests/diagnose-part-selection-original.mjs": "8d54b8d2b7cccb878e9064e2afabbb5aa2cebe2808573445dcd3a5d3c48e0c39",
+    "tests/helpers/layer-render-reference.mjs": "289ae24e1320742697581aaf89548456d1e2c68bb456f5855083f26320c47a38"
+  },
+  "remainingStatementsTextAndAstEqual": 225,
+  "pageWatchCount": 20,
+  "pageLifecycleCount": 6,
+  "watchAndLifecycleOrderEqual": true,
+  "templateStyleBytesEqual": true,
+  "originalPageSha256": "1f093ded8f0949a3b0f84bcfbbf24dace78c867ada67fd904ab4a6cb0982704b",
+  "pageSha256": "89c097a34fa605f678928be3f9ef49bb41fa295518d5d959970433fc3a265898"
+}

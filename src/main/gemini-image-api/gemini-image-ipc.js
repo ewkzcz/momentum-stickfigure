@@ -6,18 +6,31 @@
 
 import { ipcMain } from 'electron';
 import path from 'path';
+import { authorizeConfiguredOutput } from '../configured-output-policy.js';
+import { isTrustedIpcSender } from '../ipc-sender-policy.js';
+import { assertGeminiOptions, assertPathList, assertText } from '../ipc-parameter-policy.js';
 
 // 直接从 ESM 模块中按需导入需要的函数
 import { apiWrapper } from './gemini-image-service.js';
 import {
   getConfig,
-  validateConfig,
-  createDefaultDirectories
+  validateConfig
 } from './gemini-image-config.js';
 import {
   validateImageFile,
   getImageInfo
 } from './gemini-image-utils.js';
+
+export async function prepareOutput(event, options) {
+  for (const field of ['outputDir', 'editOutputDir', 'logDir']) {
+    if (typeof options[field] === 'string' && options[field].split(/[\\/]/).includes('..')) throw new Error('输出路径不允许父级回退');
+  }
+  const authorization = await authorizeConfiguredOutput(event, 'gemini-output', options.projectRoot);
+  const config = getConfig({ ...options, projectRoot: authorization.root });
+  for (const field of ['outputDir', 'editOutputDir', 'logDir']) authorization.directory(config[field]);
+  for (const field of ['outputDir', 'editOutputDir', 'logDir']) authorization.directory(config[field], true);
+  return config;
+}
 
 /**
  * 注册 Gemini 图像相关的 IPC 处理器
@@ -32,6 +45,8 @@ export function registerFalApiHandlers() {
   // 1、注册图像生成入口，校验配置后调用业务服务。
   ipcMain.handle('fal-generate-image', async (event, options) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertGeminiOptions(options);
       const config = getConfig(options);
       const validation = validateConfig(config);
 
@@ -44,7 +59,7 @@ export function registerFalApiHandlers() {
       }
 
       // 创建必要的输出与日志目录
-      createDefaultDirectories(config);
+      Object.assign(config, await prepareOutput(event, options));
 
       // 只在前端显式指定宽高比时才透传到下游
       const apiParams = {
@@ -55,7 +70,11 @@ export function registerFalApiHandlers() {
         model: config.model,
         logPath: config.logFile,
         savePath: config.outputDir,
-        ...(options.aspectRatio ? { aspectRatio: options.aspectRatio } : {})
+        ...(options.aspectRatio ? { aspectRatio: options.aspectRatio } : {}),
+        quality: options.quality,
+        size: options.size,
+        imageTier: options.imageTier,
+        numImages: options.numImages
       };
 
       const result = await apiWrapper('generate', apiParams);
@@ -75,6 +94,8 @@ export function registerFalApiHandlers() {
   // 2、注册图像编辑入口，额外检查每张原始图片。
   ipcMain.handle('fal-edit-image', async (event, options) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertGeminiOptions(options);
       const config = getConfig(options);
       const validation = validateConfig(config);
 
@@ -103,7 +124,7 @@ export function registerFalApiHandlers() {
         }
       }
 
-      createDefaultDirectories(config);
+      Object.assign(config, await prepareOutput(event, options));
 
       const editParams = {
         prompt: options.prompt,
@@ -114,7 +135,11 @@ export function registerFalApiHandlers() {
         logPath: config.logFile,
         savePath: config.editOutputDir,
         inputImages: options.inputImages,
-        ...(options.aspectRatio ? { aspectRatio: options.aspectRatio } : {})
+        ...(options.aspectRatio ? { aspectRatio: options.aspectRatio } : {}),
+        quality: options.quality,
+        size: options.size,
+        imageTier: options.imageTier,
+        numImages: options.numImages
       };
 
       const result = await apiWrapper('edit', editParams);
@@ -134,6 +159,8 @@ export function registerFalApiHandlers() {
   // 3、注册配置合并及有效性查询。
   ipcMain.handle('fal-get-config', async (event, userConfig = {}) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertGeminiOptions(userConfig);
       const config = getConfig(userConfig);
       const validation = validateConfig(config);
 
@@ -158,6 +185,8 @@ export function registerFalApiHandlers() {
   // 4、注册单张图片校验及信息查询。
   ipcMain.handle('fal-validate-image', async (event, imagePath) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertText(imagePath, 32768, '图片路径');
       const isValid = validateImageFile(imagePath);
       let imageInfo = null;
 
@@ -185,6 +214,8 @@ export function registerFalApiHandlers() {
   // 5、注册批量图片校验。
   ipcMain.handle('fal-validate-images', async (event, imagePaths) => {
     try {
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertPathList(imagePaths);
       const results = [];
 
       for (const imagePath of imagePaths) {
@@ -219,8 +250,9 @@ export function registerFalApiHandlers() {
   // 6、注册输出和日志目录创建入口。
   ipcMain.handle('fal-create-directories', async (event, config = {}) => {
     try {
-      const fullConfig = getConfig(config);
-      createDefaultDirectories(fullConfig);
+      if (!isTrustedIpcSender(event)) throw new Error('未授权的图像服务操作来源');
+      assertGeminiOptions(config);
+      const fullConfig = await prepareOutput(event, config);
 
       return {
         success: true,

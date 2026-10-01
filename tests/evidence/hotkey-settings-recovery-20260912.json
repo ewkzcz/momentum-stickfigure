@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "scope": "快捷键备份恢复和导入同步持久化职责归域",
+  "baselineCommit": "bdbd946a8ec7d549b2b35d77335fb3501bb2e68d",
+  "changes": [
+    "restoreHotkeySettingsFromBackup接收原restoreResult，保留四字段重复读取与默认值、存储广播及原恢复catch",
+    "applyImportedHotkeySettings只接收父页原位已读取的imported对象，迁入四字段赋值与persist；外层if/getter及系统注册await/catch/日志继续原位",
+    "默认快捷键和持久化函数改为域内部使用，唯一响应式对象及第五项原恢复/导入遗漏保持不变"
+  ],
+  "baseline": {
+    "provenance": "temp/hotkeys-recovery-baseline-1789261153237",
+    "archive": "momentum-settings-archive-2mKrlg",
+    "hotkeys": "momentum-regression-mtv7qX",
+    "subscriptions": "momentum-regression-gu9i7D",
+    "passed": "3/3，68716ms"
+  },
+  "candidate": {
+    "provenance": "temp/hotkeys-recovery-candidate-1789261415783",
+    "archive": "momentum-settings-archive-wXzuI7，严格对照2mKrlg",
+    "hotkeys": "momentum-regression-5Iu24N，严格对照mtv7qX布局样式与RGBA零差异",
+    "subscriptions": "momentum-regression-AJ5lZD，四通道20轮独立取消及载荷隔离",
+    "passed": "3/3，0跳过，68013ms",
+    "build": "index-CxSURLii.js、index-zJSmOqkP.css"
+  },
+  "checks": [
+    "temp/verify-hotkey-recovery-extraction.mjs通过，两同步块完整AST/原正文注释及原父剩余脚本、旧域状态和模板样式一致",
+    "机械脚本首版误把原export const工厂当function读取，检查直接失败；修正AST入口后通过，未调整受保护范围",
+    "npm run lint、严格规模扫描、git diff --check、npm run build均通过；不代表全仓eslint通过"
+  ],
+  "boundaries": [
+    "沿用原desktop强制后台隔离，未验证系统全局快捷键真实注册和外部软件",
+    "未穷尽getters抛错/磁盘失败，原同步边界由AST和原文校验保护",
+    "原正常保存与导入的返回成功检查不同，第五项恢复/导入遗漏未在重构中修改",
+    "本项尚未跑累计全量；PSD Worker、安全和最终验收仍未完成"
+  ]
+}

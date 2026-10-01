@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "responsibility": "主画布及预设悬浮状态与处理器机械迁移",
+  "originalHead": "b2aad27787b398c406d0207280e54c7bbc2489e8",
+  "recordedSourceTree": "bb7383914e1cee765d36dc5f23e749fcfe6ee952",
+  "reference": "temp/regression-reference-v2/canvas-preset-hover-renderer1024-dpr1-v1",
+  "fixtureHashesBefore": [
+    "b60f61ca07ba99d22bc5cec2de3f9b29b5b2d397925438e290f1ef649e00197b",
+    "a1cd270115d88bbf715ce1786f87e6d8a36bb6790db168542ae2ccb732300435"
+  ],
+  "fixtureHashesAfter": [
+    "b60f61ca07ba99d22bc5cec2de3f9b29b5b2d397925438e290f1ef649e00197b",
+    "a1cd270115d88bbf715ce1786f87e6d8a36bb6790db168542ae2ccb732300435"
+  ],
+  "environment": {
+    "runtime": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "electron": "35.7.5",
+      "chrome": "134.0.6998.205"
+    },
+    "renderer": {
+      "width": 1024,
+      "height": 700,
+      "dpr": 1,
+      "focused": true,
+      "visibility": "visible"
+    },
+    "renderMode": "software-layout",
+    "focusEmulation": true
+  },
+  "beforeMigration": {
+    "record": "通过",
+    "directedReplay": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "fullSuite": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "hoverScenes": 28,
+    "hoverPngSnapshots": 12,
+    "desktopClosedAndIsolated": true
+  },
+  "migration": {
+    "equalInitializerAstCount": 9,
+    "unchangedRemainingPageAst": true,
+    "unchangedTemplateAndStyles": true,
+    "unchangedTemplateHoverAndWatcherTail": true,
+    "refs": [
+      "canvasRef",
+      "enableCanvasHover",
+      "enablePresetHover"
+    ],
+    "lines": {
+      "before": 8863,
+      "after": 8642,
+      "composable": 265
+    },
+    "filesDuringValidation": {
+      "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.vue": {
+        "lines": 8642,
+        "sha256": "47f1e2c9eafed8eccd79aff7f010a1edd0784a64cde2bb7368c7a08749307b94"
+      },
+      "src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasPresetHoverPreview.js": {
+        "lines": 265,
+        "sha256": "42600b6f9ecae962aa0aebf3556277e02ada5908798f00ec354f6879039b83ae"
+      },
+      "tests/scenarios/canvas-preset-hover.mjs": {
+        "lines": 279,
+        "sha256": "a70e8f8ce7eb6da25a8115db3b67fffbf9af303a5b4f95e507c75eee1d34e9ba"
+      },
+      "tests/canvas-preset-hover.test.mjs": {
+        "lines": 6,
+        "sha256": "53497efacb99522b2e0bdf0ab245b059232b314a144f1f6b7e9255873fe91d45"
+      },
+      "tests/record-hover-preview.mjs": {
+        "lines": 8,
+        "sha256": "cc21f7ada06b938ea84d80e1fe679ad6e9d8694317185ecf9817c710e9ac228c"
+      },
+      "tests/verify-hover-preview.mjs": {
+        "lines": 146,
+        "sha256": "b9f2bdad38bca9756eec216295ecd4fe8a2ab6bb9b15ea498a1b4e0a53faee13"
+      }
+    }
+  },
+  "referenceProtection": {
+    "oldFileCount": 207,
+    "oldDigestBefore": "9ff914ca9b23b5c4e3f66b3b66941f08dc982811363da40560c65897b79249b9",
+    "allDigestBefore": "1cddf8e35590a8c80e7f7e5b618e5d1ee753281071ffeacbff3e9f35d34ddb9f",
+    "exclusiveCreateRejected": true,
+    "readOnlyPermissions": true,
+    "oldDigestAfter": "9ff914ca9b23b5c4e3f66b3b66941f08dc982811363da40560c65897b79249b9",
+    "allDigestAfter": "1cddf8e35590a8c80e7f7e5b618e5d1ee753281071ffeacbff3e9f35d34ddb9f",
+    "allUnchanged": true
+  },
+  "earlierFailures": [
+    {
+      "stage": "首次迁移后 lint",
+      "detail": "新增测试内两处 getComputedStyle 未使用 window 限定导致 no-undef；已改为 window.getComputedStyle，不改变测试行为或参考"
+    },
+    {
+      "stage": "首次语法树审计",
+      "detail": "比较器误把 Babel 的括号源码偏移 parenStart 当作语义；仅追加排除此位置字段，保留 parenthesized 和所有运算节点，不改业务"
+    }
+  ],
+  "commands": [
+    {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "durationMs": 586,
+      "log": "1-npm-run.log",
+      "sha256": "cf004f70714d32060a2bb544adbc6e659de9460411ce5b5247cfc75a855f087b"
+    },
+    {
+      "command": "npm run check:size",
+      "exitCode": 0,
+      "durationMs": 119,
+      "log": "2-npm-run.log",
+      "sha256": "42d2bf5a9cc7e661db54898660bc6beba63fcfebaa0ac5edbb7d8f77da62f447"
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "durationMs": 3078,
+      "log": "3-npm-run.log",
+      "sha256": "026607f74423938b283a6862631005d1c79fb67f1d467fbdd081125a33419a96"
+    },
+    {
+      "command": "node --test tests/canvas-preset-hover.test.mjs",
+      "exitCode": 0,
+      "durationMs": 13414,
+      "log": "4-node---test.log",
+      "sha256": "964ab3a2d87478f06f5bfa0912c8c2fe09f27b232b4f12bdf50e0c85f2abfa86",
+      "totals": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      },
+      "hoverStatesMatched": 28,
+      "psdPixelScenesMatched": 0,
+      "desktopEvidenceIds": [
+        "momentum-regression-FxLVtl",
+        "momentum-regression-UD9fi9"
+      ]
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "durationMs": 120537,
+      "log": "5-npm-test.log",
+      "sha256": "87330ecde43fa8dddf8e5397cabf93b5d786cb21980c4d705858aa0f2d450c7a",
+      "totals": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "skipped": 0
+      },
+      "hoverStatesMatched": 28,
+      "psdPixelScenesMatched": 154,
+      "desktopEvidenceIds": [
+        "momentum-regression-QV8Z2B",
+        "momentum-regression-0m5bBF",
+        "momentum-regression-ODYJsy",
+        "momentum-regression-B0gg6A",
+        "momentum-regression-Uz01FX",
+        "momentum-regression-pQ7jPc",
+        "momentum-regression-ql2ru3",
+        "momentum-regression-HREMuW",
+        "momentum-regression-OXhA6c",
+        "momentum-regression-IWEc80",
+        "momentum-regression-UQNW9P"
+      ]
+    }
+  ],
+  "logs": "temp/hover-preview-validation-Qdawun",
+  "untested": [
+    "本项未新增模板或部件悬浮交互场景；模板状态及共享开关监听器以原文及语法树证明未改",
+    "未新增异步 Image 竞争修复或异常注入测试，保留原异步行为",
+    "本次悬浮参考仅覆盖当前 macOS arm64、Electron 35.7.5、1024×700、DPR 1 环境"
+  ],
+  "validationRecordedBeforeCommit": true,
+  "parentReview": {
+    "changes": ["清理新模块继承的行尾空格，语法树仍完全一致", "逐个验证采集时登记的旧参考仍存在且摘要相同，同时允许未来增加独立参考目录；测试前后仍比较完整摘要"],
+    "revalidation": "语法树、参考保护、lint、规模、构建、定向悬浮测试和12项完整桌面回归再次全部通过",
+    "temporaryVerificationScriptRemoved": true
+  },
+  "completedAt": "2026-09-06T21:24:32.320Z"
+}

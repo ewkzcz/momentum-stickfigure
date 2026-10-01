@@ -3,7 +3,9 @@
  * 管理图层树的显示、操作记录、可见性控制和渲染
  */
 
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
+import { getCanvasRenderCoordinator, createCanvasRenderCoordinator } from './useCanvasRenderCoordinator.js'
+import { loadRenderImage, bindRenderSignal, getRenderSignal, assertRenderActive } from '../utils/renderImageTask.js'
 import { createPerformanceLogger } from '@renderer/utils/performanceLogger.js'
 
 const isProduction = import.meta?.env?.MODE === 'production'
@@ -34,6 +36,10 @@ const perfLogger = createPerformanceLogger('layer-tree')
  * 2、提供可见性同步、状态恢复与画布渲染方法。
  * 3、返回页面所需的状态及操作接口。
  * @param {Object} deps - 依赖项
+ * @param {Ref} [deps.layerTreeData] - 页面共享的图层树数据，未注入时独立创建
+ * @param {Ref} [deps.layerTreeOperations] - 页面共享的图层操作记录
+ * @param {Ref} [deps.selectedLayersMap] - 页面共享的选中图层映射
+ * @param {Ref} [deps.controlPriority] - 页面共享的最后操作来源
  * @param {Ref} deps.currentPsdData - 当前PSD数据
  * @param {Ref} deps.canvasRef - Canvas引用
  * @param {Ref} deps.selectedParts - 选中的部件
@@ -76,11 +82,30 @@ export function useLayerTree(deps) {
 
   // ==================== 状态 ====================
   
-  const layerTreeData = ref([]) // 图层树数据
-  const layerTreeOperations = ref({}) // 记录用户通过图层树的操作：{ '图层路径': { name: '图层名', visible: true/false, changed: true } }
-  const selectedLayersMap = ref({}) // 选中的图层映射 { layerName: true/false }
-  const controlPriority = ref('parts') // 'layerTree' 或 'parts'，记录最后一次操作的来源
+  const renderCoordinator = getCanvasRenderCoordinator(deps)
+  const layerTreeData = deps.layerTreeData ?? ref([]) // 图层树数据
+  const layerTreeOperations = deps.layerTreeOperations ?? ref({}) // 记录用户通过图层树的操作：{ '图层路径': { name: '图层名', visible: true/false, changed: true } }
+  const selectedLayersMap = deps.selectedLayersMap ?? ref({}) // 选中的图层映射 { layerName: true/false }
+  const controlPriority = deps.controlPriority ?? ref('parts') // 'layerTree' 或 'parts'，记录最后一次操作的来源
   
+  /** 为模板快照建立独立渲染实例，复用原图层算法，不修改主画布或页面树。 */
+  const renderLayerTreeSnapshot = async treeData => {
+    const source = canvasRef.value
+    if (!source) throw new Error('Canvas未初始化')
+    const canvas = document.createElement('canvas')
+    canvas.width = source.width
+    canvas.height = source.height
+    const snapshotRef = shallowRef(canvas)
+    const coordinator = createCanvasRenderCoordinator({ canvasRef: snapshotRef })
+    const controls = Object.fromEntries(['showFront', 'showSide', 'showBack', 'showRear', 'showBackground', 'showBaseLayer', 'showSecondBaseLayer', 'selectHeadOnly', 'selectNonHead'].filter(key => deps[key]).map(key => [key, ref(deps[key].value)]))
+    const renderer = useLayerTree({ ...deps, ...controls, canvasRef: snapshotRef, currentPsdData: shallowRef(currentPsdData.value),
+      layerTreeData: ref(treeData), renderCoordinator: coordinator })
+    const request = coordinator.begin()
+    await renderer.renderByLayerTree(request)
+    if (request.result?.status !== 'committed') throw new Error('模板快照渲染未完成')
+    return canvas
+  }
+
   // 2、组织树节点构造、交互同步和图像渲染流程。
   // ==================== 构建图层树 ====================
   
@@ -461,7 +486,7 @@ export function useLayerTree(deps) {
     debugLog('🎨 [图层树] 准备触发渲染回调')
     if (onRenderTrigger) {
       debugLog('🎨 [图层树] 调用 onRenderTrigger()')
-      onRenderTrigger()
+      return onRenderTrigger() // 等待绘制完成后再反向同步，避免共享画布并发重绘。
     } else {
       debugWarn('⚠️ [图层树] onRenderTrigger 未定义')
     }
@@ -1021,22 +1046,13 @@ export function useLayerTree(deps) {
    * @param {number} canvasHeight - 画布高度
    */
   const renderLayerToContext = async (ctx, layer, canvasWidth, canvasHeight) => {
-    // 1、单层图片加载失败时结束当前层，允许整帧继续。
-    return new Promise((resolve, reject) => {
-      try {
-        const imageSource = layer.imageData || (layer.canvas ? layer.canvas.toDataURL?.() : null)
-        
-        if (!imageSource) {
-          debugWarn(`⚠️ 图层 ${layer.name} 没有图像源`)
-          resolve()
-          return
-        }
-        
-        const img = new Image()
-        
-        img.onload = async () => {
-          clearTimeout(timeout)
-          try {
+    assertRenderActive(ctx)
+    const imageSource = layer.imageData || (layer.canvas ? layer.canvas.toDataURL?.() : null)
+    if (!imageSource) return
+    let saved = false
+    try {
+      const img = await loadRenderImage(imageSource, { signal: getRenderSignal(ctx) })
+      assertRenderActive(ctx)
             // 2、保持原始坐标精度，设置图层透明度和混合模式。
             let x = layer.left || 0
             let y = layer.top || 0
@@ -1044,16 +1060,14 @@ export function useLayerTree(deps) {
             let height = layer.height || img.height
             
             ctx.save()
+            saved = true
             
             // 设置高质量渲染
             ctx.imageSmoothingEnabled = true
             ctx.imageSmoothingQuality = 'high'
             
-            // 设置透明度
-            let opacity = (layer.opacity !== undefined ? layer.opacity : 255) / 255
-            if (opacity < 0.1 && layer.opacity > 0) {
-              opacity = 1.0
-            }
+            // 设置透明度（主进程已把 PSD 透明度规范为 0~255）
+            const opacity = (layer.opacity !== undefined ? layer.opacity : 255) / 255
             ctx.globalAlpha = opacity
             
             // 设置混合模式
@@ -1087,6 +1101,7 @@ export function useLayerTree(deps) {
                 willReadFrequently: false
               })
 
+              bindRenderSignal(tempCtx, getRenderSignal(ctx))
               // 先保存透明度和混合模式设置
               const savedAlpha = ctx.globalAlpha
               const savedComposite = ctx.globalCompositeOperation
@@ -1099,6 +1114,7 @@ export function useLayerTree(deps) {
 
               // 通用：按PSD规则应用图层蒙版（灰度->alpha、考虑defaultColor/invert、整画布套用）
               await applyLayerMask(tempCtx, layer, x, y, width, height, canvasWidth, canvasHeight)
+              assertRenderActive(ctx)
 
               // 输出到主画布（使用原始设置）
               ctx.globalAlpha = savedAlpha
@@ -1112,35 +1128,12 @@ export function useLayerTree(deps) {
               ctx.drawImage(img, 0, 0, img.width, img.height, x, y, width, height)
             }
             
-            ctx.restore()
-            
-            resolve()
-          } catch (error) {
-            console.error(`❌ 渲染图层 ${layer.name} 到上下文失败:`, error)
-            ctx.restore()
-            resolve()
-          }
-        }
-        
-        // 添加加载超时保护
-        const timeout = setTimeout(() => {
-          console.error(`⏱️ 图层 ${layer.name} 加载超时`)
-          resolve()
-        }, 5000)
-        
-        img.onerror = (error) => {
-          clearTimeout(timeout)
-          console.error(`❌ 图层 ${layer.name} 图像加载失败:`, error)
-          resolve()
-        }
-        
-        img.src = imageSource
-        
-      } catch (error) {
-        console.error(`❌ 处理图层 ${layer.name} 失败:`, error)
-        resolve()
-      }
-    })
+    } catch (error) {
+      if (getRenderSignal(ctx)?.aborted) throw error
+      console.error(`❌ 渲染图层 ${layer.name} 到上下文失败:`, error)
+    } finally {
+      if (saved) ctx.restore()
+    }
   }
   
   /**
@@ -1150,7 +1143,7 @@ export function useLayerTree(deps) {
    * 2、按树可见性、头部模式和底图控制收集可绘制图层。
    * 3、按 PSD 顺序绘制普通层或剪切组，并返回统计信息。
    */
-  const renderByLayerTree = async () => {
+  const renderByLayerTree = async (parentRequest) => {
     // 1、缺少画布或 PSD 时返回空统计结果。
     const canvas = canvasRef.value
     if (!canvas) {
@@ -1164,17 +1157,15 @@ export function useLayerTree(deps) {
       return { layersRendered: 0, nodesVisited: 0 }
     }
 
+    const request = parentRequest || renderCoordinator.begin()
     const measurement = perfLogger.start('render:layerTree', { threshold: 15 })
     const startTime = Date.now()
     debugLog('🌳 使用图层树模式渲染')
     
     try {
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        throw new Error('无法获取Canvas 2D上下文')
-      }
+      const { canvas: buffer, ctx } = renderCoordinator.createBuffer(request)
       
-      // 清空画布
+      // 每次请求独立绘制，完成前不触碰主画布。
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       
       // 遍历 PSD 数据，渲染所有可见的图层
@@ -1367,6 +1358,7 @@ export function useLayerTree(deps) {
           canvasSize: `${canvas.width}x${canvas.height}`,
           note: 'no-layers'
         })
+        renderCoordinator.commit(request, buffer)
         return { layersRendered: 0, nodesVisited }
       }
       
@@ -1375,6 +1367,7 @@ export function useLayerTree(deps) {
       
       // 3、按照 PSD 顺序渲染，剪切层随基础层合成并标记已处理。
       for (let i = 0; i < layersToRender.length; i++) {
+        assertRenderActive(ctx)
         // 如果当前图层已经作为剪切蒙版被处理过，跳过
         if (processedClippingIndices.has(i)) {
           continue
@@ -1407,17 +1400,22 @@ export function useLayerTree(deps) {
         nodesVisited,
         canvasSize: `${canvas.width}x${canvas.height}`
       })
+      renderCoordinator.commit(request, buffer)
       return { layersRendered: layersToRender.length, nodesVisited }
       
     } catch (error) {
-      console.error('❌ 图层树渲染失败:', error)
-      message.error(`渲染失败: ${error.message}`)
+      if (!request.signal.aborted) {
+        console.error('❌ 图层树渲染失败:', error)
+        message.error(`渲染失败: ${error.message}`)
+      }
       measurement.end({
         layersRendered: 0,
         nodesVisited: 0,
         error: error?.message
       })
       return { layersRendered: 0, nodesVisited: 0 }
+    } finally {
+      renderCoordinator.finish(request, 'failed')
     }
   }
   
@@ -1662,6 +1660,7 @@ export function useLayerTree(deps) {
     syncLayerTreeFromParts, // 部件选择 → 图层树
     syncPartsFromLayerTree, // 图层树 → 部件选择（反向同步）
     updateSelectedLayersMap,
+    renderLayerTreeSnapshot,
     renderByLayerTree,
     syncBackgroundControlFromLayerTree // 同步背景控制状态
   }

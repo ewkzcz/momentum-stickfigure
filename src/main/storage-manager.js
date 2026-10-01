@@ -8,6 +8,8 @@ import fs from 'fs'
 import path from 'path'
 import { app } from 'electron'
 import os from 'os'
+import { randomUUID } from 'node:crypto'
+import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 const ENABLE_REALTIME_MULTI_INSTANCE_SYNC = false
 
@@ -41,6 +43,8 @@ class StorageManager {
     // 防抖定时器
     this.saveTimer = null
     this.saveDelay = 5000 // 5秒防抖延迟 - 大幅减少文件写入频率
+    this.maxSaveTimer = null
+    this.maxSaveDelay = 10000 // 持续更新时最多合并10秒，避免防抖任务一直被重置
 
     // 文件监听器
     this.fileWatcher = null
@@ -49,6 +53,8 @@ class StorageManager {
 
     // 标记是否正在写入（避免监听到自己的写入）
     this.isWriting = false
+    // 每次持久化递增版本，退出同步写入后不允许旧异步回调覆盖最新快照。
+    this.writeVersion = 0
     this.lastWriteTime = 0
     this.writeProtectionTime = 8000 // 8秒写入保护期 - 防止多实例循环触发
 
@@ -92,17 +98,25 @@ class StorageManager {
   /**
    * 保存storage到文件（防抖）
    * 处理流程：
-   * 1、取消旧保存任务，延迟合并连续修改。
-   * 2、标记写入时间，将缓存异步保存并释放写入标记。
+   * 1、重置短期防抖，并保留本轮首次变更的最长等待计时。
+   * 2、任一计时到期时取消另一计时，将最新缓存异步保存。
    */
   saveStorage() {
-    // 1、清除之前的定时器。
+    // 1、短期防抖合并连续修改，最长等待计时不随后续修改延后。
     if (this.saveTimer) {
       clearTimeout(this.saveTimer)
     }
 
-    // 2、设置新的定时器，延迟序列化并保存最新缓存。
-    this.saveTimer = setTimeout(() => {
+    /**
+     * 保存本轮合并后的最新配置。
+     * 处理流程：
+     * 1、清除本轮两个计时器，避免重复触发。
+     * 2、沿用实际文件写入与错误处理，不改变配置格式。
+     */
+    const persist = () => {
+      // 1、先释放本轮调度，后续变更可以独立安排下一轮保存。
+      this.cancelPendingSave()
+      // 2、在执行时读取最新缓存，而不是保存首次排队时的旧快照。
       try {
         // 标记正在写入
         this.isWriting = true
@@ -111,24 +125,96 @@ class StorageManager {
         // 将Map转换为普通对象
         const storageData = Object.fromEntries(this.storage)
 
-        // 异步写入文件
-        fs.writeFile(
-          this.storageFilePath,
-          JSON.stringify(storageData, null, 2),
-          'utf-8',
-          (err) => {
-            this.isWriting = false
-            if (err) {
-              console.error('[StorageManager] 保存storage失败:', err)
-            }
-            // 成功保存时不输出日志，避免日志过多
+        // 在同目录独立写入完整JSON后再替换，读者不会看到目标文件被截断。
+        const version = ++this.writeVersion
+        const temporaryDirectory = this.createTemporaryStorage()
+        const temporaryFile = path.join(temporaryDirectory, path.basename(this.storageFilePath))
+        const finish = (err) => {
+          try {
+            // 异步写入完成时校验版本，同步退出保存或更新写入优先。
+            if (!err && version === this.writeVersion) this.replaceStorageFile(temporaryFile)
+            if (err) console.error('[StorageManager] 保存storage失败:', err)
+          } catch (error) {
+            console.error('[StorageManager] 保存storage失败:', error)
+          } finally {
+            if (version === this.writeVersion) this.isWriting = false
+            this.removeTemporaryStorage(temporaryDirectory)
           }
-        )
+          // 成功保存时不输出日志，避免日志过多
+        }
+        try {
+          fs.writeFile(temporaryFile, JSON.stringify(storageData, null, 2), 'utf-8', finish)
+        } catch (error) {
+          finish(error)
+        }
       } catch (error) {
         this.isWriting = false
         console.error('[StorageManager] 保存storage异常:', error)
       }
-    }, this.saveDelay)
+    }
+    this.saveTimer = setTimeout(persist, this.saveDelay)
+    if (!this.maxSaveTimer) {
+      this.maxSaveTimer = setTimeout(persist, this.maxSaveDelay)
+    }
+  }
+
+  /**
+   * 在共享文件同目录创建本次写入专用目录。
+   * 处理流程：
+   * 1、使用随机标识避免多进程名称冲突，并要求目录原先不存在。
+   */
+  createTemporaryStorage() {
+    // 1、非递归创建，已有同名目录直接失败而非复用不明内容。
+    const directory = path.join(path.dirname(this.storageFilePath), `.storage-write-${randomUUID()}`)
+    fs.mkdirSync(directory, { mode: 0o700 })
+    return directory
+  }
+
+  /**
+   * 保留既有配置权限后替换完整快照。
+   * 处理流程：
+   * 1、目标存在时复制其权限位，避免临时文件默认权限扩大访问。
+   * 2、在同一文件系统内替换目标，任何失败均保留原目标。
+   */
+  replaceStorageFile(temporaryFile) {
+    // 1、首次创建沿用原默认权限；只有目标不存在可以省略权限继承。
+    try {
+      const mode = fs.statSync(this.storageFilePath).mode & 0o777
+      fs.chmodSync(temporaryFile, mode)
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+    }
+    // 2、权限已准备后才公布新快照，异步与退出同步共用同一路径。
+    fs.renameSync(temporaryFile, this.storageFilePath)
+  }
+
+  /**
+   * 清理本次持久化使用的独立临时目录。
+   * 处理流程：
+   * 1、仅删除本次创建的文件和空目录，失败只记录诊断。
+   */
+  removeTemporaryStorage(directory) {
+    // 1、不递归清理共享目录，避免影响其他进程或其他写入任务。
+    try {
+      const file = path.join(directory, path.basename(this.storageFilePath))
+      if (fs.existsSync(file)) fs.unlinkSync(file)
+      fs.rmdirSync(directory)
+    } catch (error) {
+      console.warn('[StorageManager] 清理临时存储失败:', error)
+    }
+  }
+
+  /**
+   * 取消尚未执行的合并保存。
+   * 处理流程：
+   * 1、配对清理短期防抖和最长等待计时器。
+   */
+  cancelPendingSave() {
+    // 1、清空引用，保证持久化、退出和销毁共用同一清理规则。
+    if (this.saveTimer) clearTimeout(this.saveTimer)
+    if (this.maxSaveTimer) clearTimeout(this.maxSaveTimer)
+    this.saveTimer = null
+    this.maxSaveTimer = null
   }
 
   /**
@@ -373,7 +459,7 @@ class StorageManager {
   }
 
   /**
-   * 广播storage变化给所有窗口
+   * 广播storage变化给当前可信主入口窗口
    * 处理流程：
    * 1、获取当前窗口列表。
    * 2、发送变更载荷，忽略关闭窗口的发送失败。
@@ -388,7 +474,9 @@ class StorageManager {
     // 2、逐窗口发送变更信息。
     windows.forEach((window) => {
       try {
-        window.webContents.send('storage-changed', {
+        const contents = window.webContents
+        if (!isTrustedIpcSender({ sender: contents, senderFrame: contents.mainFrame })) return
+        contents.send('storage-changed', {
           method,
           key,
           value
@@ -406,26 +494,26 @@ class StorageManager {
    * 2、同步写入当前缓存并释放写入标记。
    */
   flushSync() {
-    // 1、取消防抖任务，避免退出时仍有延迟写入。
-    if (this.saveTimer) {
-      clearTimeout(this.saveTimer)
-      this.saveTimer = null
-    }
+    // 1、取消两个保存计时器，避免退出时仍有延迟写入。
+    this.cancelPendingSave()
 
+    let temporaryDirectory = null
+    // 使所有尚未结算的异步快照失效，即使本次写入失败也不能晚到覆盖。
+    this.writeVersion++
     try {
       this.isWriting = true
-      // 2、同步落盘，退出前无需等待异步回调。
+      // 2、同步写入同目录临时文件，再一次替换为当前完整缓存。
       const storageData = Object.fromEntries(this.storage)
-      fs.writeFileSync(
-        this.storageFilePath,
-        JSON.stringify(storageData, null, 2),
-        'utf-8'
-      )
-      this.isWriting = false
+      temporaryDirectory = this.createTemporaryStorage()
+      const temporaryFile = path.join(temporaryDirectory, path.basename(this.storageFilePath))
+      fs.writeFileSync(temporaryFile, JSON.stringify(storageData, null, 2), 'utf-8')
+      this.replaceStorageFile(temporaryFile)
       console.log('[StorageManager] 已同步保存所有数据到共享文件')
     } catch (error) {
-      this.isWriting = false
       console.error('[StorageManager] 同步保存失败:', error)
+    } finally {
+      this.isWriting = false
+      if (temporaryDirectory) this.removeTemporaryStorage(temporaryDirectory)
     }
   }
 
@@ -517,9 +605,7 @@ class StorageManager {
     }
 
     // 2、取消尚未执行的保存和重载任务。
-    if (this.saveTimer) {
-      clearTimeout(this.saveTimer)
-    }
+    this.cancelPendingSave()
 
     if (this.reloadTimer) {
       clearTimeout(this.reloadTimer)

@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "responsibility": "PSD 会话机械迁移前发现的原版后发图层像素恢复问题，单独登记，不在本项修复",
+  "originalHead": "59eefa61c4575e561f57566b30a61a2f75714a4e",
+  "sourceTree": "6f8ea581e02e113da12852d851d9d032c8373d35",
+  "businessSourceWasUnmodified": true,
+  "productionBuild": true,
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "electron": "35.7.5",
+    "chrome": "134.0.6998.205",
+    "viewport": [1024, 700],
+    "dpr": 1,
+    "focusEmulation": true,
+    "renderMode": "software-layout"
+  },
+  "fixtureHashes": {
+    "yun-jian-qi-lin": "b60f61ca07ba99d22bc5cec2de3f9b29b5b2d397925438e290f1ef649e00197b",
+    "xing-kong": "a1cd270115d88bbf715ce1786f87e6d8a36bb6790db168542ae2ccb732300435"
+  },
+  "reproduction": [
+    "通过真实上传按钮先导入云间麒麟.psd，再导入星空.psd，两份素材均先记录初始画布。",
+    "星空保存初始快照预设，回到初始部件标签；互斥、动作互斥和表情互斥均为 true。",
+    "选择当前可见未选部件中的第二项，实际将基础改为伏案左。",
+    "打开图层面板并展开全部图层，取消最后一个勾选叶图层，即后发；原版同时将其后发父组取消勾选。",
+    "等待实际画布连续十二帧与图像加载稳定，记录 edited-1.png。",
+    "切换云间麒麟，保存初始快照，三种互斥均设为 false，选择第一个未选部件，再取消第二个勾选叶图层。",
+    "首次切回星空，展示通用控制，再展开图层并等待实际画布稳定，记录 round-0-1.png。"
+  ],
+  "desiredExpectation": "返回星空时应恢复其原编辑画布，全部 RGBA 字节与 edited-1.png 一致",
+  "assertionPassed": false,
+  "observed": {
+    "differentRgbaPixels": 33974,
+    "bounds": { "left": 283, "top": 312, "right": 815, "bottom": 1601 },
+    "canvasSize": [1240, 1750],
+    "visibleDomEqual": true,
+    "visibleDomIncludes": ["文件标签及活动状态", "全部图层名称、层级、分组和 checkbox", "部件标签及选择", "预设选择数量", "全部通用控制 checkbox"],
+    "visibleDomSha256": "8fcacc25ed784b6ad6df19e22d5d9c2c534f3347c500b0b9719c9cc55a56cdc4",
+    "editedPng": "temp/regression-reference-v2/psd-session-renderer1024-dpr1-v3/edited-1.png",
+    "editedPngSha256": "2d6c93a74a334af9f8cdc4aeaa68fb1e1f6fa4cb169ca850a1d8489a36f3cb10",
+    "returnedPng": "temp/regression-reference-v2/psd-session-renderer1024-dpr1-v3/round-0-1.png",
+    "returnedPngSha256": "bfb2b9edb261fcd60a1ae15c3478c7fe8aa5da6c604cb490e39a303fa15a3a9b",
+    "desktopId": "momentum-regression-I3u0yX",
+    "pageErrors": 0,
+    "exitIsolationViolations": 0
+  },
+  "disposition": {
+    "rootCause": "未定位；相同 DOM 不足以证明实际画布恢复，不能把此场景视作恢复正确",
+    "businessFixApplied": false,
+    "rgbaToleranceChanged": false,
+    "failureCandidateCompletedManifest": false,
+    "failureImagesOverwritten": false,
+    "passingScope": "主回归另外验证两份不同素材的前手叶图层编辑，保留十轮往返、不同互斥状态和关闭重导入的严格像素断言；通过不代表后发场景已修复",
+    "passingReference": "psd-session-renderer1024-dpr1-front-hand-v4",
+    "afterMigrationIssueReproduction": "本次未再次运行后发故障场景；四函数完整 AST 等价，未迁移任何渲染算法，后续修复仍须先重现该正确期望的失败"
+  }
+}

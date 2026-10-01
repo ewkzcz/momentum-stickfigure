@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "items": {
+    "finish-psd-budgets": "completed",
+    "finish-performance": "completed",
+    "finish-python-lifecycle": "completed",
+    "finish-ipc-boundaries": "completed",
+    "finish-file-authorization": "completed",
+    "finish-web-permissions": "completed",
+    "finish-sandbox-csp": "completed",
+    "finish-config-sharing": "completed",
+    "finish-final-acceptance": "completed"
+  },
+  "unresolvedFailures": [],
+  "remainingLocalWork": [],
+  "resolvedFailureEvidence": [
+    "tests/evidence/file-read-history-20260918.json",
+    "tests/evidence/application-task-shutdown-20260918.json",
+    "tests/evidence/file-write-authorization-20260918.json",
+    "tests/evidence/configured-output-authorization-20260918.json",
+    "tests/evidence/hd-mode-compatibility-20260918.json",
+    "tests/evidence/psd-direct-compatibility-20260918.json",
+    "tests/evidence/ocr-output-authorization-20260918.json",
+    "tests/evidence/security-compatibility-20260918.json",
+    "tests/evidence/cumulative-fixture-recovery-20260918.json",
+    "tests/evidence/cumulative-eight-fixtures-20260918.json",
+    "tests/evidence/test-diagnostic-channel-20260918.json"
+  ],
+  "scopeNotes": [
+    "原计划正文只读，沿用原9项待办；历史限制不自动升级为新必做任务。",
+    "定向测试不可相加替代当前最终累计验收。",
+    "门禁由主代理实际执行，不是常驻后台监控。",
+    "HTTPS为会话级localhost精确证书授信的隔离验证，不是公网真实服务验证；保留三类外部缺口。"
+  ],
+  "external": {
+    "platform-installers": "unverified",
+    "real-system-interactions": "unverified",
+    "third-party-and-ai-python": "unverified"
+  },
+  "fullAcceptanceResult": "temp/final-fixed-plan-acceptance.json"
+}

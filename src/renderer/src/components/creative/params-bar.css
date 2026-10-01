@@ -1,0 +1,31 @@
+/* 生图/视频参数栏：一行排布，窄屏自动换行 */
+.params-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.param {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.param-label {
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.param-model {
+  width: 190px;
+}
+
+.param-short {
+  width: 112px;
+}
+
+.param-count {
+  width: 96px;
+}

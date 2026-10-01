@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "status": "passed-targeted-not-final-acceptance",
+  "baseHead": "cd5e5530e43ef020c57979bc74c325365780488f",
+  "scope": "通用write-file明确保存文件/输出目录授权及原手动导出兼容；配置目录和其他专用输出服务留原计划后续",
+  "before": { "directory": "temp/file-write-authorization-before-acceptance-MS6mmv", "tests": 6, "passed": 1, "failed": 5, "durationMs": 4658.018458, "exitCode": 1 },
+  "iterations": [
+    { "directory": "temp/file-write-authorization-first-after-acceptance-uiMwwR", "tests": 16, "passed": 14, "failed": 2, "exitCode": 1, "reason": "fileSystem.selectFolder别名遗漏purpose参数，修复真实preload透传，原成功断言不变。" },
+    { "directory": "temp/file-write-authorization-bridge-after-acceptance-IgccPI", "tests": 16, "passed": 15, "failed": 1, "exitCode": 1, "reason": "新的目录校验错误未保留原ENOTDIR文本契约，修复生产错误消息，原测试断言不变。" },
+    { "directory": "temp/file-write-export-after-acceptance-UOhg2h", "tests": 17, "passed": 17, "failed": 0, "durationMs": 13007.840541, "exitCode": 0 }
+  ],
+  "integration": {
+    "directory": "temp/file-write-ui-integration-after-acceptance-bqtlQ4",
+    "tests": 21, "passed": 21, "failed": 0, "cancelled": 0, "durationMs": 159911.412542,
+    "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0 },
+    "manifestSha256": "a93ef60ccb6621f9bab5fb7d69b1c037d76f6df717ea82333248d50a30118fac"
+  },
+  "finalRelated": {
+    "directory": "temp/file-write-final-related-acceptance-9h1s2g",
+    "head": "c52bfd03d27140a25c2a197f429aa29def0b2c7a",
+    "tests": 42,
+    "passed": 42,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 22654.148167,
+    "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0 },
+    "manifestSha256": "d846e07fb3f0fc5a15dc7576a9e9a52100d84770677c62eacac38211440eac55",
+    "scope": "最终通用写入候选及读取/历史/应用退出入口相关回归；不是最终累计验收"
+  },
+  "implementation": [
+    "按窗口保存精确目标或原生明确purpose=export目录；普通/模型目录选择不授写，配置字符串、取消、读取能力不转换为写能力。",
+    "拒绝相对路径、父级回退、根外和前缀近似路径、符号链接及目录替换；写入使用独占创建和NOFOLLOW，不覆盖原件，重名派生编号限于原请求目录。",
+    "保留中文空格、子目录、裸Base64、空文件、编号及返回对象；销毁后授权撤销且重启不恢复。",
+    "Comic/DialogFrame/Dialog/Generate手动导出明确用途并修正跨平台分隔符，检查success避免假成功；人物跨页改既有专用临时图片保存，不开放相对工作目录。"
+  ],
+  "testAdaptations": [
+    "file-write和file-ipc-source旧正例原来直接写未选择目录，改为经真实生产原生选择通道授写后保留字节/编号/持久化断言。",
+    "文件性能测量计时前授写，读取另行精确授读；不把对话框时间混入文件操作时间。",
+    "幻想框失败回归仅替换write-file返回为success:false，成功用例使用生产实现；两者都走真实UI，断言失败不报成功。"
+  ],
+  "evidenceNotes": [
+    "漫画真实UI输出3份PNG到所选中文目录，核PNG头及1920x1080；这不是新增零差异参考。",
+    "幻想框真实UI导出及失败提示通过；Generate既有任务/文件链回归通过，但AI和Python服务受控，不作为外部验收。",
+    "生产路径竞争防护为所列校验，不宣称抵抗任意恶意本地进程所有瞬时替换。",
+    "集成验收后仅清理ImageGenerate一个空白行；退出入口另由21项单元验收提交，后续统一相关回归及最终累计仍必需。",
+    "旧失败日志全部保留；三类外部仍未验证，不能收工。"
+  ]
+}

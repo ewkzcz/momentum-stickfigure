@@ -1,0 +1,41 @@
+{
+  "date": "2026-09-15",
+  "scope": "拖拽图片、图标、文件名、配置和剪贴板文本的副作用前参数检查",
+  "baseline": {
+    "directory": "temp/drag-clipboard-parameters-before-acceptance-DorPgQ",
+    "passed": 0,
+    "failed": 1,
+    "finding": "首个非法Base64载荷被写入并返回拖拽成功；后续负例未在基线中运行。"
+  },
+  "firstAfter": {
+    "directory": "temp/drag-clipboard-parameters-after-acceptance-TZho1g",
+    "passed": 10,
+    "failed": 1,
+    "finding": "历史action-shared-refs单测仍使用sender:{}，被既有来源策略拒绝；通过真实registerTrustedWindow登记测试sender并提供同一顶层frame，未绕过来源校验或修改原断言。"
+  },
+  "final": {
+    "directory": "temp/drag-clipboard-parameters-final-acceptance-A5hYnz",
+    "passed": 11,
+    "failed": 0,
+    "durationMs": 8813.650708,
+    "referencesBefore": 0,
+    "lint": 0,
+    "size": 0,
+    "build": 0,
+    "referencesAfter": 0,
+    "inputAndArtifactManifest": "passed"
+  },
+  "changes": [
+    "图片裸Base64复用64MiB结构及字节预算；dataURL禁止误作裸编码写盘。",
+    "建议文件名限制255字符及单段路径，保留空值自动命名、中文空格和重名处理。",
+    "配置普通对象，路径及PSD名称有界，布尔和重名策略按类型与枚举检查。",
+    "图标图片dataURL限制4MiB，显式缩放尺寸为1至1024整数。",
+    "剪贴板文本限制1Mi字符且拒绝NUL，不再记录文本正文。"
+  ],
+  "limitations": [
+    "当前不是输出目录授权；可信目录、符号链接与读写授权在独立固定分项处理。",
+    "压缩图片字节预算不等于解码像素或进程RSS硬限制。",
+    "真实Electron业务入口与文件写入已运行，系统拖拽和剪贴板由强制隔离bootstrap替代；不代表真实系统交互验收。",
+    "本结果是定向11项，不是当前累计完整验收。"
+  ]
+}

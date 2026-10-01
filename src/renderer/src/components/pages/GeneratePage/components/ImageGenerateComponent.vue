@@ -123,6 +123,9 @@
               </div>
             </div>
 
+            <!-- 模型参数：与 Agent 增强共用 -->
+            <ImageParamsBar :disabled="isGenerating" />
+
             <!-- 灵感、比例和生成按钮 -->
             <div>
               <n-space :size="12" align="center" style="width: 100%;">
@@ -240,6 +243,10 @@ import { sanitizeFileName } from '../../ActionExpressionPage/utils/stringUtils.j
 import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-config.js'
 import { buildGeminiDragConfig } from '@renderer/utils/geminiOutputConfig.js'
 import { filterGeminiExceptionMessage } from '@renderer/utils/errorFilters.js'
+import { buildImageModelParams } from '@renderer/utils/imageRequestOptions.js'
+import { IMAGE_RATIO_OPTIONS } from '@shared/image-models.js'
+import ImageParamsBar from '@renderer/components/creative/ImageParamsBar.vue'
+import { saveHistory } from '@renderer/components/creative/useGenerationHistory.js'
 import PromptTemplateTrigger from '@renderer/components/shared/PromptTemplateTrigger.vue'
 
 // 定义事件
@@ -390,18 +397,8 @@ const promptTemplates = [
   }
 ]
 
-// 宽高比选项配置
-const aspectRatioOptions = [
-  { label: '原始尺寸', value: 'original' },
-  { label: '1:1 (正方形)', value: '1:1' },
-  { label: '4:3 (横版)', value: '4:3' },
-  { label: '3:4 (竖版)', value: '3:4' },
-  { label: '16:9 (宽屏)', value: '16:9' },
-  { label: '9:16 (竖屏)', value: '9:16' },
-  { label: '2:3 (竖版)', value: '2:3' },
-  { label: '3:2 (横版)', value: '3:2' },
-  { label: '1:2 (竖版)', value: '1:2' }
-]
+// 宽高比选项：与 Agent 增强共用同一份列表
+const aspectRatioOptions = IMAGE_RATIO_OPTIONS
 
 // 当前选中的模板
 const selectedTemplate = ref('')
@@ -840,7 +837,7 @@ const handleGenerate = async () => {
         // 传递API配置
         apiKey: userConfig.apiKey,
         baseUrl: userConfig.baseUrl,
-        model: 'gemini-2.5-flash-image',
+        ...buildImageModelParams(userConfig),
         projectRoot: projectRoot,
         editOutputDir: userConfig.editOutputDir || 'output',
         logDir: userConfig.logDir || 'logs'
@@ -860,7 +857,7 @@ const handleGenerate = async () => {
         // 传递API配置
         apiKey: userConfig.apiKey,
         baseUrl: userConfig.baseUrl,
-        model: 'gemini-2.5-flash-image',
+        ...buildImageModelParams(userConfig),
         projectRoot: projectRoot,
         outputDir: userConfig.outputDir || 'output',
         logDir: userConfig.logDir || 'logs'
@@ -888,6 +885,15 @@ const handleGenerate = async () => {
       }))
       
       generatedImages.value = imageData
+
+      // 写入生成记录（失败不影响结果展示）。
+      saveHistory({
+        kind: 'image',
+        mode: 'direct',
+        prompt: formData.prompt,
+        params: { ...buildImageModelParams(userConfig), aspectRatio: formData.aspectRatio, ...(hasFiles ? { inputImages: fileList.value.length } : {}) },
+        images
+      })
 
       // 更新任务状态为完成
       taskStore.updateTaskStatus(task.id, TaskStatus.COMPLETED, { 
@@ -993,38 +999,44 @@ const generateFileName = (index) => {
  * 2、生成文件名并请求主进程写入，失败时向批量保存流程传递异常。
  */
 const saveImageToFolder = async (image, index, folderPath) => {
-  // 1、按来源选择读取方式，保留现有输出路径拼接约定。
+  // 1、按来源选择读取方式，使用两个平台均支持的斜杠拼接输出文件。
   try {
     // 如果是文件路径，直接读取
     if (image.url.startsWith('file://') || image.url.startsWith('/') || /^[a-zA-Z]:\\/.test(image.url)) {
-      const response = await fetch(image.url)
+      const authorized = await window.hdToolkit.getImagePreview(image.path || image.url)
+      if (!authorized?.success) throw new Error(authorized?.message || '图片未授权，请重新选择')
+      const response = await fetch(authorized.data.dataUrl)
       const blob = await response.blob()
       const reader = new FileReader()
       
       return new Promise((resolve, reject) => {
-        reader.onloadend = async () => {
-          const base64Data = reader.result.split(',')[1]
-          const fileName = generateFileName(index)
-          const filePath = `${folderPath}\\${fileName}`
-          
-          const result = await window.api.writeFile(filePath, base64Data)
-          if (result.success) {
+        reader.onload = async () => {
+          try {
+            const base64Data = reader.result.split(',')[1]
+            const fileName = generateFileName(index)
+            const filePath = `${folderPath}${folderPath.endsWith('/') ? '' : '/'}${fileName}`
+
+            const result = await window.api.writeFile(filePath, base64Data)
+            if (result?.success !== true) {
+              throw new Error(result?.error || '保存失败')
+            }
             resolve()
-          } else {
-            reject(new Error(result.error || '保存失败'))
+          } catch (error) {
+            reject(error)
           }
         }
-        reader.onerror = reject
+        reader.onerror = () => reject(reader.error || new Error('读取图片失败'))
+        reader.onabort = () => reject(new Error('读取图片已取消'))
         reader.readAsDataURL(blob)
       })
     } else {
       const base64Data = await imageUrlToBase64(image.url)
       const fileName = generateFileName(index)
-      const filePath = `${folderPath}\\${fileName}`
+      const filePath = `${folderPath}${folderPath.endsWith('/') ? '' : '/'}${fileName}`
       
       const result = await window.api.writeFile(filePath, base64Data)
-      if (!result.success) {
-        throw new Error(result.error || '保存失败')
+      if (result?.success !== true) {
+        throw new Error(result?.error || '保存失败')
       }
     }
   } catch (error) {
@@ -1046,9 +1058,9 @@ const saveAsAllImages = async () => {
 
   try {
     // 调用electron文件夹选择对话框
-    const folderResult = await window.fileSystem.selectFolder()
+    const folderResult = await window.fileSystem.selectFolder({ purpose: 'export' })
     
-    if (folderResult.canceled || !folderResult.success) {
+    if (!folderResult?.success || !folderResult.path) {
       isDownloading.value = false
       return
     }
@@ -1644,7 +1656,7 @@ onMounted(() => {
   window.addEventListener('paste', handlePaste)
   
   // 监听拖拽完成事件
-  const dragFinishedUnsubscribe = window.electronAPI?.onDragFinished?.((eventData) => {
+  const dragFinishedUnsubscribe = window.electronAPI?.on?.('drag-finished', (eventData) => {
     console.log('📁 拖拽完成，文件已保存:', eventData?.filePath)
     message.success('图片已保存并可拖拽到其他应用')
     setTimeout(() => cleanupDrag(), 100)
@@ -1689,8 +1701,7 @@ onUnmounted(() => {
     dragLeaveTimeout = null
   }
   
-  // 3、移除本组件使用的系统拖拽完成监听
-  window.electronAPI?.removeAllListeners?.('drag-finished')
+  // 3、系统拖拽监听由注册处的取消函数处理，不清空共享通道。
 })
 
 /** 重置图片比例；处理流程：1、恢复默认 16:9，供父组件显式调用。 */

@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-15",
+  "unit": "list-render-measurement",
+  "method": ["新临时目录生成含1000前手部件和固定可见头部的8x8 PSD，不修改指定素材或只读参考", "真实页面上传并滚动120帧，读取帧间隔和实际挂载节点数", "20次交替选择只包装Image.src和drawImage计数并调用原方法，finally恢复原描述符"],
+  "attempts": ["temp/list-render-measurement-acceptance-XkAxfM：lint发现CanvasRenderingContext2D未限定window，测量未运行", "temp/list-render-measurement-final-acceptance-9Z3KuW：首次合成素材只有可取消选中的前手，点击已选项后全透明，stableCanvas非空断言失败；给新生成夹具增加固定头部，保留原非空断言，不更改产品或参考"],
+  "verification": { "directory": "temp/list-render-measurement-recheck-acceptance-ClbpXm", "passed": 1, "failed": 0, "durationMs": 11617.347167, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed", "rawResult": "temp/list-render-measurement-result.json" },
+  "metrics": { "items": 1000, "frameSamples": 120, "frameP50Ms": 16.7, "frameP95Ms": 18.6, "frameMaxMs": 18.7, "maxMountedItems": 120, "selectionCount": 20, "selectionP50Ms": 381.387166, "selectionP95Ms": 399.838417, "selectionMaxMs": 399.968667, "imageSourceAssignments": 39, "distinctImageSources": 1, "drawCalls": 99, "drawCallTotalMs": 3.0 },
+  "interpretation": "虚拟列表最多挂载120项而非1000项；重复Image请求存在，但小图绘制总3ms，未确认值得引入新缓存的计算热点，因此不改渲染算法",
+  "limits": ["Image.src赋值数不等于底层实际解码次数，浏览器内部缓存不可由此断言", "8x8图不代表大纹理成本；帧间隔包含显示调度，不等于纯JS计算时长", "选择耗时包含自动化输入和12帧稳定确认", "未用本夹具推断原图渲染正确性；最终RGBA累计验收仍待进行"]
+}

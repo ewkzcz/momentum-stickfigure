@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "24a08bd",
+  "scope": "Gemini配置、生成编辑选项和图片路径列表有限参数",
+  "before": { "directory": "temp/gemini-parameters-before-acceptance-kBIgtp", "passed": 0, "failed": 1, "failure": "fal-get-config接受数组并返回成功" },
+  "after": { "directory": "temp/gemini-parameters-after-acceptance-EuSmHo", "tests": 4, "passed": 4, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["配置必须普通对象；路径/模型/API字段/提示词类型与有限长度", "图片列表必须数组且逐路径检查，空校验列表保持成功", "正数有限超时", "真实Generate页面生成编辑抠图高清链式文件流程、设置保存与重启及来源负例"],
+  "limits": ["通用文件列表1024项、路径32768字符、提示词1Mi字符为保守IPC预算；单图片继续原10MiB业务检查", "HTTP/HTTPS自定义端口和路径前缀保持原URL策略，不新增代理", "本组不代表图像路径已完成可信授权；真实AI仍未验证"]
+}

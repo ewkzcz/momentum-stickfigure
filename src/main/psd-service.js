@@ -5,10 +5,27 @@
 
 import { app, ipcMain } from 'electron';
 import path from 'path';
+import { isTrustedIpcSender } from './ipc-sender-policy.js';
+import { assertOwnedFilePath } from './file-access-policy.js';
+import { assertPsdTree } from './psd-tree-parameters.js';
+import { assertDetectionOptions } from './psd-detection-parameters.js';
+import { assertPsdTaskOptions, assertRecord, assertBinaryPayload } from './ipc-parameter-policy.js';
+
+function directPsdBytes(value) {
+    return ArrayBuffer.isView(value)
+        ? Buffer.from(value.buffer, value.byteOffset, value.byteLength)
+        : Buffer.from(value);
+}
+
+function deniedPsdSource(requestId, startTime) {
+    return { success: false, status: 'error', message: '未授权的PSD操作来源', timestamp: new Date().toISOString(), requestId, processingTime: Date.now() - startTime };
+}
 
 // 动态导入PSD API
 let psdApi = null;
 let logger = null;
+// 解析任务按发送窗口和调用方标识隔离，取消不能影响其他窗口或后续请求。
+const parseTasks = new Map();
 
 /**
  * 按需加载 PSD API 并复用模块实例。
@@ -59,6 +76,20 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-parse-file', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-parse-${Date.now()}`;
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
+        try { assertPsdTaskOptions(options); }
+        catch (error) {
+            return { success: false, status: 'error', message: error.message, timestamp: new Date().toISOString(), requestId, processingTime: Date.now() - startTime };
+        }
+        const controller = new globalThis.AbortController();
+        const taskId = options?.taskId;
+        const taskKey = typeof taskId === 'string' && taskId.length <= 128
+            ? `${event.sender.id}:${taskId}` : null;
+        const task = { controller };
+        const abortDestroyedTask = () => controller.abort();
+        event.sender.once('destroyed', abortDestroyedTask);
+        if (taskKey && !parseTasks.has(taskKey)) parseTasks.set(taskKey, task);
+        else if (taskKey) controller.abort();
         
         try {
             const api = await loadPSDApi();
@@ -75,7 +106,8 @@ async function registerPSDApiHandlers() {
             // 调用PSD解析API
             const result = await api.psdApiWrapper('parse', {
                 fileBuffer: options.fileBuffer,
-                options: options.parseOptions || {}
+                options: options.parseOptions || {},
+                signal: controller.signal
             });
             
             logger?.info(`PSD解析完成，耗时: ${Date.now() - startTime}ms`);
@@ -100,15 +132,38 @@ async function registerPSDApiHandlers() {
                 requestId,
                 processingTime: Date.now() - startTime
             };
+        } finally {
+            // 4、结算后只释放本次任务，不删除同键的其他记录。
+            event.sender.removeListener('destroyed', abortDestroyedTask);
+            if (taskKey && parseTasks.get(taskKey) === task) parseTasks.delete(taskKey);
         }
+    });
+
+    /**
+     * 取消调用窗口持有的一次解析。
+     * 处理流程：
+     * 1、仅按发送窗口和任务标识查找，活动线程由队列真实终止。
+     */
+    ipcMain.handle('psd-cancel-parse', (event, taskId) => {
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return { success: false, message: '未授权的PSD操作来源' };
+        // 1、不允许按任意窗口编号或服务生成的请求标识跨窗口取消。
+        if (typeof taskId !== 'string' || !taskId || taskId.length > 128 || taskId.includes('\0')) return { success: false };
+        const task = parseTasks.get(`${event.sender.id}:${taskId}`);
+        task?.controller.abort();
+        return { success: true, cancelled: Boolean(task) };
     });
 
     // 3、注册 PSD 图层渲染入口。
     ipcMain.handle('psd-render-layers', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-render-${Date.now()}`;
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
+            assertRecord(options, 'PSD渲染');
+            assertRecord(options.psdData, 'PSD数据');
+            if (options.renderOptions !== undefined) assertRecord(options.renderOptions, 'PSD渲染选项');
+            assertPsdTree(options.psdData, options.renderOptions, true);
             const api = await loadPSDApi();
             console.log('收到PSD渲染请求:', requestId);
             
@@ -146,8 +201,13 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-detect-components', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-detect-${Date.now()}`;
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
+            assertRecord(options, 'PSD检测');
+            assertRecord(options.psdData, 'PSD数据');
+            assertDetectionOptions(options.detectionOptions === undefined ? {} : options.detectionOptions);
+            assertPsdTree(options.psdData, options.detectionOptions);
             const api = await loadPSDApi();
             console.log('收到PSD组件检测请求:', requestId);
             
@@ -185,12 +245,15 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-get-info', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-info-${Date.now()}`;
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
+            assertRecord(options, 'PSD信息');
+            assertBinaryPayload(options.fileBuffer, 50 * 1024 * 1024);
             const api = await loadPSDApi();
             console.log('收到PSD信息请求:', requestId);
             
-            const result = await api.getPSDInfo(options.fileBuffer);
+            const result = await api.getPSDInfo(directPsdBytes(options.fileBuffer));
             
             logger?.info(`PSD信息获取完成，耗时: ${Date.now() - startTime}ms`);
             
@@ -221,12 +284,15 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-validate-file', async (event, options) => {
         const startTime = Date.now();
         let requestId = `psd-validate-${Date.now()}`;
+        if (!isTrustedIpcSender(event, ['main', 'preview'])) return deniedPsdSource(requestId, startTime);
         
         try {
+            assertRecord(options, 'PSD验证');
+            assertBinaryPayload(options.fileBuffer, 50 * 1024 * 1024);
             const api = await loadPSDApi();
             console.log('收到PSD验证请求:', requestId);
             
-            const result = await api.validatePSDFile(options.fileBuffer);
+            const result = await api.validatePSDFile(directPsdBytes(options.fileBuffer));
             
             logger?.info(`PSD验证完成，耗时: ${Date.now() - startTime}ms`);
             
@@ -257,16 +323,20 @@ async function registerPSDApiHandlers() {
     ipcMain.handle('psd-get-config', async (event, options = {}) => {
         const startTime = Date.now();
         let requestId = `psd-config-${Date.now()}`;
+        if (!isTrustedIpcSender(event)) return deniedPsdSource(requestId, startTime);
         
         try {
+            assertRecord(options, 'PSD配置');
+            assertPsdTaskOptions(options);
+            if (options.composeOptions !== undefined) assertRecord(options.composeOptions, 'PSD合成选项');
             const api = await loadPSDApi();
             console.log('收到PSD配置请求:', requestId);
             
             const config = api.getPSDConfig(options);
             const validation = api.validatePSDConfig(config);
             
-            // 确保必要目录存在
-            api.createDefaultPSDDirectories(config);
+            // 只准备主进程固定目录；全部预检后创建，失败由原错误包络返回。
+            api.createDefaultPSDDirectories(config, assertOwnedFilePath);
             
             logger?.info(`PSD配置获取完成，耗时: ${Date.now() - startTime}ms`);
             
@@ -314,6 +384,7 @@ async function registerPSDApiHandlers() {
 function unregisterPSDApiHandlers() {
     // 1、准备本模块通道清单。
     console.log('注销 PSD API IPC 处理器...');
+    ipcMain.removeHandler('psd-cancel-parse');
     
     const handlers = [
         'psd-parse-file',

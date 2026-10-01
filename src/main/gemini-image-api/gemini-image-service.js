@@ -11,6 +11,8 @@ import {
   batchUploadImagesToBase64
 } from './gemini-image-utils.js';
 import { generateImage, editImage } from './gemini-image-client.js';
+import { generateImageOpenAI, editImageOpenAI } from './openai-image-client.js';
+import { resolveImageProtocol } from '../../shared/image-models.js';
 
 /**
  * 图像生成功能封装
@@ -36,7 +38,8 @@ export async function mainGenerate(
   logPath,
   savePath = './output',
   // 默认不指定宽高比：当为 undefined 时表示“原始尺寸（不传参）”
-  aspectRatio = undefined
+  aspectRatio = undefined,
+  imageOptions = {}
 ) {
   // 1、校验请求所需的密钥和提示词。
   if (!apiKey || apiKey === 'your_api_key_here') {
@@ -62,16 +65,20 @@ export async function mainGenerate(
     // 2、仅在明确指定宽高比时传递该选项。
     const clientOptions = aspectRatio ? { aspectRatio } : {};
 
-    const imageUrls = await generateImage(
-      prompt,
-      apiKey,
-      baseUrl,
-      timeoutMinutes,
-      model,
-      logPath,
-      savePath,
-      clientOptions
-    );
+    const imageUrls = resolveImageProtocol(model) === 'openai'
+      ? await generateImageOpenAI(prompt, apiKey, baseUrl, model, logPath, {
+        ...imageOptions, aspectRatio, timeoutMinutes
+      })
+      : await generateImage(
+        prompt,
+        apiKey,
+        baseUrl,
+        timeoutMinutes,
+        model,
+        logPath,
+        savePath,
+        clientOptions
+      );
 
     console.log(`✅ 生成成功，共生成 ${imageUrls.length} 张图片`);
     imageUrls.forEach((url, i) => {
@@ -111,7 +118,8 @@ export async function mainEdit(
   logPath,
   savePath = './output',
   inputImages = null,
-  aspectRatio = undefined
+  aspectRatio = undefined,
+  imageOptions = {}
 ) {
   // 1、校验密钥、编辑说明及原始图片集合。
   if (!apiKey || apiKey === 'your_api_key_here') {
@@ -143,24 +151,30 @@ export async function mainEdit(
 
   try {
     // 2、先将本地图片批量转换成数据地址，再调用编辑接口。
-    console.log('开始转换原始图片为 base64...');
-    const imageUrls = await batchUploadImagesToBase64(inputImages);
-
-    console.log('图片转换完成，开始调用编辑接口...');
-
     const clientOptions = aspectRatio ? { aspectRatio } : {};
+    let editedUrls;
+    if (resolveImageProtocol(model) === 'openai') {
+      // OpenAI 协议直接以 multipart 上传本地文件，无需转 base64。
+      editedUrls = await editImageOpenAI(prompt, inputImages, apiKey, baseUrl, model, logPath, {
+        ...imageOptions, aspectRatio, timeoutMinutes
+      });
+    } else {
+      console.log('开始转换原始图片为 base64...');
+      const imageUrls = await batchUploadImagesToBase64(inputImages);
 
-    const editedUrls = await editImage(
-      prompt,
-      imageUrls,
-      apiKey,
-      baseUrl,
-      timeoutMinutes,
-      model,
-      logPath,
-      savePath,
-      clientOptions
-    );
+      console.log('图片转换完成，开始调用编辑接口...');
+      editedUrls = await editImage(
+        prompt,
+        imageUrls,
+        apiKey,
+        baseUrl,
+        timeoutMinutes,
+        model,
+        logPath,
+        savePath,
+        clientOptions
+      );
+    }
 
     console.log(`✅ 图片编辑成功，共输出 ${editedUrls.length} 张图片`);
     editedUrls.forEach((url, i) => {
@@ -195,8 +209,13 @@ export async function apiWrapper(action, config) {
     logPath,
     savePath,
     aspectRatio,
-    inputImages
+    inputImages,
+    quality,
+    size,
+    imageTier,
+    numImages
   } = config;
+  const imageOptions = { quality, size, imageTier, numImages };
 
   try {
     let result;
@@ -210,7 +229,8 @@ export async function apiWrapper(action, config) {
         model,
         logPath,
         savePath,
-        aspectRatio
+        aspectRatio,
+        imageOptions
       );
     } else if (action === 'edit') {
       result = await mainEdit(
@@ -222,7 +242,8 @@ export async function apiWrapper(action, config) {
         logPath,
         savePath,
         inputImages,
-        aspectRatio
+        aspectRatio,
+        imageOptions
       );
     } else {
       throw new Error(`不支持的操作类型: ${action}`);

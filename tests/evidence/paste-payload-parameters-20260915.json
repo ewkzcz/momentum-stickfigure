@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "unit": "paste-payload-parameters",
+  "baseline": { "directory": "temp/paste-payload-before-acceptance-nHYsUj", "passed": 0, "failed": 1, "failure": "save-temp-image接受非法Base64覆盖同名图片" },
+  "changes": ["在目录创建或覆盖前校验裸Base64结构与64MiB预算", "保留空数据原错误包络、合法名称与字节覆盖语义"],
+  "verification": { "directory": "temp/paste-payload-after-acceptance-OKoKca", "passed": 4, "failed": 0, "durationMs": 3511.175583, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "coverage": ["非法编码与错误类型拒绝后原图字节不变", "后续合法覆盖恢复", "原文件选择图片预览、临时文件落盘、参数和链接保护回归"],
+  "limits": ["Base64结构校验不是图片格式解码验证", "64MiB为保守接口预算", "定向通过不等于当前累计全量"]
+}

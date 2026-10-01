@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-15",
+  "scope": "业务启动取消全局ThirdPartyStoragePartitioning禁用",
+  "initialBaseline": { "directory": "temp/storage-partition-switch-before-acceptance-tpQK4z", "passed": 0, "failed": 1 },
+  "initialAfter": { "directory": "temp/storage-partition-switch-after-acceptance-10NVAp", "passed": 4, "failed": 1, "finding": "删除业务开关后总disable-features仍含ThirdPartyStoragePartitioning；定位为Playwright chromiumSwitches.js自身默认启动开关，不能据此归因业务删除无效。" },
+  "businessBaseline": { "directory": "temp/storage-partition-business-before-acceptance-s0kqni", "passed": 0, "failed": 1, "finding": "bootstrap仅记录并原样转发业务appendSwitch，暂时恢复原业务语句验证新断言确实失败，之后再次删除。" },
+  "after": { "directory": "temp/storage-partition-business-after-acceptance-68zs8l", "passed": 5, "failed": 0, "durationMs": 4541.046166, "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "changes": [
+    "删除业务主入口全局禁用第三方存储分区的开关。",
+    "bootstrap在业务导入前记录appendSwitch并原样转发，不删除Playwright开关，不关闭任何后台、子进程、网络、系统交互或webview保护。"
+  ],
+  "limitations": [
+    "已验证的是业务不再追加禁用开关，Playwright仍带自身禁用值，无法声称本测试验证了实际第三方cookie分区行为。",
+    "真实嵌套站点cookie和第三方登录需独立桌面/外部验收，不能以本5项通过替代。",
+    "既有按初始来源独立session分区测试仍通过，与Chromium第三方存储分区不是同一机制。",
+    "本5项是定向回归，不是累计完整验收。"
+  ]
+}

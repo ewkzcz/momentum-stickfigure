@@ -1,6 +1,6 @@
 /**
  * Gemini Image API 前端配置文件
- * 用于配置纳米香蕉（Gemini）生图服务
+ * 用于配置 AI 生图与视频服务（Gemini / OpenAI 协议）
  */
 
 import { normalizeApiBaseUrl } from '@shared/api-url.js'
@@ -15,6 +15,10 @@ export const DEFAULT_GEMINI_IMAGE_CONFIG = {
   apiKey: '',
   baseUrl: DEFAULT_BASE_URL,
   model: 'gemini-2.5-flash-image',
+  // OpenAI 协议模型（gpt-image-2 系列等）使用的附加参数
+  quality: 'auto',
+  imageTier: 'standard',
+  numImages: 1,
   timeoutMinutes: 5,
   
   // 路径配置

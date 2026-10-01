@@ -1,0 +1,22 @@
+{
+  "point": "修复独立预览二进制视图越界解码",
+  "date": "2026-09-06",
+  "baselineCommit": "6c4ec36d965734bfd38bb68df3402fe76e33509e",
+  "reproduction": {
+    "input": "32x32透明背景上的实色矩形PNG，小于4096字节",
+    "before": "原版实际预览窗口图片加载失败，30秒内画布无有效图像",
+    "cause": "主进程和预览页使用TypedArray底层buffer时忽略byteOffset及byteLength；小Node Buffer共享内存池还带入PNG以外字节"
+  },
+  "verification": {
+    "actualElectronPreview": ["完整ArrayBuffer", "有前后填充且byteOffset为13的Uint8Array", "旧data URL字符串"],
+    "assertion": "每种格式使用新建空预览窗口，接收后RGBA与发送前PNG零差异",
+    "originalPsdScenes": 100,
+    "originalReferencesOverwritten": false,
+    "storagePersistenceAndRestart": "通过，包括持续写入和EIO故障后恢复",
+    "syntheticMaskPreviewAndExportProbe": "通过；尚未视作完整素材基线验收",
+    "build": "通过",
+    "sourceSize": "六个遗留超限，零新增或增长"
+  },
+  "scope": "只修复两处二进制视图边界，未修改PSD解析、合成、裁边或导出算法",
+  "unverified": ["Windows和Linux桌面", "安装打包产物", "真实操作系统跨应用拖拽", "布局截图基线仍在单独诊断"]
+}

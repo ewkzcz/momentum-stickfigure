@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "d602e7d",
+  "scope": "BrowserView五个控制入口的配置类型和有限边界参数",
+  "before": { "directory": "temp/browser-parameters-before-acceptance-6urWAc", "passed": 0, "failed": 1, "failure": "browserview:open接受null并创建空视图返回成功" },
+  "after": { "directory": "temp/browser-parameters-after-acceptance-jOoNyG", "tests": 7, "passed": 7, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["配置对象、地址字符串、分区字符串、主题枚举、布尔选项、有限整型bounds", "错误参数不创建BrowserView，拒绝后合法close成功", "视图owner二十轮、在途关闭、同键并发、加载失败恢复、主题生命周期和来源回归"],
+  "limits": ["此组只校验URL字符串类型和长度；协议/来源/分区隔离在后续网页策略单元实施", "边界沿用Electron有符号32位整型约束，宽高非负", "网页图片拖拽载荷仍需剩余有限校验，不将本组当全部IPC完成"]
+}

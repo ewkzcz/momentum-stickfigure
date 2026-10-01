@@ -1,0 +1,8 @@
+{
+  "scope": "原规划3.2.9：配置密钥日志流转",
+  "change": "仅移除设置导出日志的完整配置参数，保留流程日志与全部实际导出/自动备份数据",
+  "before": { "log": "temp/settings-export-log-before.log", "passed": false, "failure": "真实settingsArchive函数将隔离测试密钥写入console.log" },
+  "after": { "evidence": "settings-export-log-after-acceptance-m28XzU", "passed": 11, "failed": 0, "skipped": 0, "durationMs": 38248.687208, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true },
+  "coverage": ["导出函数日志不含密钥且两次IPC参数完整", "基础与生图设置真实桌面保存重启", "设置文件导入导出备份取消与写入失败"],
+  "limitations": ["函数同例在IPC边界观察，不冒充真实API请求", "本项仅消除已复现日志泄露，默认配置分享脱敏和显式完整备份尚需独立实现", "未读取用户配置或真实密钥"]
+}

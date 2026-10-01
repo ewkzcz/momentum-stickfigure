@@ -1,0 +1,82 @@
+{
+  "point": "人物页样式按三个连续完整片段机械拆分",
+  "date": "2026-09-06",
+  "baselineCommit": "30f943521ee92ddb4811d16747148ef7b7502406",
+  "scope": "仅修改原CSS、新增两个CSS、替换Vue同一行的style引用；脚本、模板、业务测试和全局message样式保持原样",
+  "files": [
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.css",
+      "originalRange": [1, 1006],
+      "lines": 1007,
+      "bodySha256": "5c4342424bed3cdb00cf41d4d75773d3811fa665249fad8884f5a14f6dbaacca"
+    },
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/styles/part-panels.css",
+      "originalRange": [1007, 1773],
+      "lines": 768,
+      "bodySha256": "f9f882a25209440c6512381100afd4979843f1ae155745bbd71381729037e9f1"
+    },
+    {
+      "path": "src/renderer/src/components/pages/ActionExpressionPage/styles/overrides.css",
+      "originalRange": [1774, 2566],
+      "lines": 794,
+      "bodySha256": "6e9a8937471b3c764e41943cf87d0cbfca64df682a8aa20186b2ecd31f97b348"
+    }
+  ],
+  "vue": {
+    "path": "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.vue",
+    "linesBefore": 8863,
+    "linesAfter": 8863,
+    "scopedSourcesInOrder": ["./ActionExpressionPage.css", "./styles/part-panels.css", "./styles/overrides.css"],
+    "threeTagsOnSameLine": true,
+    "onlyStyleTagsChanged": true,
+    "globalMessageStyleUnchangedAndLast": true
+  },
+  "staticEquivalence": {
+    "result": "PASS",
+    "method": "临时脚本使用git show HEAD读取旧CSS，独立解析三片段，并以PostCSS递归比较非注释节点的类型、选择器、条件、声明、important及原始子节点顺序；使用Vue compileStyle按相同scope id分别编译后再次比较AST",
+    "byteExactAfterRemovingThreeAddedFileHeaders": false,
+    "byteExactAfterRemovingHeadersAndTrailingWhitespace": true,
+    "whitespaceOnlyAdjustment": "新增overrides文件继承了39处旧行尾空白；为通过暂存差异检查仅清理这些行尾空白，原有选择器、属性值、嵌套及规则顺序完全不变",
+    "independentlyParsableFragments": true,
+    "orderedPostcssAstEquivalent": true,
+    "compiledScopedAstEquivalent": true,
+    "cssSha256": "2ca7d482d6c25053070cfba238c3579b3423820b99170d560d2f1a3d038f93a0",
+    "postcssSemanticSha256": "2823043bde97e217c81b41c5d41e09188058d4e37aaccdaa213af3f9da6a3040",
+    "rules": 333,
+    "declarations": 1342,
+    "atRules": 14,
+    "media": 10,
+    "keyframes": 4,
+    "originalComments": 184,
+    "mediaConditionsInOrder": ["(max-width: 800px)", "(max-width: 600px)", "(max-width: 768px)", "(max-width: 400px)", "(max-width: 1200px)", "(max-width: 900px)", "(max-width: 600px)", "(max-width: 1200px)", "(max-width: 900px)", "(max-width: 600px)"],
+    "keyframeNamesInOrder": ["spin", "pulse-dot", "search-pulse", "dragFloatWarning"],
+    "assertionsRelaxed": false,
+    "temporaryScriptRemoved": true
+  },
+  "commands": {
+    "npm run check:size": { "exitCode": 0, "legacyOversizedFilesBefore": 6, "legacyOversizedFilesAfter": 5, "newSizeViolations": 0 },
+    "npm run build": { "exitCode": 0, "warnings": ["两个未使用的外部导入", "utils-vendor空chunk", "部分chunk超过1000kB"] },
+    "npm test": { "exitCode": 0, "tests": 11, "passed": 11, "failed": 0, "skipped": 0, "cancelled": 0, "durationMs": 107093.110958 },
+    "staticCheck": { "exitCode": 0 },
+    "git diff --cached --check": { "exitCode": 0, "note": "两处片段边界空行移到下一文件说明之后，清理新增overrides中继承的39处行尾空白；未降低检查规则" }
+  },
+  "pixels": {
+    "originalAndSyntheticPsdScenes": 154,
+    "rgbaDifference": 0,
+    "fixedLayout": { "width": 1024, "height": 700, "devicePixelRatio": 1, "rgbaDifference": 0, "reference": "preset-lifecycle-renderer1024-dpr1-focus-v1" },
+    "presetLifecycleAndPersistence": "PASS",
+    "runtime": { "platform": "darwin", "arch": "arm64", "electron": "35.7.5", "chrome": "134.0.6998.205" }
+  },
+  "references": {
+    "directory": "temp/regression-reference-v2",
+    "files": 207,
+    "digestMethod": "SHA256(JSON.stringify(按路径有序的[相对路径,文件SHA256]列表))",
+    "sha256Before": "6c3fc6009dfc191b517d180e4a488e509462a56fda6f9a01c8a7358ce17b9ee5",
+    "sha256After": "6c3fc6009dfc191b517d180e4a488e509462a56fda6f9a01c8a7358ce17b9ee5",
+    "updated": false
+  },
+  "parentFullRecheck": { "buildExitCode": 0, "testExitCode": 0, "tests": 11, "passed": 11, "failed": 0, "skipped": 0, "durationMs": 106722.982542, "note": "后台终端首次卡在Shell初始化，未执行任何npm命令；终止该会话后前台重试完成" },
+  "parentStaticRecheck": "清理行尾空白后再次通过归一化原文拼接、PostCSS有序语法树和Vue局部作用域编译语法树比较；再次构建与预设布局回归通过，生成的CSS和JS产物哈希文件名未变",
+  "unverified": ["其它响应式尺寸的像素截图", "Windows及Linux桌面", "安装产物"]
+}

@@ -15,7 +15,7 @@ import { parsePSD, renderPSDLayers, detectComponents } from './psd_client.js';
  * @param {object} options - 解析选项
  * @returns {Promise<object>} 解析结果
  */
-async function mainParsePSD(fileBuffer, options = {}) {
+async function mainParsePSD(fileBuffer, options = {}, signal) {
     // 1、获取并验证解析配置。
     const config = getPSDConfig(options);
     const validation = validatePSDConfig(config);
@@ -57,7 +57,8 @@ async function mainParsePSD(fileBuffer, options = {}) {
         const result = await parsePSD(
             fileBuffer,
             config.parseDefaults,
-            config.PROCESSING_TIMEOUT
+            config.PROCESSING_TIMEOUT,
+            signal
         );
         
         console.log('PSD文件解析完成');
@@ -180,9 +181,9 @@ async function mainDetectComponents(psdData, options = {}) {
         );
         
         console.log('组件检测完成');
-        console.log(`检测到前手: ${result.frontHand.length} 个`);
-        console.log(`检测到后手: ${result.backHand.length} 个`);
-        console.log(`检测到表情: ${result.expression.length} 个`);
+        console.log(`检测到前手: ${result.components.frontHand.length} 个`);
+        console.log(`检测到后手: ${result.components.backHand.length} 个`);
+        console.log(`检测到表情: ${result.components.expression.length} 个`);
         
         return {
             success: true,
@@ -224,7 +225,7 @@ async function psdApiWrapper(operation, params) {
         let result;
         switch (operation) {
             case 'parse':
-                result = await mainParsePSD(params.fileBuffer, params.options);
+                result = await mainParsePSD(params.fileBuffer, params.options, params.signal);
                 break;
             case 'render':
                 result = await mainRenderPSD(params.psdData, params.options);

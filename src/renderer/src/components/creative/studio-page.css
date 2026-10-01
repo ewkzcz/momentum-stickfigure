@@ -1,0 +1,21 @@
+/* 创作入口页通用布局：标签页撑满高度，面板内部自行滚动 */
+.studio-page {
+  height: 100%;
+  overflow: hidden;
+  padding: 8px 16px 16px;
+  background: var(--theme-background);
+}
+
+.studio-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.studio-tabs :deep(.n-tabs-pane-wrapper),
+.studio-tabs :deep(.studio-pane) {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+}

@@ -1,0 +1,23 @@
+{
+  "point": "拆分人物页缓存激活时的画布布局恢复",
+  "date": "2026-09-08",
+  "baselineCommit": "f21756758d9f538cceac060175b065633b95e0a3",
+  "scope": "只迁移onActivated回调正文；生命周期注册仍在页面原位置，新增模块不注册钩子、不创建状态",
+  "files": {
+    "pageBeforeLines": 2745,
+    "pageAfterLines": 2699,
+    "module": "src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasActivationReset.js",
+    "moduleLines": 49
+  },
+  "behavior": ["读取当前scale/region模式", "临时切换模式", "重置缩放和手动滚动", "两轮nextTick更新尺寸", "最终调用原renderAllLayers"],
+  "validation": {
+    "unit": { "tests": 4, "passed": 4, "failed": 0, "skipped": 0 },
+    "targeted": "后台桌面边界、跨页输出和十次独立预览通过",
+    "lint": "通过",
+    "checkSize": "通过；五个遗留超限，无新增违规",
+    "build": "通过，既有构建告警保留",
+    "background": "测试窗口隐藏、不可聚焦、不可置顶且不打开开发者工具",
+    "references": { "files": 264, "sha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e", "changed": false }
+  },
+  "unverified": ["组件真实路由keep-alive反复激活的完整桌面场景", "Windows/Linux", "生产窗口前台行为"]
+}

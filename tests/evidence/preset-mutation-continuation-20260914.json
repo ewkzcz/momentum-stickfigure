@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "scope": "预设删除、改名与失焦保存的异步界面回写会话保护",
+  "baseline": "e06395bf84eeb23b379618164bc0ba12fb94637e",
+  "fixCommit": "5500e96a24b43af8a7942cf26ab576e0566e5517",
+  "reproduction": {
+    "test": "tests/preset-mutation-continuation.test.mjs",
+    "beforeLog": "temp/preset-mutation-continuation-before.log",
+    "before": { "tests": 14, "pass": 4, "fail": 10 },
+    "description": "构建真实usePresetData及usePresetUI，使用真实Vue会话和WebCrypto摘要；仅控制摘要交付与图片删除IPC边界。删除在摘要及图片删除等待中切换、原引用往返、卸载后均清空选择；改名保存等待后产生旧提示并清除编辑状态；卸载后调用仍修改列表。正常删除、改名及返回契约对照通过。",
+    "afterLog": "temp/preset-mutation-continuation-after.log",
+    "after": { "tests": 33, "pass": 33, "fail": 0 },
+    "afterScope": "14项删除改名用例，加7项手动保存及12项预设加载续体用例。",
+    "targetedDirectory": "temp/preset-mutation-continuation-acceptance-R8QlWr",
+    "targetedLog": "temp/preset-mutation-continuation-unit.log",
+    "targeted": { "tests": 45, "pass": 45, "fail": 0 },
+    "targetedChecks": ["lint", "规模检查", "重新生产构建", "素材与参考前后核验", "预设文件和真实卡片", "PSD往返及后发严格像素回归", "悬浮预览", "跨入口渲染竞争"]
+  },
+  "behavior": [
+    "deletePreset在入口捕获共享PSD会话；卸载后不启动操作。已启动的原目标保存和图片清理仍可完成，但失效后不清当前选择、不请求重绘、不显示旧成功提示。",
+    "renamePreset在入口及保存完成后检查会话。已完成保存仍返回true，正常缺失目标undefined、重名false契约不变；失效后不显示成功提示。",
+    "usePresetUI通过页面注入原文件与PSD引用，复用同一会话保护；失焦保存等待后失效则不恢复旧输入框、不清理当前编辑状态。",
+    "会话保护能够识别A到B再回到原A引用及页面卸载，不以文件路径相等替代会话版本。"
+  ],
+  "firstFullAcceptance": {
+    "passed": false,
+    "head": "5500e96a24b43af8a7942cf26ab576e0566e5517",
+    "directory": "temp/remaining-defects-acceptance-V3jNXB",
+    "log": "temp/preset-mutation-continuation-full.log",
+    "reported": { "tests": 280, "pass": 279, "fail": 1, "skipped": 0, "cancelled": 0 },
+    "error": "tests/browser-theme-cleanup.test.mjs文件级错误：Node test runner Unable to deserialize cloned data due to invalid or unsupported version.",
+    "interpretation": "运行器子进程消息解析失败，不能据此认定业务断言失败或全量通过。保留本次失败及不完整计数，不与局部复测拼接。未修改测试或生产代码重试。",
+    "isolatedRecheckLog": "temp/preset-mutation-browser-theme-recheck.log",
+    "isolatedRecheck": { "tests": 9, "pass": 9, "fail": 0 }
+  },
+  "fullAcceptance": {
+    "passed": true,
+    "command": "node scripts/verify-remaining-defects.mjs all",
+    "head": "5500e96a24b43af8a7942cf26ab576e0566e5517",
+    "directory": "temp/remaining-defects-acceptance-aDuR7V",
+    "log": "temp/preset-mutation-continuation-full-recheck.log",
+    "tests": 285,
+    "pass": 285,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 1364777.093041,
+    "finishedAt": "2026-09-14T13:30:34.881Z",
+    "manifestSha256": "ba9f2248e389f08b527b390213d7cf881c556b20e7f4683782bf43e3f6afba19",
+    "integrityErrors": [],
+    "referenceFiles": 266,
+    "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed",
+    "checks": ["源码及现行lint", "规模与差异检查", "生产构建", "输入/Git/产物清单冻结核验", "完整串行测试", "授权素材及冻结参考只读核验"]
+  },
+  "limits": [
+    "证据文件于完整验收后新增，285项属于5500e96，不声称证据提交树重新全验。",
+    "本轮不改确认删除对话框延迟确认、名称编辑nextTick聚焦、取消全部预设等待后提示等相邻入口；应独立复现和修复。",
+    "同会话内多次编辑、选择或保存逆序，跨PSD或多窗口全局旧快照覆盖，以及共享预览文件引用生命周期不在本轮事务保障范围。",
+    "已启动的原目标图片删除继续完成，不保证复用该路径的其它存储项安全；本轮只保护界面续体，不声称存储事务或文件引用安全。",
+    "历史自然预览超时和Node测试运行器消息反序列化异常均未定位根因；复测通过不取消既有失败记录。",
+    "安全、跨平台安装、真实服务及总规划其它余项仍待推进。"
+  ]
+}

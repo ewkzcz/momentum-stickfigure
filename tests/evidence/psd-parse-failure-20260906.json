@@ -1,0 +1,36 @@
+{
+  "point": "传播内层PSD解析失败，避免损坏文件被计入成功并创建无效会话",
+  "date": "2026-09-06",
+  "baselineCommit": "6d34aaebe3ec2e443826a6eeccf9e9fe9336fed7",
+  "cause": "IPC外层success=true仅代表调用完成；旧parsePsdFile忽略data.success=false，将错误对象当作PSD数据返回",
+  "scope": "仅在页面解析适配器中传播内层明确失败，成功数据解包方式不变，未改变PSD解析及合成算法、300MB限制、历史保存或临时文件清理",
+  "redGreenVerification": {
+    "test": "node --test tests/psd-upload.test.mjs",
+    "before": "正确的首个损坏PSD失败断言未满足，30秒等待后测试失败，0通过1失败",
+    "failureEvidenceId": "momentum-regression-M6DINh",
+    "assertionChangedAfterReproduction": false,
+    "after": "同一断言及完整上传流程通过，16次RGBA比较零差异",
+    "scenarios": ["首个损坏文件不创建标签且预览保持禁用", "损坏文件之后仍能初始化有效会话", "损坏与有效文件混合准确报告1成功1失败", "无路径损坏PSD拖放不创建会话且当前画布不变", "后续有效拖放正常落盘和渲染"]
+  },
+  "compatibilityTest": {
+    "success": ["外层成功直接携带PSD数据", "外层成功且内层成功再携带PSD数据"],
+    "failure": ["外层失败", "内层error", "内层message", "内层失败且无详细消息"],
+    "scope": "控制响应的单元验证补充真实桌面测试，不替代实际上传验收"
+  },
+  "finalValidation": {
+    "lint": "通过",
+    "build": "通过，原有构建告警保留",
+    "sourceSize": "五个遗留超限，无增长或新增超限",
+    "command": "npm test",
+    "tests": 14,
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 139474.810125,
+    "originalPsdPixelScenes": 154,
+    "hoverStates": 28,
+    "rgbaDifference": 0,
+    "referencesUpdated": false
+  },
+  "limitations": ["失败文件仍可能进入原有历史记录或保留拖放临时文件，此项未改变这些生命周期", "未新增解析成功后分类异常回滚测试", "未验证Windows/Linux、OS原生拖放或超过300MB输入"]
+}

@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "79f8645",
+  "scope": "应用粘贴临时目录及目标文件的符号链接边界",
+  "before": { "directory": "temp/temp-authorization-before-acceptance-aVt4uI", "passed": 0, "failed": 1, "failure": "合法单段文件名指向符号链接时仍返回成功并覆盖专属目录外的隔离哨兵文件" },
+  "after": { "directory": "temp/temp-authorization-after-acceptance-g3cTBa", "tests": 3, "passed": 3, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["拒绝目标文件和应用专属目录符号链接", "拒绝后可正常保存中文空格名称", "原临时图片覆盖内容、默认名称、原始字节和选择错误契约通过"],
+  "limits": ["仅应用粘贴临时目录，不代表所有读写及配置目录授权完成", "O_NOFOLLOW在本机POSIX最终文件打开实测；Windows仍需外部平台验证", "目录组件检查不是对并发本地恶意进程替换父目录的原子防护；本组未宣称该威胁已解决", "真实用户文件和配置未读取，测试写入只在隔离根内"]
+}

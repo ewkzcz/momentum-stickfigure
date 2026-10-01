@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "scope": "PSD分类后提交、首次初始化、切换加载及预设加载内部迟到回写；不是总优化规划完成或整体性能提升证明",
+  "baseline": "673c9cd8c92040187ea7a4272f9bdc269088427d",
+  "commits": [
+    { "hash": "0eabad35613c54c4bd02192902d4d3c4506dd571", "title": "fix: 阻止PSD载入取消后的迟到状态回写" },
+    { "hash": "cbbe75df0aa26fe149ee94129dbd6433d3590d89", "title": "fix: 取消PSD切换后的过期初始化任务" },
+    { "hash": "a61a67382b68124d7a36df8a5c01c7f29334e966", "title": "fix: 保护预设加载的会话归属" },
+    { "hash": "42710b8d757da3bc9862284aa47f8fdfb3e8e097", "title": "fix: 保持PSD解析接口的独立调用兼容" }
+  ],
+  "reproduction": {
+    "classification": {
+      "boundary": "生产classifyParts经extractDirectChildren/getFirstVisibleChildThumbnail等待真实Image.onload；使用真实分类器及原生PNG解码，不复制业务函数",
+      "beforeLog": "temp/psd-import-continuation-before.log",
+      "before": { "tests": 7, "pass": 1, "fail": 6 },
+      "afterLog": "temp/psd-import-continuation-after.log",
+      "after": { "tests": 7, "pass": 7, "fail": 0 },
+      "desktopLog": "temp/psd-classification-desktop-after.log",
+      "desktopTests": 4,
+      "desktopScope": "真实上传授权PSD，在业务onload暂停但原生解码保留的分类边界覆盖取消、删除、真正卸载和正常缓存离页；取消后重导成功。桌面新增用例没有旧版运行，不声称桌面before/after均测过。"
+    },
+    "session": {
+      "beforeLog": "temp/psd-session-continuation-before.log",
+      "before": { "tests": 5, "pass": 0, "fail": 5 },
+      "acceptanceDirectory": "temp/psd-session-continuation-acceptance-pzR0Zh",
+      "checks": "真实Vue nextTick、effectScope及受控100ms任务；覆盖入口、预设等待后、往返切换及销毁；正常尺寸变化不取消"
+    },
+    "preset": {
+      "beforeCommand": "MOMENTUM_RACE_REVISION=cbbe75d node --test tests/psd-preset-continuation.test.mjs",
+      "beforeLog": "temp/psd-preset-complete-before.log",
+      "before": { "tests": 12, "pass": 3, "fail": 9 },
+      "afterLog": "temp/psd-preset-complete-after.log",
+      "after": { "tests": 12, "pass": 12, "fail": 0 },
+      "partialFixFailureLog": "temp/psd-preset-storage-before-final.log",
+      "partialFixResult": { "tests": 10, "pass": 7, "fail": 3 },
+      "checks": "Vite读取指定提交真实模块，真实SHA-256仅受控交付；往返、卸载、重复加载、旧异常、预览补载、真实哈希匹配移动路径、自动保存哈希和预览等待、旧格式迁移元数据提交，以及正常路径和迁移。部分用例用pathUpdated旧字段触发，另有真实哈希移动路径用例。",
+      "acceptanceDirectory": "temp/psd-preset-acceptance-1rXFgU",
+      "acceptance": { "tests": 73, "pass": 73, "fail": 0, "manifestSha256": "7ef29f59ac36d40a766b4887773a6c2556c87fb229e8df2522413feba013a32d" }
+    },
+    "standaloneCompatibility": {
+      "failure": "首次全量发现usePsdParser({})独立解析时缺少页面ref，新会话WeakMap.set(undefined)抛错；保持既有测试断言，给未注入会话提供局部空ref，不替换正常页面引用。",
+      "acceptanceDirectory": "temp/psd-parser-standalone-acceptance-E6FyqJ",
+      "log": "temp/psd-parser-standalone-unit.log",
+      "checks": "原psd-response契约、导入/切换/预设续体及真实桌面分类；lint、规模、重建、参考前后核验均通过"
+    }
+  },
+  "failuresPreserved": [
+    {
+      "directory": "temp/psd-import-acceptance-kHSVPo",
+      "result": "13项中12通过1失败；action-page-lifecycle独立预览stableCanvas超时，证据momentum-regression-TfvhgY。",
+      "investigation": "日志有主帧完成、预览创建及发送成功，但新预览没有图片渲染记录。旧673c9cd独立构建同用例通过，新冻结构建复测通过；根因未确认。",
+      "baselineLog": "temp/psd-baseline-lifecycle.log",
+      "repeatLog": "temp/psd-import-lifecycle-repeat.log"
+    },
+    {
+      "head": "a61a67382b68124d7a36df8a5c01c7f29334e966",
+      "directory": "temp/remaining-defects-acceptance-iZkKkp",
+      "log": "temp/psd-continuation-full-acceptance.log",
+      "tests": 263, "pass": 260, "fail": 3,
+      "failures": ["canvas-output预览第二轮canvas-wrapper持续隐藏，momentum-output-T0ZrYw", "preview-payload预览stableCanvas超时，momentum-regression-gkBg9q", "psd-response独立调用WeakMap错误，已由42710b8修复"],
+      "previewInvestigation": "旧673c9cd既有独立构建和当前构建分别复测两个原用例均通过，另20轮带接收观测的开关通过。未确认预览超时根因，也未修改预览实现、固定等待或参考图。",
+      "baselineLog": "temp/psd-baseline-preview.log",
+      "repeatLog": "temp/psd-preview-repeat.log",
+      "deliveryLog": "temp/preview-delivery-investigate.log"
+    },
+    {
+      "head": "42710b8d757da3bc9862284aa47f8fdfb3e8e097",
+      "directory": "temp/remaining-defects-acceptance-d1GRGQ",
+      "log": "temp/psd-continuation-full-acceptance-repeat.log",
+      "testsReported": 258, "passReported": 257, "failReported": 1,
+      "failure": "Node测试运行器在browser-theme-cleanup进程消息处报Unable to deserialize cloned data due to invalid or unsupported version；此轮计数不完整，不能拼接局部结果认定全量通过。",
+      "repeatLog": "temp/psd-acceptance-runner-repeat.log",
+      "repeat": { "tests": 9, "pass": 9, "fail": 0 },
+      "resolution": "保留错误且未改业务或测试以规避；重新执行整个all入口，最终263项完整通过。"
+    }
+  ],
+  "diagnosticCorrections": [
+    "初次导入lint因测试AbortController未限定globalThis而失败，后修正；最初链未执行的build不算通过。",
+    "一次lifecycle未提供脏工作区regression清单，被来源校验拒绝；改用绑定输入/产物的单元验收脚本。",
+    "预设测试扩展时一次语法错误、一次遗漏释放正常迁移后的预览读取，已停止并修正夹具；这些不计业务失败。有效持久化修复前结果为storage-before-final和complete-before。",
+    "预设测试TextEncoder未限定globalThis导致lint失败，修正后完整单元验收通过。"
+  ],
+  "fullAcceptance": {
+    "passed": true,
+    "command": "node scripts/verify-remaining-defects.mjs all",
+    "head": "42710b8d757da3bc9862284aa47f8fdfb3e8e097",
+    "directory": "temp/remaining-defects-acceptance-fhp3xX",
+    "log": "temp/psd-continuation-full-acceptance-final.log",
+    "tests": 263, "pass": 263, "fail": 0, "skipped": 0, "cancelled": 0,
+    "durationMs": 1341481.272208,
+    "finishedAt": "2026-09-14T07:30:30.677Z",
+    "manifestSha256": "aec25c1916e7cab21af77f5a544885bb9d3feeb9a173ece01154b581b47a1212",
+    "integrityErrors": [],
+    "referenceFiles": 266,
+    "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed",
+    "checks": ["源码及现行lint", "规模及工作区/暂存区差异检查", "生产构建", "源码/测试/配置/Git/产物逐文件清单前后核验", "完整串行测试", "授权素材及冻结参考只读前后核验"]
+  },
+  "limits": [
+    "本证据文件在最终完整验收结束后新增；263项验收属于42710b8，不声称证据提交树另跑了一遍。",
+    "独立预览偶发超时仍是未定位问题，最终及独立复测通过不等于已修复。Node运行器偶发消息错误同样保留。",
+    "分类取消拒绝迟到提交，不物理中止已经开始的浏览器图片解码。预设保护不撤回已发送的图片保存IPC，可能留下未引用预览文件。",
+    "加载触发的自动保存和旧格式迁移沿用加载归属；手动创建、改名、删除及导入保存保持原协议，未声称解决所有显式保存或多窗口存储竞争。",
+    "共享会话版本由文件及数据引用切换推进；缓存停用和画布尺寸变化不推进。纯解析独立调用兼容；无Vue scope调用原有生命周期警告未全面改造。",
+    "保持PSD算法、预设格式、图层像素、路径历史、正常后台导入及全局模板语义；不扩展到模板应用、拖拽或缓存性能。",
+    "总规划安全/IPC授权、符号链接路径边界、webSecurity/CSP、Python进程树、完整注销、极端长稳、跨平台安装及真实外部服务等余项仍未完成。"
+  ]
+}

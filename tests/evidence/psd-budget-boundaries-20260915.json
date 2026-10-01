@@ -1,0 +1,8 @@
+{
+  "scope": "批准项1补充：累计图层与蒙版像素、嵌套深度边界",
+  "baseHead": "338f683",
+  "change": "提取原有元数据预算遍历供边界测试直接调用，预扫描仍调用同一实现；无渲染算法变化",
+  "acceptance": { "evidence": "psd-budget-boundaries-acceptance-XXshGb", "passed": 13, "failed": 0, "skipped": 0, "durationMs": 111933.771417, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true },
+  "coverage": ["累计图层像素超限", "蒙版计入累计像素", "超过128层嵌套拒绝", "不解析图像时仅计文档像素", "真实8193层PSD拒绝并恢复", "队列数量与字节预算", "两指定和三公开素材154场景RGBA零差异"],
+  "limits": ["元数据边界测试不代替真实巨大文件分配测试", "性能采样边界修正继续在批准性能项处理"]
+}

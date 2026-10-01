@@ -1,0 +1,13 @@
+{
+  "date":"2026-09-13",
+  "subject":"部件拖拽异常诊断的变量作用域修复",
+  "baselineHead":"0e890d2c37e8f2b4ea51fd4022caac28aa21ae89",
+  "baseline":{"directory":"temp/part-drag-exception-1789303348545","root":"LvCn3k","failed":true,"finding":"真实缩略图dragstart到达受控拒绝IPC后，原catch抛ReferenceError: base64 is not defined，原错误提示未显示"},
+  "change":"仅将本次base64/iconPayload声明移到原try之前，使原catch可读；编码、命名、IPC、成功及降级逻辑保持原文",
+  "candidate":{"directory":"temp/part-drag-exception-candidate-1789303522274","root":"8IcGQd","passed":true},
+  "formal":{"directory":"temp/part-drag-exception-formal-corrected-1789303646205","roots":["we91eP","oFzUZ1"],"tests":2,"passed":2,"durationMs":7062.2855,"coverage":"IPC拒绝与toBlob空结果各20轮原错误提示、原入口恢复拖拽，前后画布RGBA零差"},
+  "final":{"directory":"temp/part-drag-final-1789303895158","roots":["GzmkaA","x5TuRC","JblIgn","yfHqqW"],"tests":4,"passed":4,"durationMs":50872.362958,"coverage":"两异常路径及严格PSD后发会话/上传16场景像素通过"},
+  "testDevelopmentFailure":{"directory":"temp/part-drag-exception-formal-1789303615821","roots":["Cq6Pxp","iarymo"],"cause":"测试application.evaluate误把第一参数Electron对象当计数；修为第二参数后保留原断言通过，未改生产"},
+  "unresolvedPreviewFailure":{"fullEvidence":"layer-render-acceptance-awP7eY","head":"0e890d2c37e8f2b4ea51fd4022caac28aa21ae89","tests":94,"passed":92,"failed":2,"durationMs":1267319.892458,"endedAt":"2026-09-13T12:42:28.407Z","referenceFilesUnchanged":266,"cases":["canvas-output关闭按钮click","window-lifecycle关闭按钮click"],"unchangedRerun":"temp/preview-close-after-full-failure-1789303436049两项通过，不视为修复","candidateRelated":"temp/part-drag-related-final-1789303713925六项五通过一canvas-output相同关闭错误","diagnostic":"temp/preview-close-order-1789303849795/6QgAXZ五十轮中一轮click报错，但该轮实际IPC进入、window-close、sender-destroyed、window-closed，主窗仍存活；不修改生产关闭行为"},
+  "limits":["原helper保持不变，真实系统拖拽由记录边界替代","不改变图片缓存生命周期或IPC鉴权","预览关闭自动化时序问题仍单独处理，不将本项成功冒称全量通过"]
+}

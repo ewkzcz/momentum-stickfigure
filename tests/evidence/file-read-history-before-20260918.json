@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "status": "failed-before",
+  "baseHead": "21138eb3e9d4fb792183e475857bc8481ea3824f",
+  "directory": "temp/file-read-history-before-acceptance-2Vp2hr",
+  "tests": { "total": 16, "passed": 5, "failed": 11, "cancelled": 0, "durationMs": 6063.570292, "exitCode": 1 },
+  "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0 },
+  "findings": [
+    "真实Electron/preload/业务IPC：未选择文件、兄弟文件、原生取消、配置/历史文本、defaultPath取消共5项直接揭示产品授权缺口；相对路径第6个失败发生在夹具内部路径断言，未触及产品，原因是macOS /var与/private/var别名。总数8项6失败保持不变，正常选择和非法参数2项通过。",
+    "真实PSD历史模块受控读取/解析边界：check=false、AbortError、read=null、解析拒绝及一失败一成功均静默缩减历史，8项中5失败；成功、已打开、明确清空3项通过。",
+    "失败后的finally仍核对原夹具文件字节不变；历史条目丢失不等于磁盘PSD被删除。"
+  ],
+  "limits": "只有原生对话框返回使用既有bootstrap替身；历史模块是受控单元边界，不代替真实系统交互/后端授权/未来重选UI。生产read/check和历史实现尚未修复。",
+  "provenance": "同目录result.json/manifest.json记录当前协议候选、输入和构建清单；失败保留，不能用其他通过数量抵消。"
+}

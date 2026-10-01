@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "scope": "抠图高清设置恢复、重载与导入同步职责归域",
+  "baselineCommit": "5ee57ce5b0d95807c3079bf1fcc5c0fbeb70d71e",
+  "changes": [
+    "恢复和重载原同步块迁入useHdToolkitSettings，保留当前/旧字段优先级、原JSON存储形状和异常传播",
+    "导入只迁移原已读取对象的同步赋值和规范存储；后端saveConfig对象构造、await/catch及success不检查行为原位保留",
+    "挂载loadConfig与loadHdToolkitConfigFromBackend原并行调用保持，不借职责拆分修竞态",
+    "getDefaultHdToolkitPath改为域内部使用；未启用preload缺失的appPath，原空值及Windows输出缺省路径不变"
+  ],
+  "baseline": {
+    "provenance": "temp/hd-recovery-baseline-1789262722489",
+    "archive": "momentum-settings-archive-6jrp76",
+    "hd": "momentum-regression-DoQwqE",
+    "passed": "2/2，78814ms",
+    "precedingFullRegression": "temp/layer-render-acceptance-ZlA00P，HEAD5ee57ce，65/65，0跳过，1034747ms，266参考摘要9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed不变"
+  },
+  "candidate": {
+    "provenance": "temp/hd-recovery-candidate-1789262976875",
+    "archive": "momentum-settings-archive-MjVAEO，严格对照6jrp76",
+    "hd": "momentum-regression-kCBO13，严格对照DoQwqE全部布局计算样式与RGBA零差异",
+    "passed": "2/2，0跳过，78816ms",
+    "build": "index-BevhCOSA.js、index-BLlbmy2_.css"
+  },
+  "checks": [
+    "temp/verify-hd-recovery-extraction.mjs：三个同步块完整AST及原正文注释、父页剩余原文/await/catch、旧域函数状态与模板样式一致",
+    "npm run lint、严格规模检查、git diff --check、npm run build通过，既有构建警告保留"
+  ],
+  "boundaries": [
+    "本项后尚未跑完整回归；ZlA00P属于本项迁移前，不冒充当前候选全量结果",
+    "归档测试实际覆盖旧字段导入、共享磁盘及独立高清后端、完整重启；未遍历缺失所有字段和每一种写入失败",
+    "原挂载并发及正常保存/导入返回判断差异未修；全仓26错误、PSD Worker、安全及安装包仍待处理",
+    "没有启动Python或真实AI服务，原desktop隔离辅助未改"
+  ]
+}

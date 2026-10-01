@@ -1244,9 +1244,9 @@ const exportAllImages = async () => {
   
   try {
     // 选择导出文件夹
-    const result = await window.fileSystem?.selectFolder()
+    const result = await window.fileSystem?.selectFolder({ purpose: 'export' })
     
-    if (!result || !result.success) {
+    if (!result?.success || !result.path) {
       if (!result?.canceled) {
         message.error('选择文件夹失败')
       }
@@ -1263,9 +1263,12 @@ const exportAllImages = async () => {
       const dataURL = imageData.canvas.toDataURL('image/png', 1.0)
       const base64Data = dataURL.split(',')[1]
       const fileName = `dialog_${String(i + 1).padStart(3, '0')}.png`
-      const filePath = `${exportPath}\\${fileName}`
+      const filePath = `${exportPath}${exportPath.endsWith('/') ? '' : '/'}${fileName}`
       
-      await window.api?.writeFile(filePath, base64Data)
+      const saved = await window.api?.writeFile(filePath, base64Data)
+      if (saved?.success !== true) {
+        throw new Error(saved?.error || '保存失败')
+      }
     }
     
     message.destroyAll()

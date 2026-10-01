@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "status": "passed-targeted-not-final-acceptance",
+  "baseHead": "7484e6d927ee6576748e1d207267d88f42a76f03",
+  "directory": "temp/file-read-complete-related-after-acceptance-2fSKra",
+  "manifest": { "path": "temp/file-read-complete-related-after-acceptance-2fSKra/manifest.json", "sha256": "ff3ad04391e9173b9940d1fb968223b7b48e45a29d3975db3ae193075ca25b36" },
+  "tests": { "total": 67, "passed": 67, "failed": 0, "cancelled": 0, "skipped": 0, "durationMs": 468457.73175, "exitCode": 0 },
+  "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0 },
+  "references": { "files": 266, "sha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed", "originalFiles": 260, "originalSha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde" },
+  "command": "node temp/verify-psd-unit.mjs file-read-complete-related-after bootstrap-open-flags application-protocol application-protocol-reload file-operation-measurement file-read-authorization psd-history-retention file-read-capability file-read file-write file-ipc-source psd-upload file-selection-source file-selection-parameters local-media-authorization action-page-lifecycle regression privileged-web-security",
+  "verified": [
+    "主代理核对tests.log实际67项、全部命令退出码及result.json输入和构建manifest；运行期间所有写入方停止，源码/测试/脚本/依赖/HEAD/out冻结。",
+    "读取能力绑定可信窗口和原生选择精确普通文件；未选择、兄弟、取消、storage/history/defaultPath、相对路径拒绝；中文空格/二进制/空文件/重复读取保留。",
+    "纯能力覆盖销毁撤销、身份变化、链接、批量原子登记及回滚；PSD选择仅跳过ENOENT且缺失路径不授读。",
+    "PSD失败/取消保留原历史文本，明确清空仍可用；实际人物页20轮缓存切换及2轮真实卸载恢复通过，未改变原生命周期断言。",
+    "指定麒麟/星空及蒙版/剪切组/混合模式完整RGBA零差异，预设/重启及配置回归通过；原素材和参考未改。",
+    "bootstrap仅豁免明确数字只读组合，写入能力/创建/截断/未知数字位仍须隔离检查；生产NOFOLLOW和NONBLOCK保留，后台网络/子进程/系统交互/webview保护未关闭。",
+    "应用协议仅固定主入口和预览入口的#/片段不参与静态资源寻址；query、错误源、路径穿越、未知入口及资产hash仍拒绝；真实主窗重载由404恢复200并挂载Vue，双窗CORS/CSP/sandbox/webSecurity复验通过。",
+    "600万字符storage及8MiB写/读各20轮重测；读取在计时前经真实生产select-file授读，原生对话框仍为隔离替身，读取字节断言保留。"
+  ],
+  "fileOperationMeasurementMs": {
+    "storage": { "count": 20, "p50": 4, "p95": 13.099999994039536, "max": 14 },
+    "write": { "count": 20, "p50": 19.299999982118607, "p95": 20.30000001192093, "max": 21.200000017881393 },
+    "read": { "count": 20, "p50": 10, "p95": 12, "max": 12.900000005960464 }
+  },
+  "failureHistory": [
+    { "directory": "temp/file-read-history-before-acceptance-2Vp2hr", "total": 16, "passed": 5, "failed": 11, "exitCode": 1, "note": "其中相对路径为macOS /var别名导致夹具先失败，已纠正分类；使用realpath后仍验证拒绝相对路径，未放宽产品断言。" },
+    { "directory": "temp/file-read-history-first-after-acceptance-4BHR1T", "total": 30, "passed": 28, "failed": 2, "exitCode": 1, "note": "混合缺失PSD兼容及相对路径夹具；保留psd-upload原断言，最小产品修复skipMissing仅用于PSD。" },
+    { "directory": "temp/file-read-history-compatibility-after-acceptance-4WknsG", "total": 38, "passed": 38, "failed": 0, "exitCode": 0 },
+    { "directory": "temp/file-read-psd-lifecycle-after-acceptance-QG1vXP", "total": 10, "passed": 1, "failed": 7, "cancelled": 2, "exitCode": 1, "note": "数字只读open误归类越界写及hash重载404；详见file-read-regression-failure-20260918.json。" },
+    { "directory": "temp/file-read-follow-up-diagnostic-acceptance-afI7d7", "total": 5, "passed": 3, "failed": 2, "durationMs": 2501.825334, "exitCode": 1, "note": "真实重载主文档404；测量适配错误地期待select-file返回字符串，实际返回success/canceled/paths/path包络，已改为严格完整包络断言。" },
+    { "directory": "temp/file-read-follow-up-after-acceptance-3jYjdJ", "total": 12, "passed": 12, "failed": 0, "durationMs": 2806.053041, "exitCode": 0 }
+  ],
+  "rawEvidence": {
+    "lifecycle": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-vkc2fv",
+    "reload": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-lk0V9z/application-protocol-reload.json",
+    "webSecurity": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-pUoqJg/privileged-web-security.json"
+  },
+  "limits": [
+    "仅当前源码候选的相关集合，不是最终累计；不与旧定向结果相加。证据/status写入及提交发生在验收后，最终提交仍须累计验收。",
+    "原生文件选择为bootstrap替身；owner销毁隔离为纯单元，不替代真实多可信窗口或真实系统交互。",
+    "文件身份与描述符复核不宣称防御所有本地并发替换，不新增通用读取资源预算；通用write-file路径和配置目录用途授权留后续固定计划单元。",
+    "性能仅当前环境固定数据的观察，不是fsync、OS冷缓存、内存硬上限或跨平台承诺。",
+    "platform-installers、real-system-interactions、third-party-and-ai-python仍全部unverified；fullAcceptanceResult仍null，还不能收工。"
+  ]
+}

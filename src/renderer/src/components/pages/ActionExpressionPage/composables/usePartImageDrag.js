@@ -251,6 +251,8 @@ export function usePartImageDrag({ message, currentPsdFile, controlPriority, can
       event.dataTransfer?.setDragImage?.(ghost, 0, 0)
     } catch {}
 
+    // 本次编码结果需同时供正常流程和异常诊断读取，编码前失败时保持空值。
+    let base64, iconPayload
     try {
       console.log('🎯 开始拖拽部件图片:', part?.displayName || part?.name)
       didDragThisGesture = false
@@ -263,7 +265,6 @@ export function usePartImageDrag({ message, currentPsdFile, controlPriority, can
       }
 
       // 2、优先使用预缓存的数据，缺失时实时转换图片与图标
-      let base64, iconPayload
       const cached = imageCache.get(imgElement)
 
       if (cached && cached.base64) {

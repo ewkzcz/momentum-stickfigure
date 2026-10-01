@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "responsibility": "独立调查原版后发编辑/返回像素不一致；保留正确失败断言，不修业务，不更新参考",
+  "date": "2026-09-06",
+  "originalHead": "59eefa61c4575e561f57566b30a61a2f75714a4e",
+  "finalProbeHead": "a33579beab6ee821c76f025287916cf1a6064979",
+  "headNote": "调查开始时迁移未提交；最后一次重现时父端已完成迁移提交。本调查未执行 commit/push/build/npm test。所有运行均复用父端已构建的迁移后 out 产物。",
+  "originalEvidence": "tests/evidence/psd-session-original-layer-issue-20260906.json",
+  "probe": "tests/probes/psd-session-hair.mjs",
+  "commands": {
+    "strictReproduction": "node tests/probes/psd-session-hair.mjs",
+    "publicUiCausalControl": "node tests/probes/psd-session-hair.mjs --redraw-before-switch",
+    "optionalReadOnlyStateAttempt": "node tests/probes/psd-session-hair.mjs --diagnostics"
+  },
+  "runs": [
+    { "desktopId": "momentum-regression-DFJpAA", "mode": "strict", "exitCode": 1, "differentRgbaPixels": 33974 },
+    { "desktopId": "momentum-regression-MghRzL", "mode": "strict plus optional read-only state lookup; setupState unavailable", "exitCode": 1, "differentRgbaPixels": 33974 },
+    { "desktopId": "momentum-regression-BpsqQK", "mode": "public UI serial redraw before switching, after freezing original edited-1", "exitCode": 1, "differentRgbaPixels": 33974 },
+    { "desktopId": "momentum-regression-HfcEc3", "mode": "final strict reproduction", "exitCode": 1, "differentRgbaPixels": 33974 }
+  ],
+  "artifactLocation": "每个 desktopId 是系统临时目录中的独立目录名。PNG、hair-result.json、hair-summary.json（后两次运行）、hair-console.json、desktop.log 和 diagnostics.json 均只写入各自目录；此登记移除用户名、绝对路径、随机业务会话 ID 和完整运行日志。",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "electron": "35.7.5",
+    "chrome": "134.0.6998.205",
+    "viewport": [1024, 700],
+    "dpr": 1,
+    "focusEmulation": true,
+    "renderMode": "software-layout",
+    "canvasSize": [1240, 1750],
+    "freshIsolatedUserDataEachRun": true,
+    "externalNetworkAndChildProcessesBlockedByExistingBootstrap": true,
+    "pythonNotUsed": true
+  },
+  "fixtureHashes": {
+    "yun-jian-qi-lin": "b60f61ca07ba99d22bc5cec2de3f9b29b5b2d397925438e290f1ef649e00197b",
+    "xing-kong": "a1cd270115d88bbf715ce1786f87e6d8a36bb6790db168542ae2ccb732300435"
+  },
+  "actualUiSelections": {
+    "xingKong": { "part": "伏案左", "partRule": "第二个可见未选部件", "leaf": "后发", "leafPathFromExistingLog": "正面/后发/后发", "leafRule": "最后勾选叶图层", "exclusiveControls": [true, true, true] },
+    "yunJianQiLin": { "part": "插兜", "partRule": "第一个可见未选部件", "leaf": "基础", "leafRule": "第二个勾选叶图层", "exclusiveControls": [false, false, false] },
+    "initialSnapshotsAndPresets": "两份素材按原路径真实上传并记录初始画布；星空后编辑、云间麒麟再编辑前分别保存初始快照预设；返回不自动选择预设。"
+  },
+  "rawAssertions": [
+    { "name": "公开 DOM 完整恢复", "passed": true },
+    { "name": "首次返回星空应恢复原编辑画布", "passed": false, "code": "ERR_ASSERTION", "operator": "strictEqual", "actual": 33974, "expected": 0, "message": "首次返回星空应恢复原编辑画布：33974 个 RGBA 像素存在差异，范围 {\"left\":283,\"top\":312,\"right\":815,\"bottom\":1601}；禁止替换参考图消除失败\n\n33974 !== 0\n" },
+    { "name": "六秒多帧观察后星空应恢复原编辑画布", "passed": false, "actual": 33974, "expected": 0 }
+  ],
+  "originalComparison": {
+    "allFourRunsEditedAndReturnedMatchCorrespondingOldPngBytes": true,
+    "editedPngSha256": "2d6c93a74a334af9f8cdc4aeaa68fb1e1f6fa4cb169ca850a1d8489a36f3cb10",
+    "returnedPngSha256": "bfb2b9edb261fcd60a1ae15c3478c7fe8aa5da6c604cb490e39a303fa15a3a9b",
+    "visibleDomSha256": "8fcacc25ed784b6ad6df19e22d5d9c2c534f3347c500b0b9719c9cc55a56cdc4",
+    "editedEarlyVsOriginalEditedRgbaDifference": 0,
+    "editedLateVsOriginalEditedRgbaDifference": 0,
+    "returnedEarlyVsOriginalReturnedRgbaDifference": 0,
+    "returnedLateVsOriginalReturnedRgbaDifference": 0,
+    "currentEarlyPairDifference": 33974,
+    "currentLatePairDifference": 33974,
+    "bounds": { "left": 283, "top": 312, "right": 815, "bottom": 1601 },
+    "oldImageHashesRecheckedAfterEachRun": true,
+    "conclusion": "与机械迁移前原版的同一失败逐像素、逐 PNG 字节和公开 DOM 一致，支持本失败不是迁移引入。旧返回图仍只是失败证据，未批准为正确参考。"
+  },
+  "stability": {
+    "method": "原有十二帧稳定采样后继续六秒 requestAnimationFrame；每次读取真实画布完整 RGBA 并计算 SHA-256，记录每帧时间、图像加载和焦点；每次像素变化保留 PNG。",
+    "strictFinalRun": {
+      "edited": { "samples": 272, "elapsedMs": 6004.6, "distinctRgbaHashes": 1, "changesAfterFirstFrame": 0, "maximumSampleGapMs": 38.3 },
+      "returned": { "samples": 268, "elapsedMs": 6012.6, "distinctRgbaHashes": 1, "changesAfterFirstFrame": 0, "maximumSampleGapMs": 39.4 },
+      "allSamplesHaveNoPendingImages": true,
+      "allSamplesHaveNoLoadingMessage": true,
+      "allSamplesFocused": true,
+      "earlyVsLateRgbaDifferenceBothSides": 0
+    },
+    "publicRedrawControlRun": {
+      "edited": { "samples": 276, "elapsedMs": 6007.4, "changesAfterFirstFrame": 0 },
+      "returned": { "samples": 267, "elapsedMs": 6011.6, "changesAfterFirstFrame": 0 }
+    },
+    "conclusion": "本次差异是两个持续稳定的像素结果，不是十二帧采样后几秒内会自然收敛的暂态。该结论有界于本场景与观察窗口，不声称所有未知定时器均已清空。"
+  },
+  "causalUiControl": {
+    "desktopId": "momentum-regression-BpsqQK",
+    "performedBeforeAnySwitchAwayFromEditedXingKong": true,
+    "operations": ["先冻结原始 edited-1 并继续观察六秒", "公开表情互斥 true→false，等待完整画布十二帧稳定", "公开表情互斥 false→true，等待完整画布十二帧稳定", "再次读完整可见 DOM 和实际画布"],
+    "visibleDomEqualToOriginalEdited": true,
+    "resultPngSha256": "bfb2b9edb261fcd60a1ae15c3478c7fe8aa5da6c604cb490e39a303fa15a3a9b",
+    "rgbaDifferenceVsOriginalEdited": 33974,
+    "rgbaDifferenceVsOldReturned": 0,
+    "originalExpectedEditedImageWasNeverReplaced": true,
+    "originalFailureAssertionsStillExitNonzero": true,
+    "interpretation": "不需要执行会话保存/恢复，仅公开重绘即可从旧 edited-1 变成旧 returned 图；同状态渲染不幂等是更直接的问题。该对照不能用于把旧 returned 图批准成正确参考。"
+  },
+  "existingRendererLogEvidence": {
+    "strictFinalRunEditedRelativeMs": [
+      { "ms": 0, "event": "图层树渲染 A 开始，11 个图层" },
+      { "ms": 4, "event": "反向同步 showBackHair=false；通用控制监听实际执行，后发父组与叶层 userVisible/visible 均设 false" },
+      { "ms": 5, "event": "图层树渲染 B 开始，11 个图层；A 尚未结束" },
+      { "ms": 397, "event": "第一次完成日志，函数自报耗时 398ms" },
+      { "ms": 398, "event": "第二次完成日志，函数自报耗时 394ms" }
+    ],
+    "strictFinalRunReturnedRelativeMs": [
+      { "ms": 0, "event": "恢复后的 showBackHair 监听重绘开始，11 个图层" },
+      { "ms": 55, "event": "完成日志已收到，函数自报耗时 32ms" },
+      { "ms": 115, "event": "会话预设/模板加载后的延迟重绘开始，11 个图层" },
+      { "ms": 143, "event": "第二次完成日志，函数自报耗时 17ms；两次不重叠" }
+    ],
+    "timestampCaveat": "毫秒为 Playwright 接收 console 事件的相对时间，不是逐 drawImage 指令时钟；开始、第二次开始、两次完成的顺序可靠，精确内部耗时采用日志自报值。"
+  },
+  "rootCauseAssessment": {
+    "confidence": "高：实际重叠日志、公开 UI 无切换重绘对照、严格像素复现三项相互支持；没有修改实现完成修复验证。",
+    "primaryCause": "后发叶层操作触发的全画布异步重绘重入，首次编辑画布受两个并发绘制任务影响；返回路径按相同公开状态顺序重绘得到另一稳定结果。",
+    "callChain": [
+      "useLayerTree.handleLayerVisibilityChange 设置 controlPriority=layerTree、更新叶层和祖先，然后调用 onRenderTrigger()，但既不 return 也不 await 其 Promise。",
+      "页面包装函数 await originalHandleLayerVisibilityChange(params) 实际只等待 undefined，无法等到渲染结束；随后反向同步 showBackHair。",
+      "isSyncingFromLayerTree 在同一同步段内设 true、赋控制值、立即 false；默认异步 watch 回调执行时标志已 false。实际日志确认 watch 没有被抑制。",
+      "watch(showBackHair) 把父组和叶层 userVisible/visible 都设 false，再直接调用 renderAllLayers，绕过 queueRenderAllLayers，与首次图层回调重绘重叠。",
+      "useCanvasRender.renderAllLayers 仅设置 isRendering=true，未用其排斥重入；renderByLayerTree 直接清空共享画布并 await 异步图像绘制，两次任务可交错写同一 context。"
+    ],
+    "controlPriorityHypothesis": "保存结构确实没有 controlPriority，但本场景两个文件最后均操作图层树。现有实际日志显示编辑与返回均走图层树；renderAllLayers 源码无 parts/layerTree 分支，固定调用 renderByLayerTree。没有证据支持 controlPriority 丢失造成本次像素差异。",
+    "restoreWatchHypothesis": "restoreCommonControlsState 的赋值确实触发 showBackHair watch，但它没有改渲染模式。本次返回的 watch 重绘已先完成，随后会话 100ms 延迟回调再重绘，与首次编辑重叠执行不同。",
+    "selectedParts": "源码从 layerTreeData.userVisible 派生，而画布收集依据 visible 和祖先遍历；selectedParts/currentTab watcher 仅同步独立预览。公开部件选择、全部图层 checkbox、控制及预设状态均与原编辑一致；未获得全部私有派生对象快照。",
+    "sourceFilesVerifiedUnchangedAgainstOriginalHead": [
+      "src/renderer/src/components/pages/ActionExpressionPage/composables/useLayerTree.js",
+      "src/renderer/src/components/pages/ActionExpressionPage/composables/useCanvasRender.js",
+      "src/renderer/src/components/pages/ActionExpressionPage/composables/useCommonControls.js",
+      "src/renderer/src/components/pages/ActionExpressionPage/utils/layerRenderUtils.js"
+    ]
+  },
+  "minimalFixSuggestionsNotApplied": [
+    "最小独立验证候选：在 useLayerTree.handleLayerVisibilityChange 末尾返回 onRenderTrigger() 的 Promise，让页面现有 await 真正等待第一次渲染完成，再反向同步通用控制。这样保留当前父组/叶层同步语义，并将本路径的两个重绘串行化；须在后续任务实测，不宣称已经修复。",
+    "更全面的后续方案是统一整帧渲染入口并采用单任务串行/最新状态补绘，避免多个入口直接写共享画布；已有 queueRenderAllLayers 并未覆盖图层回调和各 watch，且简单共用在途 Promise 可能遗漏中途状态变化。",
+    "若选择抑制反向同步的 watch，需要显式保留父组 userVisible 的现有更新语义并覆盖 Vue 调度周期；仅延长布尔标志或切换 watch flush 不能未经验证就视为安全修复。",
+    "继续保留本 probe 返回画布等于本次 edited-1 的零容差不变量。任何修复后的参考批准应另行独立核验，不能将这里的旧 returned PNG 直接改名为正确参考。"
+  ],
+  "uncertaintiesAndNextObservationIfNeeded": {
+    "privateSetupState": "可选只读查找在此产物中 available=false，未注入或修改 Vue 私有状态；controlPriority 和全部 selectedParts 的运行时对象未直接读到。",
+    "notYetProven": ["尚未逐 drawImage 记录两次任务的具体交错与每个差异像素来源，不能断言所有像素都只是简单 alpha 翻倍。", "未重新运行原 HEAD 构建；原版对照使用已有不可覆盖失败证据。", "未实施最小修复，也未确认修改后的独立正确渲染参考。", "本调查不证明其它会话状态恢复场景完全正确。"],
+    "minimumReadOnlyBusinessObservationRequest": [
+      "若仍需闭环证明，在 renderByLayerTree 入口/完成处只读记录渲染调用序号、canvas 身份、当前 PSD 标识、controlPriority、完整待绘路径及树 visible/userVisible 摘要；用于严格对应重入任务与相同输入。",
+      "在页面反向同步设置标志处及 watch(showBackHair) 入口记录标志与控制值；在 restorePsdState 后 nextTick 只读记录树和 selectedParts 摘要；用于排除未暴露的内部状态差异。"
+    ],
+    "additionalBusinessInstrumentationApplied": false
+  },
+  "scopeAndSafety": {
+    "addedFilesOnly": ["tests/probes/psd-session-hair.mjs", "tests/evidence/psd-session-hair-investigation-20260906.json"],
+    "businessFilesModifiedByThisInvestigation": false,
+    "existingTestsOrConfigModifiedByThisInvestigation": false,
+    "referencesWrittenOrApproved": false,
+    "leafChangedToAvoidFailure": false,
+    "toleranceChanged": false,
+    "pageErrors": 0,
+    "exitIsolationViolations": 0,
+    "rendererLogNoise": "存在现有 electron-log 未在主进程初始化的 console error；不等同 pageerror，完整日志留在隔离目录。",
+    "routineNpmTestRunByThisInvestigation": false,
+    "buildRunByThisInvestigation": false,
+    "commitOrPushRunByThisInvestigation": false
+  }
+}

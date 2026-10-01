@@ -165,7 +165,7 @@ const updateCanvas = (imagePayload) => {
         if (imagePayload.buffer instanceof ArrayBuffer) {
           arrayBuffer = imagePayload.buffer
         } else if (ArrayBuffer.isView(imagePayload.buffer)) {
-          arrayBuffer = imagePayload.buffer.buffer
+          arrayBuffer = imagePayload.buffer.buffer.slice(imagePayload.buffer.byteOffset, imagePayload.buffer.byteOffset + imagePayload.buffer.byteLength)
         } else if (typeof imagePayload.buffer === 'object' && Array.isArray(imagePayload.buffer.data)) {
           arrayBuffer = Uint8Array.from(imagePayload.buffer.data).buffer
         } else if (typeof imagePayload.buffer === 'object' && typeof imagePayload.buffer.byteLength === 'number') {
@@ -765,6 +765,8 @@ let unsubscribeResetViewport = null
  * 3、注册窗口尺寸监听，支持预览自适应
  */
 onMounted(async () => {
+  // 若预加载晚于页面挂载，保留当时的能力状态，避免把未订阅误判为解码失败。
+  if (!window.electronAPI?.on) console.warn('[预览窗口] 挂载时消息桥接尚未就绪', typeof window.electronAPI)
   // 1、保存取消订阅入口，供页面卸载时成对清理
   if (window.electronAPI?.on) {
     // 监听画布更新
@@ -791,6 +793,15 @@ onMounted(async () => {
     })
   }
   
+  // 监听已同步安装后通知主进程；加载期间暂存的状态此时才可投递。
+  if (unsubscribeCanvas && unsubscribeTheme && unsubscribeFileName && unsubscribeResetViewport) {
+    try {
+      await window.electronAPI.invoke('canvas-preview-ready')
+    } catch (error) {
+      console.error('[预览窗口] 就绪通知失败:', error)
+    }
+  }
+
   // 2、获取初始置顶状态并同步工具栏显示
   try {
     const result = await window.electronAPI?.invoke('window-get-always-on-top')

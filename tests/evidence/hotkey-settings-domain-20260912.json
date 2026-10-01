@@ -1,0 +1,13 @@
+{
+  "baselineCommit": "3dafb50c4aea39e2d26410935ab39921dd7246b0",
+  "scope": "快捷键域拥有唯一配置reactive、保存和编辑ref、默认值及六个原函数；父页恢复和导入仍引用原配置。",
+  "baseline": {"provenance": "temp/hotkeys-domain-baseline-1789253785152", "archive": "hKYRd7", "hotkeys": "mTs0Di", "passed": 2, "durationMs": 67153},
+  "candidate": {"provenance": "temp/hotkeys-domain-candidate-1789254291794", "archive": "nqZh3H", "hotkeys": "GAQptr", "passed": 2, "durationMs": 68107, "sourceAndBuildStable": true},
+  "additional": {"provenance": "temp/hotkeys-domain-subscriptions-1789254420847", "root": "x2nBee", "passed": 1, "scope": "原预加载四类通道各20轮独立取消、重复取消和载荷隔离"},
+  "checks": ["temp/verify-hotkey-settings-extraction.mjs：六函数正文注释、状态初值唯一、配置加载原位置、父页其余全部脚本和模板样式一致", "npm run lint通过，仅追加新模块", "严格源码规模超限0", "重新生产build通过", "git diff --check通过"],
+  "preserved": ["空快捷键||回默认和恢复/导入只应用四项的差异未修改", "保存的本地写入、广播、备份和主进程注册顺序不变", "两个无外部副作用的ref在工厂内分配，其他域初始化位置不变", "CustomEvent正文未改，仅新模块准确声明浏览器全局，不关闭规则"],
+  "coverage": ["五项键盘输入、拒绝、冲突、只读、清空重置、跨路由、真实磁盘及重启", "快捷键计算样式和截图对干净原版零差异", "跨域草稿备份、导出取消、旧字段导入、独立高清及共享存储和重启严格对照"],
+  "retainedValidationMistake": "候选命令曾包含不存在的tests/preload-subscriptions.test.mjs；Node只执行另两文件并报告2/2，不宣称第三项通过。已给忽略溯源脚本加入逐文件存在性检查，再以真实temp/preload-subscription-probe.mjs独立补测1/1通过。",
+  "finalCandidate": {"provenance": "temp/hotkeys-domain-final-1789254554869", "archive": "ncnGsV", "hotkeys": "EzV2h9", "subscriptions": "jYM4rq", "passed": 3, "durationMs": 68798, "note": "暂存检查发现继承空白，提交被阻止；只清理16处非模板空白行尾后重新build，产物文件名不变，全部三项重跑通过。"},
+  "limits": ["系统原生快捷键注册仍沿用隔离辅助受控边界，未验跨应用效果", "配置加载和导入职责尚在父页", "未改真实配置或密钥，未发AI/Python请求", "本候选未重跑完整全量；历史预览间歇空白仍未定位"]
+}

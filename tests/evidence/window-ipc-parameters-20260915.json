@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "c1892cd",
+  "scope": "窗口标量、快捷键对象参数；预览图片载荷另行收尾",
+  "before": { "directory": "temp/window-parameters-before-acceptance-0o3sD6", "passed": 0, "failed": 1, "failure": "theme:setPreferredColorScheme接受对象并返回成功" },
+  "firstAfter": { "directory": "temp/window-parameters-after-acceptance-bWFaV5", "passed": 1, "failed": 2, "causes": ["新增校验改变无预览窗口错误优先级，已调整为窗口存在后且广播前校验", "新测试关闭按钮的目标先于点击确认关闭，新增参数测试改以IPC关闭"] },
+  "recheck": { "directory": "temp/window-parameters-recheck-acceptance-MdbdkP", "passed": 2, "failed": 1, "cause": "既有来源测试同样遇到预览自关闭确认竞态，改为复用现有closePreviewByButton，仍真实点击并核对唯一原IPC成功及原生销毁" },
+  "final": { "directory": "temp/window-parameters-final-acceptance-33nJTs", "tests": 3, "passed": 3, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "limits": ["快捷键表达式限256字符，预览展示名称限4096字符，保留空字符串和中文空格", "主题及窗口模式按现有枚举；置顶要求真实boolean", "十轮预览和20轮主窗口重建包含于生命周期测试，不将轮数冒充test计数", "本组不代表其余IPC参数或真实系统快捷键验收完成"]
+}

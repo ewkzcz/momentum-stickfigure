@@ -3,38 +3,12 @@
  */
 import { contextBridge, ipcRenderer } from 'electron'
 
-// 暴露环境信息
-const os = require('os')
-const { pathToFileURL } = require('url')
+// 沙箱预加载不加载os/url；固定同步查询保留页面首脚本所需的原env契约。
+const environment = ipcRenderer.sendSync('environment:sync') || { platform: process.platform, homedir: '' }
 contextBridge.exposeInMainWorld('env', {
-  platform: process.platform,
-  homedir: os.homedir(),
-  /**
-   * 将本地文件路径转换为页面可用地址。
-   * 处理流程：
-   * 1、优先使用标准路径转换接口。
-   * 2、转换异常时根据平台手动拼接文件地址。
-   */
-  pathToFileURL: (filePath) => {
-    // 1、由标准接口处理路径编码与平台差异。
-    try {
-      return pathToFileURL(filePath).href
-    } catch (error) {
-      console.error('路径转换失败:', error)
-      // 2、降级处理：手动转换路径分隔符与文件地址前缀。
-      let fileUrl = filePath.replace(/\\/g, '/')
-      if (process.platform === 'win32') {
-        // Windows: file:///C:/path/to/file.mp4
-        if (!fileUrl.startsWith('/')) {
-          fileUrl = '/' + fileUrl
-        }
-        return `file:///${fileUrl}`
-      } else {
-        // Unix/Linux/Mac: file:///path/to/file.mp4
-        return `file://${fileUrl}`
-      }
-    }
-  }
+  platform: environment.platform,
+  homedir: environment.homedir,
+  pathToFileURL: filePath => ipcRenderer.sendSync('environment:sync', filePath)
 })
 
 // 暴露文件系统 API
@@ -44,9 +18,9 @@ contextBridge.exposeInMainWorld('fileSystem', {
    * 处理流程：
    * 1、调用主进程文件夹对话框并返回选择结果。
    */
-  selectFolder: async () => {
-    // 1、等待主进程返回选择或取消状态。
-    return await ipcRenderer.invoke('select-folder')
+  selectFolder: async (options) => {
+    // 1、等待主进程返回选择或取消状态；用途由主进程验证并呈现在原生对话框。
+    return await ipcRenderer.invoke('select-folder', options)
   },
   /**
    * 选择图片文件。
@@ -175,6 +149,46 @@ contextBridge.exposeInMainWorld('promptTemplates', {
   }
 })
 
+// 暴露视频生成 API：提交、查询任务与下载结果
+contextBridge.exposeInMainWorld('videoApi', {
+  submit: (options) => ipcRenderer.invoke('video-submit', options),
+  query: (options) => ipcRenderer.invoke('video-query', options),
+  download: (options) => ipcRenderer.invoke('video-download', options)
+})
+
+// 暴露创作工作台 API：Skills、文本模型、图片/视频小 Agent、剧本项目
+/** 订阅主进程推送；处理流程：1、包装回调，2、返回取消订阅函数。 */
+const subscribeCreative = (channel, callback) => {
+  // 1、只把载荷交给回调，不暴露 IPC 事件对象。
+  const listener = (_event, payload) => { if (typeof callback === 'function') callback(payload) }
+  ipcRenderer.on(channel, listener)
+  // 2、调用方在组件卸载时取消订阅。
+  return () => ipcRenderer.removeListener(channel, listener)
+}
+contextBridge.exposeInMainWorld('creativeApi', {
+  listSkills: (options) => ipcRenderer.invoke('creative-skills-list', options),
+  installBuiltinSkills: (options) => ipcRenderer.invoke('creative-skills-install', options),
+  readSkill: (options) => ipcRenderer.invoke('creative-skill-read', options),
+  testLlm: (options) => ipcRenderer.invoke('creative-llm-test', options),
+  generateText: (options) => ipcRenderer.invoke('creative-llm-generate', options),
+  runAgent: (options) => ipcRenderer.invoke('creative-agent-run', options),
+  cancel: (options) => ipcRenderer.invoke('creative-cancel', options),
+  listScripts: (options) => ipcRenderer.invoke('creative-script-list', options),
+  loadScript: (options) => ipcRenderer.invoke('creative-script-load', options),
+  saveScript: (options) => ipcRenderer.invoke('creative-script-save', options),
+  deleteScript: (options) => ipcRenderer.invoke('creative-script-delete', options),
+  exportScript: (options) => ipcRenderer.invoke('creative-script-export', options),
+  saveImage: (options) => ipcRenderer.invoke('creative-save-image', options),
+  listModels: (options) => ipcRenderer.invoke('creative-list-models', options),
+  listHistory: (options) => ipcRenderer.invoke('creative-history-list', options),
+  addHistory: (options) => ipcRenderer.invoke('creative-history-add', options),
+  updateHistory: (options) => ipcRenderer.invoke('creative-history-update', options),
+  deleteHistory: (options) => ipcRenderer.invoke('creative-history-delete', options),
+  readHistoryMedia: (options) => ipcRenderer.invoke('creative-history-media', options),
+  onTextDelta: (callback) => subscribeCreative('creative-llm-delta', callback),
+  onAgentEvent: (callback) => subscribeCreative('creative-agent-event', callback)
+})
+
 // 暴露 Fal.ai API
 contextBridge.exposeInMainWorld('falApi', {
   /**
@@ -240,6 +254,7 @@ contextBridge.exposeInMainWorld('falApi', {
 
 // 暴露抠图高清 API
 contextBridge.exposeInMainWorld('hdToolkit', {
+  cancel: () => ipcRenderer.invoke('hd:cancel'),
   /**
    * 获取高清工具的初始配置与模型列表。
    * 处理流程：
@@ -452,7 +467,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
    * 处理流程：
    * 1、请求主进程显示对话框并返回选择结果。
    */
-  selectFolder: () => ipcRenderer.invoke('select-folder'),
+  selectFolder: (options) => ipcRenderer.invoke('select-folder', options),
   
   /**
    * 打开 PSD 文件选择器。
@@ -681,7 +696,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
      * 处理流程：
      * 1、提交设置，由主进程选择文件并保存。
      */
-    exportSettings: (settings) => ipcRenderer.invoke('settings-export', settings),
+    exportSettings: (settings, options) => ipcRenderer.invoke('settings-export', settings, options),
     /**
      * 导入应用设置。
      * 处理流程：
@@ -725,6 +740,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 // 暴露视频字幕OCR API
 contextBridge.exposeInMainWorld('videoOcr', {
+  cancel: () => ipcRenderer.invoke('video-ocr:cancel'),
   /**
    * 检查字幕识别环境。
    * 处理流程：

@@ -1,0 +1,13 @@
+{
+  "schema":1,
+  "status":"resolved-targeted-await-cumulative",
+  "before":{"directory":"temp/remaining-defects-acceptance-i54702","head":"7e5c0794fac507479aa1293f75eba2dfc4ae3282","tests":223,"passed":34,"failed":7,"cancelled":182,"skipped":0,"durationMs":1922195.564667,"exitCode":1,"note":"部分累计，绝非完整执行；browser-host-destroy因等不到请求挂起，主代理精确终止测试与其Electron，182取消不能称已测试失败或通过；输入产物和参考复核正常。"},
+  "causes":["action-shared-refs六项因测试Electron stub缺新增dialog出口而bundle失败","browser-host-destroy使用无网页权限的预览作为正例宿主；生产正确拒绝后夹具仍等待不会发生的网络请求"],
+  "fixes":["只补测试对话框边界，真实生产目录授权、字节、强制重命名与共享ref断言保留","改用合法主窗销毁，走生产activate重新创建；保资源归零和恢复断言，明确网络请求等待截止与提前失败；窗口事件按真实主窗URL筛选，避免已销毁BrowserView迟到事件"],
+  "iteration":{"directory":"temp/cumulative-fixtures-after-acceptance-TZy89B","tests":11,"passed":10,"failed":1,"durationMs":9517.773167,"reason":"重建等待错误捕获已销毁BrowserView迟到window事件；按主窗URL筛选修正"},
+  "after":{"directory":"temp/cumulative-fixtures-after-2-acceptance-Ma647X","tests":11,"passed":11,"failed":0,"cancelled":0,"skipped":0,"durationMs":9849.549167,"allStageExitCodes":0,"manifestSha256":"0c7f571fce491be3f6a7ecad783667bbcedfdb72c282304511753b2dffe9b5db"},
+  "relatedBefore":{"directory":"temp/browser-fixture-before-acceptance-YXl50l","tests":16,"passed":0,"failed":16,"durationMs":75.360166,"reason":"控制器夹具剥离import却未注入新增真实权限依赖；仅补真实策略和身份/session边界，不修改生产策略"},
+  "finalRelated":{"directory":"temp/cumulative-fixtures-final-acceptance-jZG6YY","tests":27,"passed":27,"failed":0,"cancelled":0,"skipped":0,"durationMs":9477.434959,"allStageExitCodes":0,"manifestSha256":"3373db1eb31782686abcb9abac45749c790ec39e2dee69666214e67d327b7306"},
+  "productionChanges":false,
+  "limits":["定向11项不能替代重新执行的最终累计","主窗activate恢复证据为当前macOS环境；平台安装与另外两类外部验收继续未验证"]
+}

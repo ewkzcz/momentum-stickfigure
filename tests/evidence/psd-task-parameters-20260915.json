@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "d54bb0e",
+  "scope": "PSD解析任务外层对象、任务标识及既有布尔选项",
+  "before": { "directory": "temp/psd-task-parameters-before-acceptance-LPrkQ3", "passed": 0, "failed": 1, "failure": "null在登记destroyed监听后进入解构式字段读取，未返回参数错误" },
+  "after": { "directory": "temp/psd-task-parameters-after-acceptance-aqT1cL", "tests": 6, "passed": 6, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["任务登记前校验普通对象、可选非空128字符ID和既有布尔选项", "非法取消标识拒绝，合法不存在任务返回cancelled:false", "拒绝前后destroyed监听数相等", "合法main/preview来源、批量取消、缓存继续、卸载停止和原PSD响应回归"],
+  "limits": ["复用既有50MiB二进制及PSD资源预算，不新建重复预算", "本组不代表直接render/detect等其余参数全部完成"]
+}

@@ -1,0 +1,15 @@
+{
+  "date": "2026-09-15",
+  "unit": "psd-separated-measurement",
+  "environment": { "platform": "darwin", "arch": "arm64", "electron": "35.7.5", "hostMemoryGiB": 16 },
+  "method": ["保持产品代码不变，仅新增可复现测量", "主进程通过只读路径装载素材，模块导入和读取在计时窗口外单独记录", "真实Worker每素材20轮，渲染进程performance.now直接测storage.length往返，按requestAnimationFrame采样", "每10ms观察主进程RSS并记录每轮结算值；启动取消每素材20轮，队列确认线程退出后结算"],
+  "priorMeasurement": "temp/psd-budget-measurement-result.json；原测量混入Inspector巨数组传输与额外主进程预扫描，IPC最大2708.174/9986.854ms，不能与新方法计算产品性能提升比例",
+  "initialAttempt": { "directory": "temp/psd-separated-measurement-acceptance-SkFaCX", "result": "lint发现测试中AbortController未限定globalThis，修正后再完整运行；本次未执行测量" },
+  "verification": { "directory": "temp/psd-separated-measurement-final-acceptance-SVaiSm", "passed": 1, "failed": 0, "durationMs": 13992.517292, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed", "rawResult": "temp/psd-separated-measurement-result.json" },
+  "fixtures": [
+    { "id": "yun-jian-qi-lin", "rounds": 20, "stagingMs": 2.018125, "inputBytes": 1883218, "parseP50Ms": 186.571666, "parseP95Ms": 238.752333, "parseMaxMs": 240.716292, "ipcSamples": 232, "ipcP50Ms": 0.2, "ipcP95Ms": 0.4, "ipcMaxMs": 0.8, "rssPeakBytes": 322895872, "rssFirstBytes": 260767744, "rssLastBytes": 291799040, "rssLastFiveRangeBytes": 20938752, "startupCancelMaxMs": 1.364416 },
+    { "id": "xing-kong", "rounds": 20, "stagingMs": 1.447542, "inputBytes": 6604708, "parseP50Ms": 421.302667, "parseP95Ms": 476.491125, "parseMaxMs": 509.906584, "ipcSamples": 528, "ipcP50Ms": 0.2, "ipcP95Ms": 0.3, "ipcMaxMs": 1.8, "rssPeakBytes": 419659776, "rssFirstBytes": 303235072, "rssLastBytes": 354074624, "rssLastFiveRangeBytes": 8814592, "startupCancelMaxMs": 1.447709 }
+  ],
+  "interpretation": "分离测量中未复现多秒IPC停顿，沿用p95<100ms及启动取消<5s断言均通过；没有据此新增产品性能优化",
+  "limits": ["RSS是主进程含Worker的进程值，不包含所有renderer/GPU进程；首次至末次仍有增长，不能声称零泄漏或长期稳定", "20轮Worker解析不等于完整UI导入切换关闭资源趋势", "取消发生在线程启动阶段，不是PSD解码中途", "帧采样不是对每个时刻的连续最坏延迟保证", "本测量不重复RGBA验证，最终累计像素验收仍待运行", "重复解码重绘、长列表、文件操作、冷启动和页面切换测量仍未全部完成"]
+}

@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "date": "2026-09-06",
+  "originalHead": "a33579beab6ee821c76f025287916cf1a6064979",
+  "authorization": "用户明确允许最小Promise返回修复；旧参考永久只读，仅对独立原算法公开串行重绘核验的受影响场景建立独立修复参考，其余零差异",
+  "businessChange": {
+    "file": "src/renderer/src/components/pages/ActionExpressionPage/composables/useLayerTree.js",
+    "line": 464,
+    "before": "onRenderTrigger()",
+    "after": "return onRenderTrigger() // 等待绘制完成后再反向同步，避免共享画布并发重绘。",
+    "originalSourceSha256": "4f72f779c2e4ef9301cbf592b3784004ad5847d0dc7b5e6089eb48be008038e2",
+    "fixedSourceSha256": "9dd0cb3899b253140ff8a384687ab022c86e55b0e421a9f31bf8aa1ca1ac6faa",
+    "renderAlgorithmsChanged": false,
+    "temporaryInstrumentationRemaining": false
+  },
+  "runtime": {
+    "node": "v24.11.1",
+    "platform": "darwin",
+    "arch": "arm64",
+    "electron": "35.7.5",
+    "chrome": "134.0.6998.205",
+    "hairRenderer": { "width": 1024, "height": 700, "dpr": 1, "focused": true, "renderMode": "software-layout" }
+  },
+  "fixtureHashes": {
+    "yun-jian-qi-lin": "b60f61ca07ba99d22bc5cec2de3f9b29b5b2d397925438e290f1ef649e00197b",
+    "xing-kong": "a1cd270115d88bbf715ce1786f87e6d8a36bb6790db168542ae2ccb732300435"
+  },
+  "completeImpactComparison": {
+    "source": "独立比较器复用runPsdScenario及原manifest，每项DOM/RGBA不同仍继续，最终非零退出；实际图存本地隔离调查目录，未写参考",
+    "localEvidence": "temp/layer-render-completion-investigation/impact.json",
+    "total": 100,
+    "yunJianQiLin": { "total": 72, "domEqual": 72, "rgbaEqual": 72 },
+    "xingKong": { "total": 28, "domEqual": 28, "rgbaEqual": 26 },
+    "unaffected": 98,
+    "exitCode": 1,
+    "affected": [
+      {
+        "fixture": "xing-kong", "name": "group-10-toggle", "domEqual": true,
+        "differentRgbaPixels": 34551,
+        "bounds": { "left": 283, "top": 312, "right": 815, "bottom": 1601 },
+        "originalReferenceSha256": "19ba3cf72c4af75c4d34fdd26c5da977bed98a96de5e52d5eca4b4bf43464838",
+        "canonicalPngSha256": "5cc35dc565487d5e59e70614ea91d3777b8dd8cf0b29746004d7727cc7737e8e"
+      },
+      {
+        "fixture": "xing-kong", "name": "group-10-restore", "domEqual": true,
+        "differentRgbaPixels": 27325,
+        "bounds": { "left": 283, "top": 312, "right": 815, "bottom": 1601 },
+        "originalReferenceSha256": "3591aa50395d2086856e5b4cc19f8b18a9ae9860a13ebc9d0dbcdf7b7b4ab644",
+        "canonicalPngSha256": "fe8c9cc63be0aa09ea0b9ca6ef84fba18f8da702b54c630f484471379d32c09f"
+      }
+    ],
+    "subsequentUnchangedScenes": ["part-selected", "preset-restored", "zoomed", "preview", "export"]
+  },
+  "independentCanonical": {
+    "command": "node tests/record-layer-render-completion.mjs temp/layer-render-completion-investigation",
+    "sourceVerified": "HEAD为a33579b，src及electron.vite.config.mjs对HEAD无差异，录制入口再次构建旧程序",
+    "groups": "两个受影响场景各使用独立旧版桌面进程完整重放原UI序列，先严格匹配原参考，再执行中性对照，避免前一个对照污染后一个",
+    "operations": ["公开表情互斥 true→false", "完整画布十二帧稳定", "公开表情互斥 false→true", "完整画布十二帧稳定", "恢复原面板"],
+    "publicDomFields": ["全部展开图层的名称、层级、显隐", "PSD文件标签及活动状态", "部件标签及选择", "预设选择", "全部通用控制开关", "当前面板"],
+    "domBeforeAfterEqual": true,
+    "candidateVsCanonicalRgbaDifferentPixels": 0,
+    "hair": {
+      "canonicalCapturedBeforeAnyPsdSwitch": true,
+      "copiedOldReturnedImageAsReference": false,
+      "usedVuePrivateState": false,
+      "originalEditedPngSha256": "2d6c93a74a334af9f8cdc4aeaa68fb1e1f6fa4cb169ca850a1d8489a36f3cb10",
+      "canonicalPngSha256": "bfb2b9edb261fcd60a1ae15c3478c7fe8aa5da6c604cb490e39a303fa15a3a9b",
+      "canonicalVsCandidateScenes": ["edited-1", "edited-1-late", "round-0-1", "round-0-1-late"],
+      "allFourRgbaEqual": true,
+      "originalEditedSixSecondSamples": 278,
+      "originalReturnedSixSecondSamples": 271,
+      "originalEachIndividuallyStable": true
+    }
+  },
+  "referenceProtection": {
+    "newDirectory": "temp/regression-reference-v2/layer-render-completion-v1",
+    "newFileCount": 4,
+    "newFiles": ["xing-kong-group-10-toggle.png", "xing-kong-group-10-restore.png", "xing-kong-hair-edited.png", "manifest.json"],
+    "newFilesCreatedExclusivelyAndReadonly": true,
+    "pngSource": "只写旧算法公开串行重绘canonical字节，未复制候选输出",
+    "newManifestSha256": "d23db7d6b03c64e5ad838c368e885b8a9e33aeacad7fc386f315c5523f9354ad",
+    "oldFileCount": 260,
+    "oldReferenceDigestSha256BeforeAndAfter": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde",
+    "all264ReferenceDigestSha256BeforeAndAfter": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "hashDefinition": "按referenceDigest返回的相对路径顺序，对逐文件SHA256对象JSON.stringify后再作SHA256；每个旧文件另逐项核验",
+    "overrideConstraints": ["fixture ID", "fixtureHash", "确切scene名", "原reference PNG hash", "runtime", "原DOM状态", "新PNG hash", "新manifest hash"],
+    "missingReference": "直接失败",
+    "automaticRecordingOrFallback": false,
+    "privateImagesIgnoredLocally": true
+  },
+  "negativeVerification": {
+    "oldDesktopHair": { "evidenceId": "momentum-regression-NF4ekr", "failed": true, "differentRgbaPixels": 33974, "assertion": "首次返回星空应恢复原编辑画布", "sixSecondObservationCompleted": true },
+    "oldPublicPromise": { "failed": true, "actual": "undefined", "expected": "注入回调的原pending Promise", "assertion": "group必须返回注入回调的原Promise" }
+  },
+  "acceptance": {
+    "lint": "通过，已追加useLayerTree.js",
+    "checkSize": "通过，本次规模违规0；5个既有超限文件未扩大",
+    "build": "通过，最终产物为一行修复版；保留原有未使用导入/空chunk/大chunk告警",
+    "gitDiffCheck": "通过",
+    "targeted": { "evidenceId": "layer-render-acceptance-oxIOxi", "command": "node tests/verify-layer-render-completion.mjs targeted", "tests": 3, "pass": 3, "fail": 0, "skipped": 0, "durationMs": 27982.039334 },
+    "full": {
+      "evidenceId": "layer-render-acceptance-xU60wF",
+      "command": "node tests/verify-layer-render-completion.mjs all（内部执行npm test）",
+      "tests": 18, "pass": 18, "fail": 0, "skipped": 0, "cancelled": 0,
+      "durationMs": 203797.419167,
+      "psdRgbaScenes": 154,
+      "originalReferenceScenes": 152,
+      "independentOverrideScenes": 2,
+      "hoverStates": 28,
+      "existingSessionStates": 28,
+      "otherCoverage": ["预览载荷", "上传失败及拖放", "解析响应失败传播", "PSD标签栏", "预设生命周期", "配置落盘/重启/写入失败保护"],
+      "hair": { "publicDomRestored": true, "firstReturnedEqualsEdited": true, "sixSecondReturnedEqualsEdited": true, "canonicalDomAssertions": 2, "canonicalRgbaAssertions": 4, "editedSamples": 275, "returnedSamples": 268, "eachObservedAtLeastMs": 6000, "distinctRgbaHashes": 1 },
+      "promise": "group/layer各验证pending不会提前完成、返回原Promise、resolve原值、reject原错误，共4个组合",
+      "overrideBoundary": "未授权场景原图对象不变；两个授权场景均验证缺文件、fixtureHash/runtime/原hash/DOM错误直接失败"
+    }
+  },
+  "remainingRisks": [
+    "仅验证a33579b已复现的图层显隐→反向同步路径，不声称全部绘制入口竞争已修复",
+    "规范参考绑定darwin arm64及指定Electron/Chromium；其它环境需要另行授权独立验证",
+    "私人素材和参考只在本地忽略目录；缺失时永久测试会失败，不提供自动补建",
+    "不代表真实跨应用拖拽、外网、AI或Python服务验收"
+  ],
+  "parentReview": {
+    "date": "2026-09-07",
+    "changes": ["显式录制入口补充未跟踪源码检查", "缺失参考测试使用独占临时目录避免历史残留影响"],
+    "firstFullRun": { "tests": 18, "passed": 17, "failed": 1, "evidenceId": "layer-render-acceptance-ITbd3A", "failure": "原悬浮测试开启主画布预览后30秒内未显示浮层；日志未提供明确根因，未改断言或业务规避" },
+    "unchangedDirectedReplay": "悬浮原用例再次执行通过，28个状态及像素一致",
+    "unchangedSecondFullRun": { "tests": 18, "passed": 18, "failed": 0, "skipped": 0, "durationMs": 275027.932167, "evidenceId": "layer-render-acceptance-st0P1i" },
+    "referencesBeforeAfterUnchanged": true,
+    "remainingIntermittentRisk": "记录一次未稳定复现的悬浮输入/显示超时，不能声称测试不存在偶发失败"
+  },
+  "disposition": { "candidateRestored": true, "businessOnlyOneLineChanged": true, "oneOffAnalysisScriptsRemoved": true, "originalProbePreserved": true, "validationRecordedBeforeCommit": true }
+}

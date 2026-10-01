@@ -4,6 +4,7 @@
  */
 
 import { nextTick } from 'vue'
+import { usePsdSessionGuard } from './usePsdSessionGuard.js'
 
 /**
  * 连接预设列表与名称编辑交互。
@@ -14,9 +15,12 @@ import { nextTick } from 'vue'
 export function usePresetUI({
   presets,
   editingPresetId,
-  renamePreset
+  renamePreset,
+  currentPsdFile,
+  currentPsdData
 }) {
   // 1、定义预设名称编辑与保存处理。
+  const sessionGuard = usePsdSessionGuard({ currentPsdFile, currentPsdData })
 
   /**
    * 开始编辑预设名称
@@ -26,10 +30,13 @@ export function usePresetUI({
    * 2、等待输入框渲染后聚焦并选中文本。
    */
   const startEditPresetName = (presetId) => {
+    const isCurrent = sessionGuard.capture()
+    if (!isCurrent()) return
     // 1、进入指定预设的编辑状态。
     editingPresetId.value = presetId
     // 2、等视图更新后定位输入框。
     nextTick(() => {
+      if (!isCurrent()) return
       // 聚焦到输入框
       const input = document.querySelector('.preset-name-input')
       if (input) {
@@ -47,11 +54,14 @@ export function usePresetUI({
    * 2、失败时恢复原名称，最后退出编辑状态。
    */
   const handlePresetNameBlur = async (presetId, event) => {
+    const isCurrent = sessionGuard.capture()
+    if (!isCurrent()) return
     // 1、修剪输入并保存有效名称。
     const newName = event.target.value.trim()
     
     if (newName && newName !== '') {
       const success = await renamePreset(presetId, newName)
+      if (!isCurrent()) return
       if (!success) {
         // 2、重命名失败，恢复原名称。
         const preset = presets.value.find(p => p.id === presetId)

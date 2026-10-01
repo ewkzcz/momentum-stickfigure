@@ -1,0 +1,8 @@
+{
+  "scope": "漫画单层导出路径修复及 activeImage 重复暴露清理",
+  "method": "Vite 与 @vue/compiler-sfc 编译生产 SFC，Vue createRenderer 内存挂载；仅替换桌面桥接、路由、通知和叶子组件。使用 Vite 加载以兼容项目声明的 Node 20.19+，不依赖 registerHooks。",
+  "before": { "tests": 14, "passed": 7, "failed": 7, "singleExportActualToast": "导出失败：exportPath is not defined", "note": "初次复现使用 Node 24 registerHooks 加载器；父流程随后仅将测试加载改为 Vite。" },
+  "after": { "command": "node --test tests/comic-components.test.mjs", "tests": 14, "passed": 14, "failed": 0 },
+  "desktop": { "command": "node --test --test-concurrency=1 tests/comic-export-desktop.test.mjs", "executed": true, "tests": 2, "passed": 2, "failed": 0, "coverage": ["公开整体与拆分按钮", "取消不写 PNG 且重试成功", "真实 PNG 数量、1920x1080 尺寸、透明背景及边框"], "build": "npm run build 在执行前成功；最终完整验收另记录源码及产物指纹" },
+  "limitations": ["单层处理器仍未接入界面，单层目录成功/取消/异常在组件级验证。", "底层导出写入失败可能降级浏览器下载；组件拒绝测试不证明真实写入失败提示。", "目录末尾使用平台分隔符，未修改原有无末尾分隔符时的路径拼接。", "图片素材激活和变换另由 comic-image-interaction.test.mjs 验证，最终结果以完整验收记录为准。"]
+}

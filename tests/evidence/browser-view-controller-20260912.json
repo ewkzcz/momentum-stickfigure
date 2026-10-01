@@ -1,0 +1,16 @@
+{
+  "date": "2026-09-12",
+  "change": "将内嵌网页视图、主题同步及网页图片拖拽状态迁入唯一BrowserView控制器",
+  "baseHead": "bd48d0a16ba9d4cef5df07dea9e3eb4e99e54d0a",
+  "baseline": { "desktopId": "momentum-regression-pSJ5as", "head": "140dd5d11d463f181c2ad33d37a012d27691c6e1", "mainSourceStatus": "", "mainBundleSha256": "e0992bb1434345aceedc15ae32a6f4fea39d8de439e95e9b2a6ec90f5e51fccc", "passed": true },
+  "candidate": { "desktopId": "momentum-regression-dzT3T8", "passed": true, "durationMs": 4497.474166 },
+  "commands": ["node temp/check-browser-view-extraction.mjs", "npm run lint", "node scripts/check-source-size.mjs --strict", "npm run build", "MOMENTUM_BROWSER_VIEW_BEFORE=<pSJ5as-root> node --test temp/browser-view-probe.mjs", "node --test --test-concurrency=1 temp/drag-files-probe.mjs temp/preload-subscription-probe.mjs tests/window-lifecycle.test.mjs tests/preview-payload.test.mjs", "node tests/verify-layer-render-completion.mjs references"],
+  "coverage": ["本机HTTP页面十轮真实打开、同键替换、另一分区共存、边界与主题注入、刷新后服务器再次收到请求", "关闭及重复关闭返回结构，缺失视图三个通道拒绝", "真实挂载数及webContents存活数逐轮与原版对照", "共享目录策略对应人物拖拽落盘、PNG字节、目录与重名规则、失败恢复及原剪贴板边界", "预加载四类订阅各20轮独立取消和载荷保持", "独立预览窗口十轮生命周期及PNG二进制载荷"],
+  "otherTests": { "passed": 4, "failed": 0, "skipped": 0, "durationMs": 13789.789958, "desktopIds": ["momentum-regression-7fU5Sp", "momentum-regression-CLchrD", "momentum-regression-g6696j", "momentum-regression-NC2aDb"] },
+  "mechanicalReview": "8函数及内部注释除代码行首尾空白外一致，4状态唯一持有；19段模板运行时字符串逐字相同；原模板3处行尾空白用Unicode空格转义等价表示以通过git差异检查，不改变注入的CSS/JS；入口其余原文和执行顺序一致，getPicturesDirectory仍由入口函数声明共享，崩溃监听保留原位置",
+  "references": { "evidenceId": "layer-render-acceptance-gfEkah", "files": 266, "sha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed" },
+  "preservedDefects": ["原版关闭后解除挂载但webContents每轮残留3个，10轮累计30个；候选与原版相同，不代表资源释放验收通过", "原注销仅移除3个handle，主题/刷新/网页拖拽及会话回调清理缺口保留", "原主题监听、延迟任务及resize降级监听清理未改变"],
+  "testDevelopmentFailures": ["sFGw85探针错误地要求主窗URL以index.html结尾，遗漏路由hash；修改只读定位后原版pSJ5as通过", "新增模块工厂说明导致临时脚本整文件期望不同，调整仅容许新增说明，原迁移正文仍严格验证", "暂存差异检查发现原模板3处行尾空白，等价转义后重新构建并完整复测本项"],
+  "webDragSupplement": { "baselineDesktopId": "momentum-regression-fnNHRx", "baselineHead": "bd48d0a16ba9d4cef5df07dea9e3eb4e99e54d0a", "baselineSourceClean": true, "baselineRebuilt": true, "candidateDesktopId": "momentum-regression-gWFRBr", "candidatePassed": true, "browserReplayDesktopId": "momentum-regression-NyeRQo", "browserReplayPassed": true, "coverage": "网页三个拖拽IPC的真实落盘、空输入、同步宿主及并发拒绝；同步通道经原ipcMain.emit及真实sender验证，不冒称页面公开preload可用或原生拖入已验收" },
+  "limits": ["临时探针保存在本地temp，不属于长期npm test用例", "没有验证真实第三方登录、原生显示或外部软件拖入", "网页同步拖拽的2000ms状态复位未动态验证，已有并发拒绝不代表完整定时器生命周期覆盖", "最后63项完整回归在文件读取与本项迁移之前，本项为5项定向验证", "整体职责、性能、安全、全仓lint、CI和安装包尚未完成"]
+}

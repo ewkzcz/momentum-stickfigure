@@ -1,0 +1,31 @@
+{
+  "date": "2026-09-13",
+  "baselineHead": "74529a56f67ea72e0d1e92c18e3ebe4b71c77ced",
+  "scope": "仅迁移组件检测与错误消息两个常量对象到无Electron依赖的mjs模块；config保持原导出与同一对象引用，psd_client只替换导入来源，构建复制清单追加该文件。未实现Worker或改变解析算法、超时及IPC。",
+  "baseline": {
+    "provenance": "temp/psd-worker-current-baseline-1789284585612",
+    "rootName": "momentum-psd-contract-AaaneM",
+    "comparedWith": "momentum-psd-contract-4gotqv",
+    "passed": true,
+    "durationMs": 31202.361916,
+    "cases": 11
+  },
+  "candidate": {
+    "provenance": "temp/psd-constants-candidate-1789285061817",
+    "passed": 3,
+    "failed": 0,
+    "durationMs": 104834.906583,
+    "contract": { "rootName": "momentum-psd-contract-E283dc", "comparedWith": "momentum-psd-contract-AaaneM", "cases": 11, "comparison": "完整递归生产对象规范哈希逐项相同，仅规范timestamp/parseTime/duration/processingTime/requestId；调用方缓冲区不分离" },
+    "session": { "rootName": "momentum-regression-bjayKh", "rgbaComparisons": 28, "tolerance": 0 },
+    "upload": { "rootName": "momentum-regression-9vO8iV", "rgbaComparisons": 16, "tolerance": 0 }
+  },
+  "checks": {
+    "mechanical": "temp/verify-psd-constants-extraction.mjs：两个常量正文及注释不变（新文件仅清行尾空白），剩余config及整个psd_client除导入行外逐字相同，纯Node独立导入成功",
+    "lint": "npm run lint及四个改动文件额外eslint通过；全仓历史26 errors未修复，不声称全仓通过",
+    "build": "npm run build通过，新增mjs复制到out/main/psd-api，renderer产物名保持不变",
+    "size": "严格规模检查超限0",
+    "referencesOnly": "temp/layer-render-acceptance-v8v1jf，266参考摘要不变，非完整回归"
+  },
+  "testDevelopmentFailure": "首个机械脚本切片已包含末尾两个换行，但替换时又追加一个换行，导致无法移除常量块并断言失败；仅修观察脚本的多余换行，生产候选未随此失败改变。",
+  "limitations": ["本项后未重跑完整75项；最近全量hYlpc3属于基线74529a5", "Worker队列、实际超时终止、用户取消、退出等待、隔离与安装包尚未实施或验收", "私人PSD与完整返回只保存在隔离本地，不提交"]
+}

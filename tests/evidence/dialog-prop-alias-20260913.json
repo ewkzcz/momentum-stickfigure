@@ -1,0 +1,12 @@
+{
+  "date":"2026-09-13",
+  "subject":"对话画布工具栏的prop派生引用别名",
+  "baselineHead":"001067086cdcef64277cad19966b82817f2d3929",
+  "baseline":{"directory":"temp/dialog-prop-alias-1789307340628","roots":["eRuooP","ItrgQ4"],"tests":2,"passed":2,"durationMs":84898.415334},
+  "change":"原computed与props及交互/绘制注入不变，仅setup返回同一computed的工具栏别名，模板单处改用别名，消除vue/no-dupe-keys；无第二份状态",
+  "strictCandidate":{"directory":"temp/dialog-prop-alias-strict-1789307642411","roots":["mpBbBx","Odikfe"],"tests":2,"passed":2,"durationMs":85693.635458,"canvasBefore":"eRuooP","interactionBefore":"ItrgQ4","coverage":"18绘制/实际PNG导出场景与10交互场景，公开状态和RGBA严格原版对照"},
+  "earlierCandidate":{"directory":"temp/dialog-prop-alias-candidate-1789307510254","roots":["aNCIqY","YFlsuC"],"tests":2,"passed":2,"limit":"首次canvas环境变量误写MOMENTUM_DIALOG_BEFORE而非MOMENTUM_DIALOG_CANVAS_BEFORE；不把该次canvas作为原版对照，之后用正确变量完整补验"},
+  "previousFull":{"head":"001067086cdcef64277cad19966b82817f2d3929","evidenceId":"layer-render-acceptance-iqkWog","tests":98,"passed":98,"failed":0,"skipped":0,"durationMs":1291152.733917,"endedAt":"2026-09-13T13:48:59.973Z","referenceFilesUnchanged":266},
+  "previousRemote":{"runId":34759840648,"tests":26,"passed":26,"failed":0,"skipped":0,"durationMs":199392.6315},
+  "limits":["修正同名暴露，不宣称原画布行为存在用户可见缺陷","完整回归和远端数属于本项前提交","全仓其他静态错误及整体验收仍未完成"]
+}

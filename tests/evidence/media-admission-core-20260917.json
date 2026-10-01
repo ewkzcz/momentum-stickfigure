@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "scope": "媒体有限准入核心定向验证，尚未接入媒体生产入口",
+  "headAtValidation": "3d71c803e79b217aaa6d958c667511746b3c022a",
+  "workingTreeWasDirty": true,
+  "attempts": [
+    {"directory": "temp/media-admission-core-after-acceptance-oRxG2A", "lint": 1, "testsExecuted": false, "reason": "AbortSignal/AbortController裸全局引用触发9项no-undef；改为globalThis显式引用，未放宽lint规则"},
+    {"directory": "temp/media-admission-core-global-fix-acceptance-gQTF5Y", "checks": {"referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0}, "tests": {"total": 16, "passed": 16, "failed": 0, "cancelled": 0, "skipped": 0, "durationMs": 43.267834}}
+  ],
+  "limits": ["单例准入核心测试不能替代真实媒体调用链准入测试", "媒体读取前准入失败仍未解决，核心未提交", "取消等待Promise结算不等于原生像素已析构，不承诺RSS硬上限", "测试后证据文件改变输入清单，不能作为最终累计验收", "三类必要外部验收仍未验证"],
+  "conclusion": "核心16项定向验证通过；等待实际媒体入口接入，还不能收工"
+}

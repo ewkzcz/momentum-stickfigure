@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "status": "passed-targeted-not-final-acceptance",
+  "scope": "有限IPC对账F2：PSD头部信息及有效性接口的合法字节格式兼容",
+  "before": { "directory": "temp/psd-direct-before-acceptance-Dq4ZSx", "tests": 1, "passed": 0, "failed": 1, "durationMs": 1240.921959, "exitCode": 1, "reason": "合法字节数组被底层Buffer签名处理判为不支持格式" },
+  "after": { "directory": "temp/psd-direct-final-acceptance-zSwlRc", "tests": 5, "passed": 5, "failed": 0, "cancelled": 0, "skipped": 0, "durationMs": 3945.604417, "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0 }, "manifestSha256": "c557a2cb0e7acbd83b6b4b5f428332a23b5f512e88aa64f4ecf317b280f24eee" },
+  "implementation": "仅在两个直接IPC入口经原类型/容量校验后归一化为Buffer，保留视图byteOffset和byteLength，不改PSD渲染引擎。",
+  "coverage": ["字节数组、ArrayBuffer、Uint8Array、带偏移视图；头部尺寸64x48及4通道", "非法类型拒绝、截断头部valid:false和原响应包络", "原来源与任务参数用例"],
+  "runnerNote": "首次after命令卡在shell启动包装的cat，进程核对证明Node/Electron尚未启动；仅终止15773/15774包装进程后重发，实际after 3/3，再扩充视图与来源最终5/5。非产品失败。",
+  "limits": ["合成26字节头部用于原头部接口，不冒充完整PSD解码或最终累计", "三类外部验收仍未验证"]
+}

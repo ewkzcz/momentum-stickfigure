@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "scope": "预设手动保存发起时快照、异步预览路径回填归属与新增预设会话保护",
+  "baseline": "5c2edd8942733760633c9288ca48fe609384b334",
+  "fixCommit": "5ec58318ef1cfce93353f73fc3eb920cb42d9f71",
+  "reproduction": {
+    "test": "tests/preset-manual-save.test.mjs",
+    "beforeLog": "temp/preset-manual-save-before.log",
+    "before": { "tests": 6, "pass": 1, "fail": 5 },
+    "description": "真实usePresetData及Vue，控制真实WebCrypto摘要交付和图片保存IPC返回；旧代码在摘要或预览保存等待后将B列表写到A路径；新增等待后切换、往返或卸载仍插入及持久化旧预设。正常新增通过。",
+    "afterLog": "temp/preset-manual-save-after.log",
+    "after": { "tests": 18, "pass": 18, "fail": 0 },
+    "afterScope": "6项新用例加既有12项加载续体用例；随后补充正常路径回填与文件复用，新增用例最终7项。",
+    "targetedDirectory": "temp/preset-manual-save-acceptance-NnxTAO",
+    "targetedLog": "temp/preset-manual-save-unit.log",
+    "targeted": { "tests": 31, "pass": 31, "fail": 0 },
+    "targetedChecks": ["7项手动保存用例", "12项加载归属", "预设文件接口和真实卡片", "PSD往返与后发严格像素", "悬浮预览", "跨入口渲染竞争", "lint、规模、重新构建、素材及参考前后核验"]
+  },
+  "behavior": [
+    "savePresets在首次等待前捕获路径、PSD输入和预设JSON深拷贝，后续不读取当前列表形成保存数据；显式保存可在切换后完成原目标快照。",
+    "预览文件在副本上准备，只有原会话仍有效、原对象仍在当前列表、图片未变且缺少路径时才回填原对象，保持正常复用。",
+    "handleSavePreset在图片准备前捕获会话，准备后失效则不插入、不启动持久化；进入savePresets之后按原目标快照完成，但失效后不显示当前页面成功或失败提示。",
+    "加载触发的自动路径保存继续使用原有效性回调，旧加载仍取消，不因手动快照改变既有加载取消语义。"
+  ],
+  "fullAcceptance": {
+    "passed": true,
+    "command": "node scripts/verify-remaining-defects.mjs all",
+    "head": "5ec58318ef1cfce93353f73fc3eb920cb42d9f71",
+    "directory": "temp/remaining-defects-acceptance-9HNhOU",
+    "log": "temp/preset-manual-save-full.log",
+    "tests": 271, "pass": 271, "fail": 0, "skipped": 0, "cancelled": 0,
+    "durationMs": 1334884.120459,
+    "finishedAt": "2026-09-14T12:26:19.756Z",
+    "manifestSha256": "4e9aa89ba8f863a5f4b2dee4578d3baf2b215e4d2c5ccff78dcfb5d66d5db270",
+    "integrityErrors": [],
+    "referenceFiles": 266,
+    "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed",
+    "checks": ["源码及现行lint", "规模与差异检查", "生产构建", "输入/Git/产物逐文件清单冻结核验", "完整串行测试", "授权素材及冻结参考只读核验"]
+  },
+  "limits": [
+    "证据文件于完整验收后新增，271项属于5ec5831。",
+    "不解决同一文件多次保存逆序、不同文件或多窗口基于旧全局快照互相覆盖；未引入全局事务队列。",
+    "新增预设在插入列表前失效会放弃逻辑提交，已经发送的图片保存IPC不能撤销，可能留下未引用图片。",
+    "快照沿用预设现有JSON持久化语义；循环引用等不可序列化配置不在支持范围。",
+    "删除/改名操作在保存后的提示及删除后选择恢复续体未全量改造；本轮修复其调用保存时的数据快照，不声称全部交互续体安全。",
+    "历史自然预览超时仍未定位，本轮通过不取消既有失败记录；安全、跨平台、真实服务及总规划其它余项仍待推进。"
+  ]
+}

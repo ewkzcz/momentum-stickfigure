@@ -1,0 +1,32 @@
+{
+  "point": "移除模板右键菜单中未定义的位置调整调用",
+  "date": "2026-09-07",
+  "baselineCommit": "4a026be4683546bb66cee6aa7f0b772369ab0c2e",
+  "before": "原版真实右键模板触发ReferenceError，被Vue错误处理器捕获；新增正确无错误断言失败，原有18项通过",
+  "fix": "移除唯一的adjustTemplateDetailMenuPosition未定义调用，保留此前getContextMenuSafePosition的位置计算及全部菜单业务行为",
+  "scope": "未修改模板渲染、配置、持久化、选择、排序及原菜单定位算法",
+  "directed": {
+    "command": "node --test tests/list-interactions.test.mjs",
+    "passed": 1,
+    "failed": 0,
+    "scenes": ["公开两份PSD原像素参考", "动作和表情各创建两个模板", "预览图片真实落盘", "跨PSD共享模板", "重命名及空名拒绝", "真实鼠标排序", "修饰键多选", "右键确认删除", "无Vue捕获或未捕获业务异常"],
+    "assertionsRelaxed": false
+  },
+  "fullValidation": {
+    "command": "node tests/verify-layer-render-completion.mjs all",
+    "tests": 19,
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 285372.403375,
+    "evidenceId": "layer-render-acceptance-pCozFl",
+    "oldReferences": 260,
+    "allReferences": 264,
+    "allReferenceSha256": "e9b7c90d947bca9a4540819de20127f5993809c55ca22503c7aa5b2192145a2e",
+    "referenceChanged": false,
+    "lint": "通过",
+    "size": "五个遗留超限，零新增违规",
+    "build": "通过，既有告警保留"
+  },
+  "unverified": ["菜单实际高度超出原360px预估的极端布局", "模板重启恢复", "跨平台原生交互"]
+}

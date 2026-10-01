@@ -1,0 +1,15 @@
+{
+  "date": "2026-09-13",
+  "subject": "按真实IPC发送窗口隔离内嵌网页记录",
+  "baselineHead": "065ee4e0e49d4a505d094ef67419521c0d593eb0",
+  "baseline": {"provenance": "temp/browser-owner-1789292514652", "root": "momentum-regression-RpA7Sk", "passed": false, "observed": "预览窗口使用相同partition和url调用close返回成功，主窗口挂载数从1变0"},
+  "change": "全部六处记录键（open、open失败清理、close、setBounds、applyTheme、reload）追加真实event.sender.id；保留外部IPC参数和原不存在记录返回结构",
+  "candidate": {
+    "provenance": "temp/browser-owner-candidate-1789292605601",
+    "tests": 6, "passed": 6, "failed": 0, "skipped": 0, "durationMs": 28496.759542,
+    "roots": {"originalProbe": "momentum-regression-1M0dmL", "formalOwner": "momentum-regression-c7ywDS", "loadFailure": "momentum-regression-oyitt5", "pendingClose": "momentum-regression-ZA3t5p", "disposal": "momentum-regression-7klwtH", "window": "momentum-regression-tiuH2L"},
+    "coverage": ["20轮另一窗口关闭不影响原视图", "另一窗口setBounds/applyTheme/reload均返回视图不存在", "相同分区和URL在两个窗口独立共存，分别关闭互不影响", "所属窗口setBounds及正常打开关闭保持可用", "原加载失败、在途关闭、替换、分区共存和窗口生命周期通过"]
+  },
+  "checks": {"build": true, "progressiveLint": true, "strictSize": true, "diffCheck": true},
+  "limitations": ["仅隔离网页记录所有权，不等同全部IPC来源鉴权", "主窗口与预览仍暴露广泛preload能力", "未改变session共享、权限请求或网页安全设置", "未专项处理宿主销毁、beforeunload或嵌套帧来源", "原desktop及后台helper未修改，未访问第三方服务", "最近79项全量属于d463322，当前修复待完整回归"]
+}

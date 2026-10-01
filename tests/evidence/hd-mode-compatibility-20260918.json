@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "status": "passed-targeted-not-final-acceptance",
+  "baseHead": "e70d3684ae497452f0f4443786972ec75ec7edff",
+  "finding": "F1：UI和高清默认参数已有fast模式，但IPC枚举遗漏。",
+  "before": { "directory": "temp/hd-mode-before-acceptance-4VKZhu", "tests": 1, "passed": 0, "failed": 1, "exitCode": 1, "detail": "fast保存被性能模式参数校验拒绝" },
+  "after": { "directory": "temp/hd-mode-after-acceptance-l3eEYU", "tests": 5, "passed": 5, "failed": 0, "cancelled": 0, "durationMs": 5761.333916, "exitCode": 0, "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "tests": 0, "referencesAfter": 0 }, "manifestSha256": "e9ee68e3424ca474f5f2817ea88c84b96fbd749bd15ef7384e41112fc726df4a" },
+  "implementation": ["将fast加入共享本地处理模式枚举；未知模式继续拒绝。"],
+  "external": { "platform-installers": "unverified", "real-system-interactions": "unverified", "third-party-and-ai-python": "unverified" }
+}

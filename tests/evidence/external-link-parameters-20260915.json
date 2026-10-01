@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-15",
+  "scope": "系统外部链接共享URL参数策略",
+  "baseline": { "directory": "temp/external-link-parameters-before-acceptance-L02rXU", "passed": 0, "failed": 1, "finding": "带用户名密码的HTTP(S)链接仍被交给系统接口。" },
+  "firstAfter": { "directory": "temp/external-link-parameters-after-acceptance-iHnTe2", "passed": 3, "failed": 0 },
+  "fixtureFailure": { "directory": "temp/external-link-parameters-final-acceptance-mhUmwy", "passed": 3, "failed": 1, "finding": "补齐旧链接策略单测时直接导入含electron session的模块，Node测试运行器无法提供该命名导出；沿旧测试源码装载方式执行真实附件策略，不使用假策略替换。" },
+  "final": { "directory": "temp/external-link-parameters-recheck-acceptance-0TfBLS", "passed": 6, "failed": 0, "durationMs": 2931.287625, "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "changes": [
+    "共享normalizeExternalUrl在解析前限制32768字符、拒绝ASCII控制字符，解析后拒绝内嵌用户名密码，仍仅HTTP(S)。",
+    "shell-open-external不再打印完整URL，保留端口、路径前缀、查询和fragment。",
+    "旧外链测试补齐window-controller新增同步环境监听和会话策略依赖；webview弹窗预期对齐已提交的全部拒绝策略，主窗HTTP(S)正常外开断言保留。"
+  ],
+  "limitations": [
+    "系统浏览器调用由强制bootstrap记录，不代表实际浏览器启动验收。",
+    "URL查询中自由文本密钥未自动识别，不将URL限制扩展为任意网络代理。",
+    "本6项为定向回归，不是当前累计完整验收。"
+  ]
+}

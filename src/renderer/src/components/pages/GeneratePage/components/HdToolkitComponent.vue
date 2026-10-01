@@ -107,10 +107,12 @@
                 </div>
                 <div class="hd-action-row">
                   <n-space :size="12">
+                    <n-button v-if="removeState.isProcessing || highresState.isProcessing" :loading="cancelling" :disabled="cancelling" @click="cancelLocalTask">取消本地处理</n-button>
                     <n-button
                       type="primary"
                       size="large"
                       :loading="removeState.isProcessing"
+                      :disabled="removeState.isProcessing || highresState.isProcessing || cancelling"
                       @click="runRemoveTask"
                     >
                       {{ removeState.isProcessing ? '正在抠图...' : '开始抠图' }}
@@ -245,10 +247,12 @@
                 </div>
                 <div class="hd-action-row">
                   <n-space :size="12">
+                    <n-button v-if="removeState.isProcessing || highresState.isProcessing" :loading="cancelling" :disabled="cancelling" @click="cancelLocalTask">取消本地处理</n-button>
                     <n-button
                       type="primary"
                       size="large"
                       :loading="highresState.isProcessing"
+                      :disabled="removeState.isProcessing || highresState.isProcessing || cancelling"
                       @click="runHighresTask"
                     >
                       {{ highresState.isProcessing ? '正在高清放大...' : '开始高清放大' }}
@@ -311,9 +315,11 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount, onActivated, watch, nextTick } from 'vue'
 import { useMessage, NTabs, NTabPane, NCard, NSpace, NText, NButton, NSelect, NCheckbox, NInputNumber, NTag } from 'naive-ui'
 import { useRouter } from 'vue-router'
+import { useProcessCancellation } from '@renderer/utils/composables/useProcessCancellation.js'
 import { buildGeminiDragConfig } from '@renderer/utils/geminiOutputConfig.js'
 
 const message = useMessage()
+const { cancelling, cancel: cancelLocalTask } = useProcessCancellation(() => window.hdToolkit, message)
 const router = useRouter()
 
 const ACTIVE_TABS = ['remove', 'highres']
@@ -466,8 +472,8 @@ onMounted(async () => {
   await updateWindowBounds()
 
   // 2、系统拖拽完成后提示结果，并等待手势结束再清理浮层
-  if (window.electronAPI?.onDragFinished) {
-    dragFinishedUnsubscribe = window.electronAPI.onDragFinished((eventData) => {
+  if (window.electronAPI?.on) {
+    dragFinishedUnsubscribe = window.electronAPI.on('drag-finished', (eventData) => {
       if (eventData?.filePath) {
         message.success('图片已保存，可拖拽到其他应用')
       }
@@ -764,15 +770,10 @@ async function handleFileDrop(event) {
   if (!files.length && event?.dataTransfer) {
     const uriList = event.dataTransfer.getData('text/uri-list') || ''
     if (uriList.trim()) {
-      const paths = uriList
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line && !line.startsWith('#'))
-        .map((uri) => decodeURI(uri.replace(/^file:\/+/, '')))
-      files = paths.map((filePath) => ({
-        path: filePath,
-        name: extractName(filePath)
-      }))
+      message.info('文件地址不能直接授权读取，请在文件选择器中确认要导入的图片。')
+      const state = getActiveDropState()
+      if (state) await handleSelectImages(state === removeState ? 'remove' : 'highres')
+      return
     }
   }
 
@@ -887,7 +888,7 @@ function addFilesToState(state, items) {
       name: uniqueName,
       originalName: baseName,
       path: item.path,
-      url: item.url || null,
+      url: item.url || item.previewUrl || null,
       size: item.size,
       isTemp: item.isTemp || false
     })

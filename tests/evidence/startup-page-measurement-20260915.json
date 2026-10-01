@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "unit": "startup-page-measurement",
+  "method": ["20次新Electron进程及全新隔离目录，从launchDesktop前到Vue根挂载完成", "第一个进程中设置、漫画、对话框、生成页面各20轮，renderer内performance.now计时到目标根节点非零宽度", "逐帧等待真实条件，不固定sleep，不更改产品路由或增加懒加载"],
+  "verification": { "directory": "temp/startup-page-measurement-acceptance-Anrlt4", "passed": 1, "failed": 0, "durationMs": 13711.319666, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed", "rawResult": "temp/startup-page-measurement-result.json" },
+  "metricsMs": { "startup": { "count": 20, "p50": 441.548, "p95": 522.639458, "max": 805.35075 }, "settings": { "count": 20, "p50": 15.1, "p95": 16.9, "max": 54.4 }, "comic": { "count": 20, "p50": 14.2, "p95": 18.8, "max": 24.8 }, "dialogFrame": { "count": 20, "p50": 15.2, "p95": 16.3, "max": 17.2 }, "generate": { "count": 20, "p50": 13.7, "p95": 15.4, "max": 35 } },
+  "interpretation": "此次受控范围未复现秒级启动或页面切换阻塞，不据此增加缓存、懒加载或全量异步化",
+  "limits": ["新进程不代表操作系统磁盘缓存冷启动，未清系统缓存", "启动包含隔离目录和调试器连接开销，后台窗口无真实显示", "页面根挂载不等于所有异步业务数据已完成", "生成页面不调用真实第三方AI或外部网页", "不替代跨平台安装产物和最终累计验收"]
+}

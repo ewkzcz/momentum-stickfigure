@@ -1,0 +1,12 @@
+{
+  "date": "2026-09-13",
+  "subject": "修复原子替换扩大既有配置权限的回归",
+  "baselineHead": "db26f677ecdb3dfa85fa8445a8b98928858f783d",
+  "introducedBy": "ed10793045b8a5b147aef716b9d5606c213c0623",
+  "baseline": {"provenance": "temp/storage-mode-1789297558350", "root": "momentum-regression-BfvOt0", "passed": false, "modeBeforeOctal": "0600", "modeAfterOctal": "0644", "method": "仅chmod隔离既有共享文件，真实IPC触发原保存后观察实际权限"},
+  "change": "异步与退出同步共用replaceStorageFile，在rename前从既有目标继承权限位；首次创建沿用原默认权限，非ENOENT错误拒绝替换",
+  "candidate": {"provenance": "temp/storage-mode-candidate-1789297703882", "roots": ["momentum-regression-FgsMtW", "momentum-regression-uHEzCW", "momentum-regression-QGV99x", "momentum-regression-HKUudv", "momentum-regression-rMzyPY"], "tests": 5, "passed": 5, "failed": 0, "durationMs": 116232.512917, "coverage": ["原失败探针修复", "异步写入及实际退出同步写入均保留0600且最新值正确", "原子JSON读取、退出旧回调顺序和rename失败保留旧字节恢复继续通过"]},
+  "checks": {"build": true, "progressiveLint": true, "strictSize": true, "diffCheck": true},
+  "latestFullBeforeChange": {"evidenceId": "layer-render-acceptance-r4vJKo", "tests": 87, "passed": 87, "failed": 0, "skipped": 0, "durationMs": 1260876.723875, "endedAt": "2026-09-13T11:05:58.168Z", "referenceFilesUnchanged": 266},
+  "limits": ["当前macOS权限位验收，不包含Windows ACL、属主、扩展属性或符号链接语义", "未做断电fsync保证", "原helper未修改", "当前权限修复未再完整全量"]
+}

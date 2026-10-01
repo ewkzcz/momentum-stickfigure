@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "5cc83c4",
+  "scope": "预设导出选择与后续单文件写入授权绑定",
+  "before": { "directory": "temp/preset-authorization-before-acceptance-k7UNvI", "passed": 0, "failed": 1, "failure": "主窗口未进行原生选择即可通过preset-save-file写任意路径" },
+  "firstAfter": { "directory": "temp/preset-authorization-after-acceptance-eN6xc3", "passed": 2, "failed": 1, "cause": "原文件测试要求未选择目录返回EISDIR；授权在写入前拒绝，改为精确未授权断言，保留所有磁盘原文和重启检查" },
+  "recheck": { "directory": "temp/preset-authorization-recheck-acceptance-York7K", "tests": 4, "passed": 4, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["保存选择授予当前owner的精确单文件写入，未选路径拒绝", "授权保存时复核规范路径与现存祖先真实位置", "目标被替换为符号链接时拒绝且哨兵不变；去除链接后恢复正常写入", "原预设文本、中文嵌套路径、空内容、取消、选择异常及重启导入保持兼容"],
+  "limits": ["授权只在当前进程owner内，不授权父目录；预设读取仍由每次原生选择完成", "共享单文件授权还未接通通用read-file/write-file及配置目录", "本机POSIX验证，不声称Windows或恶意本地进程并发目录替换已验证", "预设文本参数单项64Mi字符预算，不在主进程强行解析旧预设JSON"]
+}

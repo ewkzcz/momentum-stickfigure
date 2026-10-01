@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "unit": "web-frame-navigation-compatibility",
+  "baseline": { "directory": "temp/web-frame-navigation-before-acceptance-jOOdN0", "passed": 0, "failed": 1, "cause": "此前78e283d导航保护只读取第二参数，Electron35 will-frame-navigate在第一参数event.url携带地址，合法HTTP被误拒绝" },
+  "changes": ["保留旧导航签名并回退读取event.url", "BrowserView正常导航测试由page.goto改为页面location.href触发，确保经过实际用户页面导航事件"],
+  "verification": { "directory": "temp/web-frame-navigation-final-acceptance-C1AIfl", "passed": 4, "failed": 0, "durationMs": 2872.029167, "lint": 0, "size": 0, "build": 0, "referencesBefore": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "coverage": ["新frame事件合法HTTP(S)允许，file/data/带凭据URL拒绝", "旧will-navigate/redirect签名兼容及销毁清监听", "真实BrowserView页面location.href导航成功", "实际BrowserView权限分区沙箱与webview附加策略回归"],
+  "limits": ["真实webview仍因后台保护禁止创建而未验证", "危险协议拒绝仍为事件级断言，不是真实file读取尝试", "本项修复本轮引入的兼容缺陷，定向通过不等于累计全量"]
+}

@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-13",
+  "subject": "网页加载在途关闭后仍保留视图的最小修复",
+  "baselineHead": "97f7a8b9bbe65e6ccbc2fadb071476ee95825dd0",
+  "baseline": {
+    "provenance": "temp/browser-pending-close-1789292279051",
+    "root": "momentum-regression-7ejw2V",
+    "passed": false,
+    "observed": {"closeSuccess": true, "attachedAfterLoad": 1, "liveAfterLoad": 1},
+    "method": "本地HTTP收到真实请求后暂不响应，调用生产close，再释放响应并等待生产open结算"
+  },
+  "change": "将本次视图记录提前到loadURL之前登记，加载后按记录身份和isDestroyed确认仍有效；沿用原catch按实例回收，不改变URL、主题、IPC或session策略",
+  "initialCandidate": {"provenance": "temp/browser-pending-close-candidate-1789292321078", "roots": ["momentum-regression-JyE7nM", "momentum-regression-mfhpPj"], "passed": 2},
+  "finalCandidate": {
+    "provenance": "temp/browser-pending-final-1789292391730",
+    "tests": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 23474.659209,
+    "roots": {"loadFailure": "momentum-regression-lWsgE5", "pendingClose": "momentum-regression-s6e1AG", "viewDisposal": "momentum-regression-7shuNq", "windowLifecycle": "momentum-regression-jg1H0F"},
+    "coverage": ["20轮在途关闭后挂载和存活视图均归零，原open不返回迟到成功", "每轮相同地址重新打开关闭正常", "20轮加载失败恢复", "20轮视图替换、分区共存与销毁", "预览窗口10轮复用及主窗口20轮重建"]
+  },
+  "checks": {"build": true, "progressiveLint": true, "strictSize": true, "diffCheck": true},
+  "limits": ["原desktop及后台保护未修改", "使用本地HTTP，不代表第三方登录或真实网络兼容验收", "同键并发打开、跨窗口操作、宿主销毁、beforeunload仍未专项验收", "此次未修改renderer；未新增RGBA前后比较", "最近79项全量属于d463322，不冒称覆盖当前修复"]
+}

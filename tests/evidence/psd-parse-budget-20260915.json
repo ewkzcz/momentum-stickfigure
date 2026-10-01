@@ -1,0 +1,22 @@
+{
+  "scope": "批准项1：PSD解码前资源检查与跨线程输出预算",
+  "baseHead": "fe11cf0",
+  "limits": { "documentPixels": 33554432, "decodedPixels": 134217728, "layers": 8192, "depth": 128, "outputBytes": 134217728 },
+  "method": "工作线程先检查PSD头，再用ag-psd跳过全部图像读取元数据并累计图层/矩形预算；通过后走不变的原解析引擎，输出在postMessage前检查。未修改透明度、蒙版、剪切或混合算法。",
+  "before": { "evidence": "psd-parse-budget-before-acceptance-IWupVT", "passed": false, "failure": "8193个空图层的真实PSD成功解析，未按预算拒绝" },
+  "after": { "evidence": "psd-parse-budget-after-acceptance-Vv3jTc", "passed": 20, "failed": 0, "skipped": 0, "durationMs": 119703.646458, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true, "rgba": "两指定和三公开素材154场景零差异" },
+  "measurement": { "script": "temp/psd-budget-measurement.mjs", "result": "temp/psd-budget-measurement-result.json", "roundsPerFixture": 20, "node": "24.11.1", "electron": "35.7.5", "arch": "arm64", "machineMemoryGiB": 16,
+    "fixtures": [
+      { "id": "yun-jian-qi-lin", "layers": 171, "decodedPixels": 6037859, "outputBytes": 1060495, "parseP50Ms": 214.447583, "parseP95Ms": 248.306542, "rssPeak": 433651712, "startupCancelMaxMs": 0.742459, "ipcP95Ms": 0.449792, "ipcMaxMs": 2708.173792 },
+      { "id": "xing-kong", "layers": 187, "decodedPixels": 11032131, "outputBytes": 4399705, "parseP50Ms": 486.863958, "parseP95Ms": 518.536709, "rssPeak": 859881472, "startupCancelMaxMs": 0.936792, "ipcP95Ms": 0.415667, "ipcMaxMs": 9986.85375 }
+    ]
+  },
+  "limitsAndFollowup": [
+    "预算取保守有限值并以两指定素材核对余量；不是所有大型素材或RSS硬上限证明。",
+    "元数据预扫描增加一次读取，需在固定性能测量项对照；第三方解析器元数据分配仍由现有输入限制和线程超时约束。",
+    "输出预算在原引擎已生成输出后、跨线程复制前检查，不代表中间分配无法超出该值。",
+    "IPC采样包含传参、主进程只读预扫描和Inspector求值，最大值2.7秒/10秒，不能用p95低于100ms掩盖停顿或称真实交互全部达标；在固定性能项分离测量边界。",
+    "取消测量为线程启动阶段，不冒称已进入原生解码；20轮完整解析RSS峰值不是长期稳定趋势结论。",
+    "巨幅头部和输出累计用边界测试验证；累计像素和嵌套限制尚需补充专门分支同例。"
+  ]
+}

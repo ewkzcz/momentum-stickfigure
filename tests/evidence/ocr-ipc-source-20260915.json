@@ -1,0 +1,8 @@
+{
+  "scope": "批准项4：字幕识别环境与任务四IPC来源",
+  "before": { "evidence": "ocr-ipc-before-acceptance-asD42J", "passed": false, "failure": "预览进入环境检查并返回业务结果，而非拒绝来源" },
+  "change": "检查、清理、安装环境与处理视频均先验证可信main固定入口顶层frame；保留原错误响应格式",
+  "after": { "evidence": "ocr-ipc-after-acceptance-cXyHav", "passed": 5, "failed": 0, "skipped": 0, "durationMs": 84271.404083, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true },
+  "coverage": ["预览四通道明确拒绝", "主窗口无效隔离解释器路径仍返回原未配置结果", "字幕任务成功失败异常的独立订阅释放", "高清来源回归"],
+  "limits": ["未运行安装卸载或用户Python解释器", "字幕页面测试控制服务边界，不代表真实OCR和进程树清理验收", "任务生命周期与参数限制仍按原批准项继续"]
+}

@@ -1,0 +1,241 @@
+{
+  "head": "e296d8ce364df72678830e77447018bc0a3e185e",
+  "vuePath": "src/renderer/src/components/pages/ActionExpressionPage/ActionExpressionPage.vue",
+  "modulePath": "src/renderer/src/components/pages/ActionExpressionPage/composables/useTemplateRenderCoordinator.js",
+  "functions": [
+    {
+      "name": "applyTemplateConfig",
+      "originalLine": 3172,
+      "migratedLine": 49,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "2874066500acfaf6d8b4447b57f8229ba58bc7761327ecade56370a3bca81a03"
+    },
+    {
+      "name": "generateTemplatePreviewBase64",
+      "originalLine": 3386,
+      "migratedLine": 260,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "220f9d016b6fa062a03bed8208b077d69267b1374d0aeae158d41ff3b3571cc4"
+    },
+    {
+      "name": "applyTemplateById",
+      "originalLine": 3615,
+      "migratedLine": 450,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "8a2d947c98cea716aa4c3e607f7c2be0f5148d944d7e47eccefc407d9c2f0915"
+    },
+    {
+      "name": "setTemplateCanvasRef",
+      "originalLine": 3641,
+      "migratedLine": 467,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "19f0bdf441c8448743f18d2529b299054843289d8818bd3b0f3a66b2a2ff5810"
+    },
+    {
+      "name": "renderTemplatePreview",
+      "originalLine": 3659,
+      "migratedLine": 485,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "032d3443d8bd5c94c63da8ae9b0a47b4753bbeb56b1ecb2a92c012af7ffe8ad2"
+    },
+    {
+      "name": "applyTemplateConfigSilent",
+      "originalLine": 3730,
+      "migratedLine": 556,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "9e5d68253fff7632f1f5cce1a1f5a4bffd2dc07388cee5c05660a3d86ea43ac4"
+    },
+    {
+      "name": "renderAllTemplatesPreviews",
+      "originalLine": 3973,
+      "migratedLine": 799,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "2fe26aff7b1806b9802fa256fd3020863265e54d9c6d647ea26cf26cef400052"
+    }
+  ],
+  "states": [
+    {
+      "name": "renderTemplatesPreviewsRef",
+      "originalLine": 3373,
+      "migratedLine": 32,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "cfbb57caaeec8c0f26b1ac2c25d443f11558f4466425ccd9e73aae2bbbbcac65"
+    },
+    {
+      "name": "templateCanvasRefs",
+      "originalLine": 3631,
+      "migratedLine": 33,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "d3625fdc345f9dc17107dfc7079ab18ecf3a3fd4e657ae59c37ec0ccd969b1e3"
+    },
+    {
+      "name": "isRenderingTemplatePreview",
+      "originalLine": 3632,
+      "migratedLine": 34,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "306feb8b75b6e4b9537998db2a56ccb61a69cec58e9ddbc628af38b1085c62dd"
+    },
+    {
+      "name": "isRenderingTemplate",
+      "originalLine": 3633,
+      "migratedLine": 35,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "965744fa954169ac798cbb1dfee1f66615b65618d93cde141251841db8486ca7"
+    },
+    {
+      "name": "canvasOpacity",
+      "originalLine": 3634,
+      "migratedLine": 36,
+      "astEqual": true,
+      "textEqual": true,
+      "normalizedTextSha256": "d392bc1f8bb28a69ed8932119a2be27958fcc7973656e4bb354479927553facf"
+    }
+  ],
+  "getterUses": {
+    "getActiveTemplateType": {
+      "originalName": "activeTemplateType",
+      "sites": [
+        69,
+        220,
+        220,
+        453,
+        455,
+        676,
+        676,
+        678,
+        678,
+        773,
+        773
+      ],
+      "initializationReads": 0
+    },
+    "getLayerTreeData": {
+      "originalName": "layerTreeData",
+      "sites": [
+        272,
+        334,
+        426
+      ],
+      "initializationReads": 0
+    },
+    "getRenderAllLayers": {
+      "originalName": "renderAllLayers",
+      "sites": [
+        70,
+        215,
+        338,
+        430
+      ],
+      "initializationReads": 0
+    },
+    "getSelectPart": {
+      "originalName": "selectPart",
+      "sites": [
+        190
+      ],
+      "initializationReads": 0
+    },
+    "getApplyTemplate": {
+      "originalName": "applyTemplate",
+      "sites": [
+        459
+      ],
+      "initializationReads": 0
+    },
+    "getTemplatePreviewReader": {
+      "originalName": "getTemplatePreview",
+      "sites": [
+        497
+      ],
+      "initializationReads": 0
+    },
+    "getTemplates1": {
+      "originalName": "templates1",
+      "sites": [
+        809
+      ],
+      "initializationReads": 0
+    },
+    "getTemplates2": {
+      "originalName": "templates2",
+      "sites": [
+        809
+      ],
+      "initializationReads": 0
+    },
+    "getSetLayerVisibilityByPath": {
+      "originalName": "setLayerVisibilityByPath",
+      "sites": [
+        708,
+        733,
+        756
+      ],
+      "initializationReads": 0
+    }
+  },
+  "passed": true,
+  "remainingTopLevelNodes": 240,
+  "templateAndStyleTextEqual": true,
+  "noEagerDependencyReads": true,
+  "initialRefValuesEqual": true,
+  "pageLinesBefore": 5169,
+  "pageLinesAfter": 4400,
+  "pageLinesRemoved": 769,
+  "moduleLines": 833,
+  "sourceSha256": {
+    "original": "5685124560fb40e35a1f28c16084a75e8c4724bcf1f5daf63a31456dc1eef491",
+    "vue": "b5fedc943e5eeb2db9972f00fe71b6f38394601d824fffbe9b8249755b09424e",
+    "module": "ef7a70254a7b650866e4a4def0cf6d7469a4facf093795144c08584d5967832f"
+  },
+  "ownership": {
+    "directOriginalReferences": [
+      "currentPsdData",
+      "allPartsListsMap",
+      "dynamicExpressionTabs",
+      "selectedParts",
+      "currentTab",
+      "message",
+      "canvasRef",
+      "getCustomGroupNames",
+      "buildUniquePathMap",
+      "trimWhitespace"
+    ],
+    "soleNewModuleState": [
+      "renderTemplatesPreviewsRef",
+      "templateCanvasRefs",
+      "isRenderingTemplatePreview",
+      "isRenderingTemplate",
+      "canvasOpacity"
+    ],
+    "internalFunctions": [
+      "applyTemplateConfigSilent"
+    ],
+    "pageRetained": [
+      "templateHoverPreview",
+      "isAddingTemplate",
+      "useTemplateData",
+      "useTemplatePresetList",
+      "usePartSelectionCoordinator",
+      "所有 computed/watch 与生命周期",
+      "renderTemplatesPreviewsRef.value = renderAllTemplatesPreviews"
+    ],
+    "existingBackupOnly": "generateTemplatePreviewBase64 原有 JSON 图层树备份及 finally 恢复完全保留；没有新增业务数据副本",
+    "earlyWatch": "原 currentTab watch 注册于工厂前，仅回调读取 isRenderingTemplatePreview；未使用 immediate/sync，初始化期间不改变 currentTab，仍在挂载后读取唯一 ref",
+    "callbackCycle": "useTemplateData 创建前获得 applyTemplateConfig；它只保存回调，用户实际应用才调用。applyTemplateConfigSilent 在新工厂后方定义且初始化阶段不调用",
+    "lateData": "activeTemplateType/templates1/templates2/applyTemplate/getTemplatePreview 在 useTemplateData 后定义，只在原函数访问点调用 getter；不提前读取 .value",
+    "lateRender": "layerTreeData/renderAllLayers 的 let 在页面下方替换；getter 每次读当前绑定，finally 的图层恢复和每次 await 后的绘制仍在原位置",
+    "lateSelection": "selectPart/setLayerVisibilityByPath 的 const 在 usePartSelectionCoordinator 后定义，只有应用执行时逐点 getter 调用；不捕获占位实现",
+    "legacyUI": "useTemplateUI 原导入保持不调用，文本模板卡片没有 canvas 挂载，setTemplateCanvasRef 仍未被模板使用；不启用旧模块或补绘制行为"
+  }
+}

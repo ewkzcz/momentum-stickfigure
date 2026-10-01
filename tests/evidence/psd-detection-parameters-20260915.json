@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-15",
+  "scope": "PSD直接组件检测参数与正常分类返回",
+  "baseline": { "directory": "temp/psd-detection-parameters-before-acceptance-VKwICp", "passed": 0, "failed": 1, "finding": "默认合法前手图层分类后日志读取result.frontHand.length，实际结果位于result.components，导致DETECTION_FAILED；尚未执行后续规则负例。" },
+  "after": { "directory": "temp/psd-detection-parameters-after-acceptance-UK4uW8", "passed": 5, "failed": 0, "durationMs": 3527.001583, "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0, "inputAndArtifactManifest": "passed" },
+  "invocationCorrection": "首次after命令填写不存在的psd-ipc-parameters文件，被运行前access检查拒绝，未构建或执行测试；核对实际psd-task-parameters后运行。",
+  "changes": [
+    "默认分类日志改读真实components字段，不改变引擎关键词匹配算法。",
+    "显式detection要求六类数组，每类最多256个、每关键词最多256字符；模块调用前拒绝错误类型。",
+    "真实Electron入口验证默认前手分类、自定义身体分类及错误规则拒绝后的恢复。"
+  ],
+  "limitations": [
+    "只修复直接检测入口，外层psdApiWrapper原有成功包络与其他内部错误传播策略未广泛改动。",
+    "关键词预算结合既有图层数/名称预算，不是运行时间或RSS硬限制。",
+    "PSD配置目录授权仍待独立处理。",
+    "5项为定向回归，不是当前累计完整验收。"
+  ]
+}

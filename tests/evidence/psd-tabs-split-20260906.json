@@ -1,0 +1,22 @@
+{
+  "point": "人物页PSD标签栏职责迁移",
+  "date": "2026-09-06",
+  "baselineCommit": "b2ca9275167de24c762d8cadb229ed9bc2e7eddc",
+  "ownership": "父页面仍唯一维护PSD会话、文件列表、选择和移除逻辑；子组件只展示列表、发送事件并复用原标签滚轮函数",
+  "styles": "标签栏原规则和768px覆盖迁入子组件scoped样式，属性值不变",
+  "beforeAfterBehaviorTest": "同一测试在迁移前后通过：10个中文空格路径真实批量上传、标签横向滚动、切换、关闭非活动和活动标签、关闭最后标签",
+  "verification": {
+    "build": "通过",
+    "lint": "新组件和既有检查范围通过",
+    "fullTests": 11,
+    "passed": 11,
+    "failed": 0,
+    "originalAndSyntheticPixelScenes": 154,
+    "pixelDifference": 0,
+    "layoutReference": "原固定1024x700布局RGBA零差异",
+    "presetLifecycleAndPersistence": "通过",
+    "referencesUpdated": false,
+    "sourceSize": "人物页8863行、原样式2566行、新组件196行；六个遗留超限无增长"
+  },
+  "unverified": ["其它响应式尺寸的像素截图", "Windows及Linux桌面", "真实系统拖拽和安装产物"]
+}

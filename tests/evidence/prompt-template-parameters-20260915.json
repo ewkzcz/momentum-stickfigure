@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-15",
+  "baseCommit": "db80874",
+  "scope": "提示词模板读写有限参数与原缓存保护",
+  "before": { "directory": "temp/prompt-parameters-before-acceptance-ebnH5m", "passed": 0, "failed": 1, "failure": "null载荷进入解构才失败，没有参数校验；数组/错误类型也未在模板规范化前拒绝" },
+  "after": { "directory": "temp/prompt-parameters-after-acceptance-UxtgMg", "tests": 23, "passed": 23, "failed": 0, "lint": true, "size": true, "build": true, "manifestUnchanged": true, "referencesUnchanged": true },
+  "verified": ["image/video类型、普通对象列表、内容/ID、收藏布尔和有限数字", "错误参数不覆盖既有模板，后续合法video保存读取恢复", "已有模板来源和仅可信主窗广播回归"],
+  "limits": ["保守接口预算：10000模板、单内容1Mi字符、总内容16Mi字符、ID256字符；并非从用户配置采样得出，未读取用户数据", "本组不代表图片模板/预设等其它IPC参数已完成", "不改变磁盘旧格式读取及缺省字段生成"]
+}

@@ -1,0 +1,24 @@
+{
+  "baselineCommit": "281c6b35e490d5cd8c529eea08cd140e91944416",
+  "scope": "仅移除两个生图页面卸载时清空共享drag-finished通道的调用，不新增桥接或更改拖拽通知。",
+  "baseline": {
+    "provenance": "temp/generate-subscription-baseline-repeat-1789249934825",
+    "imageProcessing": "momentum-regression-OYnqa8",
+    "generate": "momentum-regression-69UKbN",
+    "result": "两个真实路由首次卸载均使独立消费者收不到事件，实际0次、预期1次。"
+  },
+  "candidate": {
+    "provenance": "temp/generate-subscription-candidate-1789249993070",
+    "imageProcessing": "momentum-regression-5fR3ls",
+    "generate": "momentum-regression-Ihkc9y",
+    "result": "两个路由各20轮实际卸载，独立消费者持续接收；人物页20轮也再次通过。",
+    "workflow": "momentum-generate-workflow-Ljf4eG严格对照原版y3OiIC通过，任务磁盘、服务参数、公开状态与PNG截图一致。"
+  },
+  "checks": ["build passed", "npm run lint passed（未缩小已有范围）", "strict source size passed", "git diff --check passed"],
+  "limits": [
+    "首次探针2yUPey使用错误的.generate-page定位图像处理页面而超时；修正为.image-processing-page后重新采集两条失败，未改业务断言。",
+    "当前preload未暴露onDragFinished，两个页面可选注册调用本来不执行；本项不新启用原未生效的成功提示，也不声称修复异步挂载内注册卸载钩子的风险。",
+    "旧ImageGenerateComponent的fetch全局lint诊断仍在；渐进lint不等于完整src通过。",
+    "真实AI/Python、系统拖入和当前候选全量回归未执行；预览间歇空白仍保留为未定位问题。"
+  ]
+}

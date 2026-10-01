@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scope": "主窗口重建时复用应用级web-contents-created监听",
+  "baselineCommit": "a315b08e3bddcb1c59ec071aba1e3986320beaa8",
+  "changes": ["唯一窗口控制器保存应用级监听引用，只在第一次原注册位置安装，主窗口重建不再重复追加", "窗口控制器注销时按同一引用解除自己的监听，不清除其他消费者", "监听回调原权限列表和外部链接处理正文不变，未混入导航安全策略或IPC注销修复"],
+  "baseline": {
+    "initialReproduction": "2d6c2b4，temp/window-recreation-before-1789279343486，momentum-regression-lsZNns，首次真实主窗重建监听3变4失败",
+    "confirmation": "a315b08，temp/window-recreation-confirm-1789280150786，momentum-regression-M9kkmn，首次重建3变4失败，1608.522458ms",
+    "existing": "temp/window-recreation-existing-1789280137678，momentum-regression-kdi4uh，十轮预览及原单次主窗重建通过，12756.491209ms"
+  },
+  "candidate": {
+    "provenance": "temp/window-recreation-candidate-1789280246870",
+    "result": "3/3通过，30002.437167ms",
+    "recreation": "momentum-regression-WOEcbc，20轮真实关闭和macOS激活后应用监听恒定",
+    "browserViews": "momentum-regression-kQwUqE，20轮正常替换及关闭资源回收通过",
+    "window": "momentum-regression-OHHU2K，全部原窗口行为严格对照kdi4uh，预览PNG RGBA零差异",
+    "formal": "temp/window-recreation-formal-1789280333268，momentum-regression-GWTgjY，增强既有tests/window-lifecycle.test.mjs为20轮真实主窗重建及监听恒定，18105.104167ms通过，旧功能字段继续严格对照",
+    "build": "main index.js 228.35kB，renderer index-DM3C8v18.js不变"
+  },
+  "checks": ["构建、渐进lint、严格规模、git diff --check通过", "原桌面辅助后台保护保持，监听以启动后总数为基线，不要求绝对1，不清理辅助自己的监听", "测试运行前后src/out/HEAD溯源稳定"],
+  "boundaries": ["仅macOS无窗口存活再激活路径，其他平台按原规则退出；未冒称跨平台主窗重建通过", "正常退出时的按引用注销经源码审查，未独立截取will-quit之后计数", "未访问真实第三方webview，权限与外链合法拒绝路径将在安全阶段独立验收", "未修复BrowserView加载失败、并发打开和在途关闭，未修复误用removeAllListeners注销handle", "最新全量仍为2d6c2b4的70项69通过1失败，人物页独立复跑通过不能消除该失败；本项之后尚未完整回归"]
+}

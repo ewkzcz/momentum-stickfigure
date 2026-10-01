@@ -1,0 +1,13 @@
+{
+  "date":"2026-09-13",
+  "subject":"renderer标准浏览器全局的准确静态声明",
+  "productionHead":"bc9feb0a3787a7106c5100a7dd3327e864eac2cd",
+  "productionChanged":false,
+  "baseline":{"directory":"temp/renderer-globals-1789305795466","root":"Vkj1N0","passed":true,"durationMs":893.36575},
+  "formal":{"directory":"temp/renderer-globals-formal-1789305915054","root":"1QxGvV","passed":true,"durationMs":1218.739542,"checks":["真实Electron只读七个API类型","renderer只读声明，主进程未新增声明","真实lintText标准API无错误，未知名字仍no-undef"]},
+  "globals":["TextEncoder","crypto","alert","fetch","confirm","CustomEvent","requestIdleCallback"],
+  "fullLint":{"beforeErrors":24,"afterErrors":13,"command":"npx eslint src","rulesDisabled":false,"scopeReduced":false},
+  "latestFullRegression":{"head":"bc9feb0a3787a7106c5100a7dd3327e864eac2cd","evidenceId":"layer-render-acceptance-FW9QsS","tests":97,"passed":97,"failed":0,"skipped":0,"durationMs":1285674.261708,"endedAt":"2026-09-13T13:23:14.709Z","referenceFilesUnchanged":266},
+  "latestRemote":{"head":"bc9feb0a3787a7106c5100a7dd3327e864eac2cd","runId":34758668840,"tests":25,"passed":25,"failed":0,"skipped":0,"durationMs":165074.959708},
+  "limits":["不调用弹窗或网络，不代表API业务路径全部验收","全仓仍13错误，渐进lint绿不能替代全仓通过","全量和远端记录属于本项前提交，未混为本项新增测试结果"]
+}

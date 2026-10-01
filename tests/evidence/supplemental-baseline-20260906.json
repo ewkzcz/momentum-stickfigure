@@ -1,0 +1,32 @@
+{
+  "point": "补充公开PSD和预设生命周期基线",
+  "date": "2026-09-06",
+  "baselineCommit": "652f31dbf4f3c0df980cc56b140408cae3ec8b4d",
+  "publicFixtures": {
+    "count": 3,
+    "dimensions": [96, 96],
+    "features": ["独立黑灰白图层蒙版及不同边界", "同底层的两个连续剪切图层", "normal/multiply/screen/overlay及非满值透明度"],
+    "deterministicGenerationAndReadback": true,
+    "scenes": 54,
+    "independentReplaysPassed": 2,
+    "prePreviewFixMaskCanvasComparison": "失败采集保留的16幅原画布与修复后独立参考RGBA零差异；未覆盖旧文件"
+  },
+  "presetLifecycle": {
+    "verified": ["预设快照与当前编辑状态分离", "跨两份PSD返回恢复编辑状态", "显式选择预设恢复快照", "删除选中预设恢复编辑状态", "预览文件及元数据真实删除", "重启后删除结果保留"],
+    "layout": "固定Chromium视口1024x700、DPR=1及页面焦点；连续三张实际截图RGBA稳定后与不可变参考零差异比较",
+    "environmentDiagnosis": "macOS原生窗口1024x700并不能约束Playwright空viewport及DPR=2；旧失败图2048x1400。历史65037像素RGB差异的具体触发原因因原环境未记录而不能精确追溯。",
+    "candidateAcceptance": "新独立环境采集后至少两次回放通过，随后默认入口及统一测试亦通过；旧候选未修改"
+  },
+  "fullRegression": {
+    "command": "npm test",
+    "reportedTests": 10,
+    "passed": 10,
+    "failed": 0,
+    "originalPrivatePsdScenes": 100,
+    "originalReferencesUnchanged": true,
+    "lint": "通过",
+    "build": "当前业务产物已构建通过；本提交只补充测试",
+    "sourceSize": "六个遗留超限，零新增或增长"
+  },
+  "limitations": ["布局测试固定浏览器环境，不验证原生尺寸及焦点行为", "合成参考固定现有算法行为，不宣称符合Photoshop全部效果", "任务终止恢复、其它页面和跨平台安装产物待后续阶段"]
+}

@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "scope": "总规划连续推进：预设延迟交互、保存顺序、IPC注销、外部链接协议及菜单提示遮挡",
+  "baseline": "6a71b4f968062e4ad573ffb4e9fda61966929c6e",
+  "units": [
+    { "commit": "937e8fac8a53aeaa1df233cd3727f797cf31d8b2", "scope": "预设删除确认、名称nextTick聚焦、取消预设完成提示的会话归属", "beforeLog": "temp/preset-adjacent-ui-before.log", "before": { "tests": 13, "pass": 4, "fail": 9 }, "targetedDirectory": "temp/preset-adjacent-ui-acceptance-NhtN5h", "targeted": { "tests": 58, "pass": 58, "fail": 0 } },
+    { "commit": "1536c9cdee4a9a8563346a4b4c467267c692d90c", "scope": "同页面保存逆序保留最新成功快照；异步准备后同步读取合并最新全局数据", "beforeLog": "temp/preset-save-order-before.log", "before": { "tests": 3, "pass": 0, "fail": 3 }, "finalNewTests": 7, "targetedDirectory": "temp/preset-save-order-acceptance-lNaFDB", "targeted": { "tests": 65, "pass": 65, "fail": 0 }, "limits": ["提交次序仅在同一usePresetData实例维护，不保证跨页面实例或多窗口事务。", "旧格式迁移、导入并发、共享图片引用及保存失败提示仍需独立处理。", "失败或取消的新保存不阻止较早有效快照提交。"] },
+    { "commit": "8ebf538bb9fdc94c3af320a54015adeb5dba438f", "scope": "10组invoke处理器使用removeHandler注销，补齐show-save-dialog和save-temp-image", "beforeLog": "temp/ipc-handler-disposal-before-corrected.log", "before": { "tests": 10, "pass": 0, "fail": 10 }, "targetedDirectory": "temp/ipc-handler-disposal-acceptance-bQiKCg", "targeted": { "tests": 25, "pass": 25, "fail": 0 }, "fixtureCorrection": "初始夹具custom-dialog注册尝试访问/unused；修正existsSync隔离边界后用1536c9c源码重新复现。该夹具错误不计业务失败。" },
+    { "commit": "611bab60b7ea8ebd1d363413aa6970b407ce55ee", "scope": "主窗口、webview弹出链接与shell IPC共享标准URL解析及HTTP(S)限制；系统打开失败被捕获", "beforeLog": "temp/external-link-policy-before-corrected.log", "before": { "tests": 2, "pass": 0, "fail": 2 }, "targetedDirectory": "temp/external-link-policy-acceptance-bkayru", "limits": ["仅统一系统外链协议边界，未覆盖IPC来源授权、同窗导航和第三方真实登录。", "原生openExternal为受控边界，未调用本地协议或实际外站。", "首次main测试错误假定createWindow返回窗口；捕获构造实例后重新复现。"] },
+    { "commit": "d2c4c5daf186f226914b098dc9d5428c9829a403", "scope": "更多菜单纯说明提示使用pointer-events:none，避免覆盖选项时阻止真实点击", "beforeDirectory": "temp/toolbar-tooltip-new-show-before-acceptance-KTkmFh", "before": { "tests": 1, "pass": 0, "fail": 1 }, "targetedDirectory": "temp/toolbar-tooltip-after-acceptance-a3KSZL", "coverage": ["实际桌面浮层指针命中与真实菜单点击", "工具栏布局与截图回归", "20轮缓存进出、区域模式与2轮真实卸载生命周期"], "investigation": "最初探针误用不存在的菜单文案，修正后正常。直接悬停和重入未等待旧提示真正消失时探针通过；等待旧提示hidden再悬停创建新浮层后，elementFromPoint稳定命中说明浮层。没有改断言或强制点击绕过失败，也未更新参考。" }
+  ],
+  "firstFullAcceptance": {
+    "head": "611bab60b7ea8ebd1d363413aa6970b407ce55ee",
+    "passed": false,
+    "directory": "temp/remaining-defects-acceptance-Kh5omn",
+    "log": "temp/plan-continuous-full.log",
+    "tests": 318, "pass": 317, "fail": 1,
+    "failure": "action-page-lifecycle.test.mjs:441的切换画布缩放点击被更多功能选项提示浮层拦截而超时。",
+    "resolution": "保留失败并独立验证浮层命中，d2c4c5d修复后同例、原生命周期及完整验收通过。"
+  },
+  "fullAcceptance": {
+    "command": "node scripts/verify-remaining-defects.mjs all",
+    "head": "d2c4c5daf186f226914b098dc9d5428c9829a403",
+    "passed": true,
+    "directory": "temp/remaining-defects-acceptance-LiwOJL",
+    "log": "temp/plan-continuous-full-after-tooltip.log",
+    "tests": 319, "pass": 319, "fail": 0, "skipped": 0, "cancelled": 0,
+    "durationMs": 1453165.685375,
+    "finishedAt": "2026-09-15T01:02:11.353Z",
+    "manifestSha256": "761e013a561b6f32799f8c1a4afb8f60424af5a2129c53ee2034e5af3d48b199",
+    "integrityErrors": [],
+    "referenceFiles": 266,
+    "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed"
+  },
+  "limits": [
+    "此为连续推进阶段证据，不是项目优化规划全部完成声明。",
+    "证据在完整验收之后新增，319项归属于d2c4c5d。",
+    "历史自然预览超时仍未定位，不因本次完整通过取消历史失败。",
+    "来源与IPC授权、文件符号链接、webSecurity/sandbox/CSP、按来源权限、密钥流转、Python进程树与跨平台安装等仍未全面完成。"
+  ]
+}

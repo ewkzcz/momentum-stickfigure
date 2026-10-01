@@ -1,0 +1,43 @@
+{
+  "baseline": "ad18ce91b1e656e204fa256292965562cd6efeab",
+  "scope": "剩余12条源码静态错误修复及回归验收；2026-09-13按小单元验证、提交并普通推送dev",
+  "render": {
+    "beforeCommand": "MOMENTUM_RENDER_CONTRACT_REVISION=ad18ce9 node --test tests/render-part-contract.test.mjs",
+    "before": { "tests": 12, "pass": 0, "fail": 12, "log": "temp/render-part-before-final.log" },
+    "after": { "tests": 12, "pass": 12, "fail": 0 },
+    "coverage": ["正常及主/离屏上下文、映射异常的收尾", "统计容器每调用独立", "真实原生Canvas剪切组内容、蒙版及输出像素", "后面和后续五个控制位独立"],
+    "boundaries": ["替代通知及性能记录接口以观察收尾；原生Image回调适配浏览器async onload", "受控组按现有规则跳过非方向通用控制；其他开关通过公开组渲染接口的非受控子层验证", "未改原有组路径构造和正常绘制算法"]
+  },
+  "contracts": { "command": "node --test --test-concurrency=1 tests/render-part-contract.test.mjs tests/action-shared-refs.test.mjs tests/comic-components.test.mjs", "tests": 32, "pass": 32, "fail": 0 },
+  "sharedRefs": { "coverage": ["五个共享引用身份、默认实例隔离及页面AST接线", "异步绘制成功/失败释放同一忙碌状态", "真实预设和预览订阅的等待与恢复", "真实拖拽参数及主进程文件写入，图层优先级强制重命名保留原文件"] },
+  "comicDesktop": {
+    "command": "node --test --test-concurrency=1 tests/comic-export-desktop.test.mjs tests/comic-image-interaction.test.mjs",
+    "tests": 3, "pass": 3, "fail": 0,
+    "log": "temp/comic-desktop-final.log",
+    "initialFailure": "新增素材测试使用Playwright鼠标点击素材时出现原生show事件，后台保护终止应用；诊断保留于temp/comic-images-*.log及对应隔离目录。DOM focus/文件选择隔离均未消除，改为公开DOM click事件选择素材后通过。",
+    "boundary": "保留全部后台保护；素材选择使用dispatchEvent，文件经真实input/change和FileReader处理；不宣称操作系统焦点或原生文件选择通过。缩放旋转输入、重置和导出使用真实公开控件。"
+  },
+  "quality": { "sourceLint": "npx eslint src通过", "explicitLint": "npm run lint通过并纳入遗漏文件", "size": "无超限或违规", "build": "npm run build通过，保留既有大chunk警告" },
+  "fullAcceptance": {
+    "status": "passed",
+    "runner": "scripts/verify-remaining-defects.mjs",
+    "policy": "源码测试与产物指纹、串行构建和回归、冻结参考只读、失败不自动重跑；版本化入口在失败路径也复核清单和参考。",
+    "firstFailure": { "directory": "temp/remaining-defects-acceptance-Kvag1U", "tests": 133, "pass": 131, "fail": 2, "cause": "两项旧测试默认采集洁净源码基线，未提交修复触发前置断言；当轮未执行这两项业务场景，首次日志保留。" },
+    "resolution": "保留历史基线和对照限制；通过MOMENTUM_ACCEPTANCE_MANIFEST显式启用regression模式，真实Git状态及源码、测试、配置、out逐文件SHA-256运行前后校验；回归证据禁止作为原版基线。新增10项清单与模式契约测试。",
+    "historicalTargeted": { "command": "node temp/verify-remaining-defects.mjs targeted", "directory": "temp/remaining-defects-acceptance-ePdMfO", "tests": 12, "pass": 12, "fail": 0, "skipped": 0 },
+    "historicalAll": { "command": "node temp/verify-remaining-defects.mjs all", "directory": "temp/remaining-defects-acceptance-xssPs5", "referenceEvidence": "temp/layer-render-acceptance-A5MMgQ", "head": "e8b84fe3da642ee4b3c4ff2b1168dd9e0b7a2de5", "tests": 143, "pass": 143, "fail": 0, "skipped": 0, "cancelled": 0, "durationMs": 1288042.367083, "finishedAt": "2026-09-13T16:44:20.709Z", "boundary": "此前完整未提交工作区结果，不作为中间提交验收结果。原清单及汇总更新前摘要仍保留。" },
+    "commitVerification": {
+      "method": "每步将git write-tree得到的暂存树检出到独立临时仓库；HEAD保持父提交、暂存树包含本步修改；验证后断言副本与原暂存树一致，再提交并普通推送。没有在主工作区隐藏或丢弃后续修改。",
+      "localIndex": "temp/small-commit-progress.json",
+      "steps": [
+        { "step": 1, "commit": "d1df508f9f0e994f009e8ccacad4df85d51169bf", "tree": "86242d5ddbb1ea612da1208cb55e789982911e46", "title": "fix: 修复部件渲染收尾作用域与剪切组参数", "contracts": 12, "checks": ["lint", "size", "staged-whitespace"], "logs": "temp/small-commit-1-*.log" },
+        { "step": 2, "commit": "1984f9406d83b09fb74fc94db7e25e27d16b6e61", "tree": "c736c64163c469cbfb83891700623c4bd844129f", "title": "fix: 统一人物页共享响应式状态", "contracts": 18, "desktopFiles": ["tests/part-selection.test.mjs", "tests/template-application.test.mjs", "tests/preview-close.test.mjs"], "checks": ["lint", "size", "staged-whitespace", "build", "references-before", "references-after"], "logs": "temp/small-commit-2-*.log" },
+        { "step": 3, "commit": "2901c1c1dc403c8bb85af8ed8bdabb33b72fc8ef", "tree": "afe0e78f5540ae068af664e8b32b77a22a12e950", "title": "fix: 修复漫画导出目录选择与组件声明", "contracts": 14, "desktopTests": 3, "checks": ["lint", "source-lint", "size", "staged-whitespace", "build"], "logs": "temp/small-commit-3-*.log" },
+        { "step": 4, "commit": "c8195ae4ee8b751763ae12ba79cf1bbb29a6fd81", "parentDuringVerification": "2901c1c1dc403c8bb85af8ed8bdabb33b72fc8ef", "tree": "9cd0022e6eddd9eaff868e7c3b1e552aea64c0bf", "title": "test: 区分历史基线与工作区回归验收", "targeted": { "command": "node scripts/verify-remaining-defects.mjs targeted", "tests": 12, "pass": 12, "fail": 0, "log": "temp/small-commit-4-targeted.log" }, "all": { "command": "node scripts/verify-remaining-defects.mjs all", "tests": 143, "pass": 143, "fail": 0, "skipped": 0, "cancelled": 0, "durationMs": 1290089.4845, "log": "temp/small-commit-4-all.log", "evidenceDirectoryInSnapshot": "temp/remaining-defects-acceptance-tuMwy3", "referenceEvidenceInSnapshot": "temp/layer-render-acceptance-gNUoow" } }
+      ]
+    },
+    "integrity": { "inputsUnchanged": true, "outputsUnchanged": true, "gitStateUnchanged": true, "runnerIncludedInInputInventory": true, "referenceFiles": 266, "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed", "originalReferenceFiles": 260, "originalReferenceDigestSha256": "0149579e558783473c00392ce0d69b9e736f40ac0e2f711fd3e645a296c26fde" },
+    "postAcceptanceUpdate": "本文件作为第5个纯证据提交，在第4步暂存树全量验收通过后新增；它不属于第4步验收清单的输入。本提交仅核验JSON、引用关系和差异，不声称其完整树再次执行143项。重新验收应运行版本化入口生成新清单。",
+    "limits": ["本轮仅dev新增小单元提交和普通推送，main不变，不再改写历史。", "仅显式回归模式增加完整清单校验；原历史基线模式保持原有检查，部分依赖和构建配置仍要求洁净。", "清单由本地可信构建入口生成，不是签名构建证明；独立副本复用现有node_modules，不验证全新安装或依赖字节。", "本地完整回归依赖授权PSD及冻结参考；克隆仓库不自动包含这些资产，缺少时明确失败，不自动录制参考。", "本轮完成不代表全项目所有历史优化建议均完成；原生系统焦点、原生拖拽、跨平台安装包和真实AI/Python服务不属于本次验证结论。"]
+  }
+}

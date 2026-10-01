@@ -1,0 +1,11 @@
+{
+  "baselineCommit": "e25827b709bd5dee2e5bd798b4740f3cae0a1b1a",
+  "scope": "人物设置域维护唯一配置、两个忙碌ref、命名选项和默认值及八个原函数；跨域加载/导入继续操作同一对象。",
+  "baseline": {"provenance": "temp/stickfigure-domain-baseline-1789256524234", "archive": "17rKCE", "basic": "HWqAAJ", "frontHand": "VcXRyB", "groupNames": "h3TyF0", "passed": 4, "durationMs": 92909},
+  "candidate": {"provenance": "temp/stickfigure-domain-candidate-1789257270824", "archive": "rwuLcS", "basic": "zcFSHH", "frontHand": "FzyfJN", "groupNames": "X3eDDk", "passed": 4, "durationMs": 92993, "sourceAndBuildStable": true},
+  "checks": ["temp/verify-stickfigure-settings-extraction.mjs：八函数正文注释、七状态常量、读取原位置、父页剩余脚本及模板样式AST一致", "npm run lint通过，仅追加新模块", "严格规模扫描超限0", "重新生产build通过", "git diff --check通过"],
+  "coverage": ["基础设置原版计算样式及截图零差异", "基础/前手/七类图组字段、取消重置、跨页签、真实磁盘备份及完整重启", "归档草稿来源、四域导出取消、旧字段和false值导入及多配置磁盘和重启严格对照"],
+  "preserved": ["人物localStorage读取仍位于生图域创建之后、两个hover设置之前", "共用isAbsolutePath只在父页，显式注入无重复实现", "初始化/挂载重载/导入对默认字段的旧差异保持", "未改渲染算法、真实配置、密钥或冻结参考"],
+  "retainedValidationMistake": "原版首命令误写settings-front-hand路径，新的存在性检查在Electron启动前拒绝；核对git清单后用settings-fronthand重新运行完整4项，没有隐式漏测。",
+  "limits": ["前手及图组名测试此轮为功能回归，未新增其专属截图比较", "跨域loadConfig/import仍在父页，设置职责未全部完成", "本候选未做完整全量验收", "全仓eslint最近26 errors，历史预览间歇空白未定位"]
+}

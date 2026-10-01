@@ -1,7 +1,9 @@
 /**
  * PSD 解析与页面初始化：调用桌面解析服务、缓存部件分类并协调首次载入状态。
  */
-import { markRaw } from 'vue'
+import { markRaw, onScopeDispose, ref } from 'vue'
+import { usePsdSessionGuard } from './usePsdSessionGuard.js'
+import { usePsdParseTasks } from './usePsdParseTasks.js'
 
 /**
  * PSD 文件解析与处理逻辑（核心）
@@ -178,6 +180,7 @@ const buildExpressionMeta = (tabs = [], expressionsMap = {}) => {
  * @param {Object} deps 依赖项，包含页面响应式状态与业务方法
  */
 export function usePsdParser(deps) {
+  const parseTasks = usePsdParseTasks()
   // 1、复用页面状态容器，避免产生另一份选中或图层数据
   const {
     // 基础依赖
@@ -185,8 +188,9 @@ export function usePsdParser(deps) {
 
     // 文件与当前数据
     psdFiles,
-    currentPsdFile,
-    currentPsdData,
+    // 仅使用 parsePsdFile 时无需注入页面会话；完整载入仍复用调用方的引用。
+    currentPsdFile = ref(null),
+    currentPsdData = ref(null),
 
     // 图层树与控制优先级
     layerTreeData,
@@ -249,6 +253,11 @@ export function usePsdParser(deps) {
     currentTab
   } = deps
 
+  const sessionGuard = usePsdSessionGuard({ currentPsdFile, currentPsdData })
+  const initializationTimers = new Set()
+  onScopeDispose(() => { for (const timer of initializationTimers) clearTimeout(timer); initializationTimers.clear() })
+  const cancelled = () => Object.assign(new Error('PSD载入已取消'), { name: 'AbortError' })
+
   // 2、由外部在历史模块初始化后注入路径保存方法，避免循环依赖
   /**
    * 历史路径保存的初始化占位。
@@ -297,27 +306,25 @@ export function usePsdParser(deps) {
    * @param {Object} parseOptions
    * @returns {Promise<Object>}
    */
-  const parsePsdFile = async (file, parseOptions = {}) => {
+  const parsePsdFile = async (file, parseOptions = {}, signal) => {
     // 1、保留调用方传入的解析选项覆盖默认值
     try {
-      const arrayBuffer = await file.arrayBuffer()
-      const result = await window.electronAPI?.invoke('psd-parse-file', {
-        fileBuffer: arrayBuffer,
-        parseOptions: {
-          parseImages: true,
-          parseChannelData: false,
-          validateFile: true,
-          processLayers: true,
-          autoDetectComponents: true,
-          ...parseOptions
-        }
-      })
+      const result = await parseTasks.parse(file, {
+        parseImages: true,
+        parseChannelData: false,
+        validateFile: true,
+        processLayers: true,
+        autoDetectComponents: true,
+        ...parseOptions
+      }, signal)
 
-      console.log('PSD文件解析成功:', result)
-
-      // 2、解开服务返回的兼容包装层，向页面提供实际 PSD 数据
+      // 2、区分 IPC 调用成功和内层解析成功，拒绝把失败对象当作 PSD 数据。
       if (result && result.success) {
+        if (result.data?.success === false) {
+          throw new Error(result.data.error || result.data.message || 'PSD文件解析失败')
+        }
         const actualData = result.data?.data || result.data
+        console.log('PSD文件解析成功:', result)
         console.log('📦 提取的实际数据:', actualData)
         return actualData
       }
@@ -339,9 +346,14 @@ export function usePsdParser(deps) {
    * @param {File} file
    * @param {boolean} showMessage
    */
-  const processFile = async (file, showMessage = true) => {
+  const processFile = async (file, showMessage = true, signal) => {
     // 1、在解析前记录真实路径，供后续历史恢复使用
+    let pendingFile = null
+    const assertImportActive = () => {
+      if (sessionGuard.disposed || signal?.aborted || (pendingFile && !psdFiles.value.includes(pendingFile))) throw cancelled()
+    }
     try {
+      assertImportActive()
       console.log('📁 开始处理文件:', file.name)
       console.log('📊 文件大小:', (file.size / 1024 / 1024).toFixed(2), 'MB')
 
@@ -362,7 +374,8 @@ export function usePsdParser(deps) {
         message.loading('正在解析PSD文件...', { duration: 0, key: 'parse' })
       }
 
-      const parsedData = await parsePsdFile(file)
+      const parsedData = await parsePsdFile(file, {}, signal)
+      assertImportActive()
       const data = markRaw(parsedData)
 
       console.log('✅ PSD解析完成')
@@ -379,10 +392,12 @@ export function usePsdParser(deps) {
       })
 
       // 添加到文件列表
+      pendingFile = psdFileData
       psdFiles.value.push(psdFileData)
 
       // 解析并分类图层部件，保存到缓存与当前展示容器
       const parts = await classifyParts(data)
+      assertImportActive()
       
       // 缓存分类结果（用于后续切换复用）
       try {
@@ -539,7 +554,10 @@ export function usePsdParser(deps) {
         }
 
         // 初始化状态与预设
-        setTimeout(async () => {
+        const isSessionCurrent = sessionGuard.capture()
+        const timer = setTimeout(async () => {
+          initializationTimers.delete(timer)
+          if (!isSessionCurrent()) return
           try {
             // 重置用户交互状态
             if (userInteracted) {
@@ -580,7 +598,7 @@ export function usePsdParser(deps) {
             // 安全加载预设后渲染（防抖切换）
             const currentPsdId = psdFileData.id
             await loadPresets()
-            if (currentPsdFile.value?.id === currentPsdId) {
+            if (isSessionCurrent() && currentPsdFile.value?.id === currentPsdId) {
               renderAllLayers()
             } else {
               console.warn('⚠️ PSD已切换，忽略过期的预设渲染:', currentPsdId)
@@ -589,13 +607,21 @@ export function usePsdParser(deps) {
             console.warn('⚠️ 初始化首次PSD状态失败:', e)
           }
         }, 100)
+        initializationTimers.add(timer)
       }
 
+      pendingFile = null
       // 5、按调用参数清理当前解析进度消息
       if (showMessage) {
         message.destroyAll()
       }
     } catch (error) {
+      if (pendingFile && (sessionGuard.disposed || signal?.aborted || !psdFiles.value.includes(pendingFile))) {
+        const index = psdFiles.value.indexOf(pendingFile)
+        if (index !== -1) psdFiles.value.splice(index, 1)
+        delete psdPartsCache?.value[pendingFile.id]
+        error = cancelled()
+      }
       console.error('❌ 文件处理失败:', error)
       console.error('错误堆栈:', error.stack)
       if (showMessage) {

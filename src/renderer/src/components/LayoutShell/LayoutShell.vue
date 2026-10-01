@@ -192,9 +192,14 @@ const iconMap = {
   'dialog': '💬',
   'dialog-frame': '🖼️',
   'generation': '🤖',
-  'generate': '🍌',
+  'generate': '🎨',
   'hd-toolkit': '🪄',
   'video-subtitle-ocr': '📝',
+  'script-studio': '📜',
+  'video-studio': '🎬',
+  'settings-creative': '🧩',
+  'settings-video': '🎬',
+  'settings-llm': '💬',
   'settings': '⚙️',
   'settings-stickfigure': '🎨',
   'settings-hotkeys': '⌨️',
@@ -277,15 +282,23 @@ const menuOptions = [
     key: 'generation',
     children: [
       {
-        label: '图像处理插件',
-        key: 'image-processing'
-      },
-      {
-        label: 'AI生图插件',
+        label: 'AI绘图',
         key: 'generate'
       },
       {
-        label: '抠图高清插件',
+        label: '剧本创作台',
+        key: 'script-studio'
+      },
+      {
+        label: '视频创作台',
+        key: 'video-studio'
+      },
+      {
+        label: '图像处理',
+        key: 'image-processing'
+      },
+      {
+        label: '抠图高清',
         key: 'hd-toolkit'
       }
     ]
@@ -303,8 +316,20 @@ const menuOptions = [
         key: 'settings-hotkeys'
       },
       {
-        label: '纳米香蕉生图设置',
+        label: 'AI生图设置',
         key: 'settings-gemini'
+      },
+      {
+        label: 'AI视频设置',
+        key: 'settings-video'
+      },
+      {
+        label: '文本模型设置',
+        key: 'settings-llm'
+      },
+      {
+        label: 'Skills设置',
+        key: 'settings-creative'
       },
       {
         label: '抠图高清设置',

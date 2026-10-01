@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-15",
+  "scope": "doubao:drag-start及doubao:prepare-file-async的载荷参数校验",
+  "baseline": {
+    "directory": "temp/browser-drag-parameters-before-acceptance-VzruCJ",
+    "passed": 0,
+    "failed": 1,
+    "finding": "首个%%%错误图片编码仍返回成功；基线未运行后续超大图标负例。"
+  },
+  "after": {
+    "directory": "temp/browser-drag-parameters-after-acceptance-9IF4fV",
+    "passed": 5,
+    "failed": 0,
+    "durationMs": 4105.93625,
+    "referencesBefore": 0,
+    "lint": 0,
+    "size": 0,
+    "build": 0,
+    "referencesAfter": 0,
+    "inputAndArtifactManifest": "passed"
+  },
+  "changes": [
+    "调用原生图像接口和写盘前检查普通对象、图片Base64结构与64MiB字节预算。",
+    "直接拖拽要求图片dataURL，准备接口保持裸Base64。",
+    "检查媒体类型、255字符单段文件名与1至1024整数图标尺寸。",
+    "保留中文空格、首尾空白清理、旧有限数值和布尔文件名转换及默认命名。旧路径拒绝错误文本保持不变。"
+  ],
+  "limitations": [
+    "本单元未实现默认图片输出目录的符号链接授权，也未修改历史同步拖拽入口或隐藏宿主。",
+    "图片压缩字节限制不代表解码像素/RSS硬上限。",
+    "强制后台bootstrap仍隔离系统拖拽；本结果不替代真实网页或真实系统拖拽验收。",
+    "5项为定向回归，不是当前累计完整验收。"
+  ]
+}

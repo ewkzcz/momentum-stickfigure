@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-13",
+  "subject": "系统拖拽启动异常后的本次focus监听清理",
+  "baselineHead": "1856bc9db1a0d53a05a2ad437d52db36371bff16",
+  "baseline": {"provenance": "temp/drag-start-failure-1789293897648", "root": "momentum-regression-vd4Ekb", "passed": false, "focusBefore": 2, "focusAfterFailure": 3},
+  "change": "仅包裹startDrag，在同步抛错时按本次handleFocus引用移除监听并原样重抛到旧错误包装；保持已写文件、成功订阅和返回契约",
+  "candidate": {"provenance": "temp/drag-start-failure-candidate-1789294034303", "roots": ["momentum-regression-5VlkMp", "momentum-regression-PKNenv"], "tests": 3, "passed": 3, "failed": 0, "durationMs": 1968.65175, "coverage": ["20轮受控原生启动失败后监听数不增加", "原启动前落盘字节保留", "恢复原helper记录入口后成功返回及文件记录一致，一次性focus订阅保持", "原独立拖拽订阅单元回归通过"]},
+  "checks": {"build": true, "progressiveLint": true, "strictSize": true, "diffCheck": true},
+  "limits": ["未执行真实系统拖拽到外部软件", "未触发原生focus或绕过后台保护", "未验证成功拖拽后实际回焦时序", "原desktop/helper未修改，测试仅替代既有原生边界使之抛错"],
+  "latestFullRegressionBeforeChange": {"evidenceId": "layer-render-acceptance-4PBAYZ", "tests": 83, "passed": 82, "failed": 1, "skipped": 0, "durationMs": 1198847.350875, "endedAt": "2026-09-13T10:04:57.616Z", "failure": "settings-basic.test.mjs waitForDisk读取JSON报Unexpected end of JSON input", "referencesUnchanged": 266, "sameSourceIndependentRerun": {"provenance": "temp/settings-basic-after-json-failure-1789293947136", "root": "momentum-regression-999Vf1", "passed": true, "durationMs": 13712.403042}, "limitation": "独立复跑通过不证明间歇磁盘读取问题已修复；未修改测试等待或断言"}
+}

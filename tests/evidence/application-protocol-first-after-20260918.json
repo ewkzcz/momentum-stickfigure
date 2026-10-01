@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "head": "21138eb3e9d4fb792183e475857bc8481ea3824f",
+  "acceptanceDirectory": "temp/application-protocol-first-after-acceptance-6kVcxG",
+  "result": "temp/application-protocol-first-after-acceptance-6kVcxG/result.json",
+  "tests": { "total": 19, "passed": 9, "failed": 10, "cancelled": 0, "durationMs": 311390.051083, "exitCode": 1 },
+  "checks": { "referencesBefore": 0, "lint": 0, "size": 0, "build": 0, "referencesAfter": 0 },
+  "rootCause": "强制CJS后台bootstrap动态导入ESM业务入口，业务静态依赖求值后app已ready；registerApplicationScheme的pre-ready断言拒绝启动。全部10个真实Electron测试在启动阶段失败，不能据此判断CORS/CSP或存储恢复通过。",
+  "cleanupIncident": {
+    "test": "tests/response-policy-preservation.test.mjs",
+    "reason": "launchDesktop位于try/finally之前，启动失败留下本地HTTP监听；测试报告失败后Node进程仍未退出。",
+    "observedPid": 27422,
+    "observedElapsed": "05:02",
+    "observedListener": "localhost:61339",
+    "action": "确认没有Electron子进程后，仅向该残留测试Node进程发送SIGTERM；父级验收保留原测试失败并以1退出。",
+    "followup": "将启动纳入try、服务器清理放入嵌套finally；不改业务断言。该修正尚未复验。"
+  },
+  "limitations": [
+    "这是协议候选第一次定向验收失败，不是最终累计验收。",
+    "未改后台网络、子进程、系统交互或webview保护。",
+    "原file入口CORS失败证据继续保留；当前协议仍未可用，不能提交为已验收修复。",
+    "三类必要外部验收仍未验证。"
+  ]
+}

@@ -6,6 +6,7 @@
         <div class="loading-spinner"></div>
         <div class="loading-text">正在检查环境...</div>
         <div class="loading-hint">请稍候</div>
+        <n-button :loading="cancelling" :disabled="cancelling" @click="cancelTask">取消检查</n-button>
       </div>
     </div>
     
@@ -31,6 +32,7 @@
                     size="small"
                     type="primary"
                     :loading="envStatus.installing"
+                    :disabled="isProcessing || envStatus.cleaning || envStatus.installing || cancelling"
                     @click="installEnvironment"
                   >
                     {{ envStatus.installing ? '安装中...' : '一键安装环境' }}
@@ -41,6 +43,7 @@
                     type="error"
                     ghost
                     :loading="envStatus.cleaning"
+                    :disabled="isProcessing || envStatus.cleaning || envStatus.installing || cancelling"
                     @click="cleanAndReinstall"
                   >
                     {{ envStatus.cleaning ? '清理中...' : '清理环境' }}
@@ -140,6 +143,7 @@
                     <span style="font-size: 16px;">🔑</span>
                   </template>
                 </n-input>
+                <RelaySignupLink />
               </div>
 
               <div class="control-field">
@@ -168,10 +172,16 @@
             <div class="workspace-header-title">视频字幕高精度提取</div>
             <n-space>
               <n-button
+                v-if="isProcessing || envStatus.installing || envStatus.cleaning"
+                :loading="cancelling"
+                :disabled="cancelling"
+                @click="cancelTask"
+              >取消当前任务</n-button>
+              <n-button
                 type="primary"
                 size="large"
                 :loading="isProcessing"
-                :disabled="!selectedVideo || !envStatus.installed"
+                :disabled="!selectedVideo || !envStatus.installed || isProcessing || envStatus.installing || envStatus.cleaning || cancelling"
                 @click="startProcess"
               >
                 {{ isProcessing ? '处理中...' : '开始提取字幕' }}
@@ -282,6 +292,7 @@
 
 <script setup>
 /** 视频字幕提取页面：复用 Python 环境，管理依赖安装、OCR 进度及 AI 纠错输出。 */
+import { useProcessCancellation } from '@renderer/utils/composables/useProcessCancellation.js'
 import { normalizeApiBaseUrl } from '@shared/api-url.js'
 import { ref, reactive, onMounted, onActivated, onBeforeUnmount } from 'vue'
 import { 
@@ -290,6 +301,7 @@ import {
   useMessage 
 } from 'naive-ui'
 import { useRouter } from 'vue-router'
+import RelaySignupLink from '@renderer/components/shared/RelaySignupLink.vue'
 import { useTheme } from '../../../utils/composables/useTheme'
 import './VideoSubtitleOcrPage.css'
 
@@ -297,6 +309,7 @@ import './VideoSubtitleOcrPage.css'
 const { currentTheme } = useTheme()
 
 const message = useMessage()
+const { cancelling, cancel: cancelTask } = useProcessCancellation(() => window.videoOcr, message)
 const router = useRouter()
 
 // 环境状态
@@ -709,7 +722,7 @@ async function startProcess() {
   
   if (!config.pythonHome) {
     message.error('Python环境未配置，请先在【设置 > 抠图高清设置】中配置Python路径')
-    router.push('/settings')
+    router.push('/settings/hd-toolkit')
     return
   }
   
@@ -751,7 +764,9 @@ async function startProcess() {
   processProgress.status = 'default'
   processProgress.message = '正在初始化...'
   result.show = false
-  
+
+  // 本次调用独立持有取消函数，异常时也能释放，不覆盖其他任务的订阅。
+  let unsubscribeProgress = null
   try {
     const payload = {
       pythonHome: config.pythonHome,
@@ -776,18 +791,17 @@ async function startProcess() {
     }
     
     if (window.videoOcr.onProgress) {
-      const unsubscribe = window.videoOcr.onProgress(progressHandler)
       // 保存取消订阅函数，处理完成后调用
-      window.__videoOcrUnsubscribe = unsubscribe
+      unsubscribeProgress = window.videoOcr.onProgress(progressHandler)
     }
     
     // 4、订阅完成后提交任务，避免漏掉初始化进度。
     const response = await window.videoOcr.processVideo(payload)
     
     // 5、正常收到响应后解除订阅，再按响应结果更新界面。
-    if (window.__videoOcrUnsubscribe) {
-      window.__videoOcrUnsubscribe()
-      window.__videoOcrUnsubscribe = null
+    if (unsubscribeProgress) {
+      unsubscribeProgress()
+      unsubscribeProgress = null
     }
     
     if (response?.success) {
@@ -816,7 +830,12 @@ async function startProcess() {
     processProgress.status = 'error'
     processProgress.message = '处理失败'
   } finally {
-    isProcessing.value = false
+    // 6、桥接请求拒绝时补做本次订阅清理，正常响应已在原位置释放。
+    try {
+      if (unsubscribeProgress) unsubscribeProgress()
+    } finally {
+      isProcessing.value = false
+    }
   }
 }
 

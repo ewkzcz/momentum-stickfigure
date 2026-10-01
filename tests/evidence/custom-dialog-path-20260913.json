@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-13",
+  "subject": "自定义图片删除限制为直接文件名",
+  "baselineHead": "ed10793045b8a5b147aef716b9d5606c213c0623",
+  "fullRegressionBeforeChange": {"evidenceId": "layer-render-acceptance-Npezhp", "tests": 86, "passed": 86, "failed": 0, "skipped": 0, "durationMs": 1242026.780416, "endedAt": "2026-09-13T10:42:01.996Z", "referenceFiles": 266, "referenceSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed"},
+  "baseline": {"provenance": "temp/custom-dialog-path-1789296122514", "root": "momentum-regression-LafYw3", "passed": false, "observed": "真实公开delete('../regression-owned-marker.txt')删除了隔离userData内图片目录之外的测试自有哨兵"},
+  "change": "delete-custom-dialog在原path.join类型校验之后拒绝空名称、点目录、斜杠、反斜杠和绝对路径；保留原非法类型错误和合法文件删除返回",
+  "candidate": {"provenance": "temp/custom-dialog-path-candidate-1789296224771", "roots": ["momentum-regression-sFFYEM", "momentum-regression-8Jd6RZ", "momentum-regression-hH8XiR"], "tests": 3, "passed": 3, "failed": 0, "durationMs": 3961.784458, "coverage": ["九种父目录/分隔符/绝对路径/空点名称拒绝且哨兵保留", "中文空格文件名保存删除及缺失提示保持", "原完整保存扫描删除、类型失败、目录错误及重启契约通过"]},
+  "checks": {"build": true, "progressiveLint": true, "strictSize": true, "diffCheck": true},
+  "limitations": ["只限制此删除入口的直接名称，不等同所有文件IPC授权", "目录本身被外部替换或父目录符号链接竞争未覆盖", "原保存和扫描的扩展名/内容宽松语义未改", "只操作本次隔离目录，原helper未修改", "当前修改尚未全量回归"]
+}

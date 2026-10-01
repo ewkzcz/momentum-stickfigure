@@ -1,0 +1,9 @@
+{
+  "scope": "批准项3第一单元：高清任务取消超时与退出清理基础",
+  "changes": ["共享进程执行器限制输出、超时和取消时终止进程组，等待close及组退出确认", "任务按窗口和业务域归属，异步信号传至高清Python调用", "hd:cancel仅可信main可调用且等待该窗口高清任务结束", "窗口destroyed触发取消，应用will-quit同时等待PSD与受管任务", "preload增加高清cancel能力"],
+  "baseline": "源码确认原runPythonInline没有取消信号、超时与任务登记；此单元新增能力的验收使用真实受控Node进程，未执行旧Python无限任务，不声称已有修复前运行复现。",
+  "firstAcceptance": { "evidence": "hd-managed-process-final-acceptance-6agAjR", "passed": 8, "failed": 1, "failure": "真实后代已结束时进程组kill(0)返回EPERM，不能确认退出", "resolution": "EPERM路径仅在系统ps进程表确认已无同组成员时判定退出；不忽略实际存活组" },
+  "after": { "evidence": "hd-managed-process-recheck-acceptance-Mdyb7p", "passed": 8, "failed": 0, "skipped": 0, "durationMs": 37953.108459, "lintSizeBuild": true, "inputsOutputsReferencesUnchanged": true },
+  "coverage": ["真实子进程成功失败超时取消与恢复", "忽略SIGTERM后的SIGKILL退出", "真实后代进程组清理", "任务owner取消隔离、销毁、退出与恢复", "真实高清处理器经受控执行脚本取消后进程消失及后续成功", "隔离Electron高清配置重启及十轮窗口生命周期"],
+  "limits": ["高清处理器测试替代Electron配置边界及Python脚本为无依赖Node夹具，未验证真实模型推理", "Generate工作流在firstAcceptance通过，后续仅退出确认逻辑修正未重跑该长用例", "macOS arm64验证，Windows taskkill分支未实测", "新增取消API尚未接入全部页面按钮；OCR执行链尚未接入，本项3仍未完成", "沙箱曾拒绝孤立进程组查询，测试以批准的沙箱外命令复核；隔离桌面后台策略保持不变", "应用退出的实际运行Python场景仍需后续补测，不用普通窗口退出替代"]
+}

@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "scope": "内嵌网页记录、尺寸监听与失效主题任务释放；未调整沙箱、网页安全配置、第三方登录或绘制算法",
+  "baseline": "b478462144e34f9ccf07204dbb6111630325f90b",
+  "commits": [
+    { "prefix": "b98a46a", "title": "fix: 清理内嵌网页销毁后的记录与尺寸监听" },
+    { "hash": "1b1314a3ea0578efd78bacd95879e4b71f25ead0", "title": "fix: 取消内嵌网页失效实例的延迟主题任务" }
+  ],
+  "baselineChecks": { "desktopTests": 7, "passed": 7, "log": "temp/browser-baseline-desktop.log", "build": "temp/browser-baseline-build.log", "referencesBefore": "temp/browser-baseline-references-before.log", "referencesAfter": "temp/browser-baseline-references-after.log" },
+  "failuresPreserved": [
+    { "log": "temp/browser-lifecycle-before-contracts.log", "description": "真实控制器隔离边界测试复现7项记录/尺寸监听与4项初始主题任务残留。Map仅在测试加载环境透明观察，不添加生产调试接口。" },
+    { "log": "temp/browser-record-desktop-before.log", "description": "b478462已构建产物上真实网页销毁后，browserview:setBounds返回success:true而非视图不存在；源码修复后尚未重建时执行，明确区分源码与受测旧产物。" },
+    { "log": "temp/browser-theme-contract-before.log", "description": "b98a46a上正式9项主题契约复现失效任务、跨窗口关闭及CSS等待后继续执行问题。" },
+    { "log": "temp/browser-theme-desktop-after.log", "description": "新测试错误要求已被旧MutationObserver锁定的dark页面立即切为light而超时。本轮不调整旧主题锁定行为，改为验证原有dark注入、导航、刷新；独立b98a46a副本与修复版同一测试均通过。不声称深浅即时切换已修复。" },
+    { "description": "首条全量启动命令工作目录拼写错误，工具未返回终端结果；修正至真实仓库后执行完整验收。该启动错误不计作业务回归失败或成功。" }
+  ],
+  "targeted": {
+    "records": { "contracts": 7, "desktopRounds": 20, "desktopLog": "temp/browser-record-desktop-after.log", "relatedLog": "temp/browser-records-desktop.log" },
+    "themes": { "contracts": 9, "combinedContracts": 16, "contractLog": "temp/browser-lifecycle-contract-after.log", "desktopRounds": 3, "desktopLog": "temp/browser-theme-desktop-corrected.log", "originalDesktopLog": "temp/browser-theme-original-test.log", "relatedLog": "temp/browser-themes-desktop.log" },
+    "coverage": ["关闭、同键替换、宿主销毁、网页单独销毁、加载失败、在途旧请求和注销释放", "resize兼容降级监听解除且保留外部监听", "打开/导航/刷新延迟任务取消和有效实例检查", "关闭不取消另一窗口的主题任务", "CSS异步等待中关闭后不再执行脚本"]
+  },
+  "fullAcceptance": {
+    "passed": true,
+    "command": "node scripts/verify-remaining-defects.mjs all",
+    "head": "1b1314a3ea0578efd78bacd95879e4b71f25ead0",
+    "directory": "temp/remaining-defects-acceptance-pN9dfh",
+    "log": "temp/browser-lifecycle-full.log",
+    "tests": 161, "pass": 161, "fail": 0, "skipped": 0, "cancelled": 0,
+    "durationMs": 1287400.263917,
+    "finishedAt": "2026-09-13T19:39:48.206Z",
+    "manifestSha256": "a378676eecfdf534e01177c5812b8e72d4ca82faf3ce96e4403357d64ca27ae7",
+    "integrityErrors": [],
+    "referenceFiles": 266,
+    "referenceDigestSha256": "9fde6f55121b39733fd3a2f94d1abb75ada383f0130bce282e5fba7cd6e255ed",
+    "checks": ["全源码lint", "现行lint", "规模检查无超限", "工作区及暂存区差异检查", "生产构建", "真实输入/产物/Git状态清单前后校验", "全量测试", "冻结参考前后校验"]
+  },
+  "limits": ["本汇总在完整验收后新增，作为独立纯证据提交，不声称该证据提交的完整树又执行一次161项。", "契约测试使用真实控制器正文但替代Electron与计时器；真实桌面另行覆盖销毁后的原IPC拒绝、正常导航主题、刷新和既有并发行为。", "继续使用原webContents.close策略，未强制绕过beforeunload，未验收第三方退出确认或被拦截关闭后的产品交互。", "已交付Electron的CSS/脚本调用不可撤回，仅在异步边界检查是否继续下一阶段。", "未宣称全面内存长稳、真实站点登录、安全边界、Windows/Linux和安装产物验收完成。", "注销只保持原有处理器注销范围，本轮没有扩展为全部IPC注册/注销重构。"]
+}

@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "scope": "应用静态协议、双窗口CORS/CSP、预加载与已列兼容回归；非最终累计验收",
+  "baseHead": "21138eb3e9d4fb792183e475857bc8481ea3824f",
+  "status": "passed-targeted",
+  "runs": [
+    { "directory": "temp/application-protocol-first-after-acceptance-6kVcxG", "tests": 19, "passed": 9, "failed": 10, "exitCode": 1, "durationMs": 311390.051083, "cause": "CJS bootstrap异步导入业务时已ready；响应头测试启动异常遗留HTTP监听，精确SIGTERM清理，失败保留。" },
+    { "directory": "temp/application-protocol-registration-after-acceptance-QDZSGr", "tests": 19, "passed": 9, "failed": 10, "exitCode": 1, "durationMs": 9475.382875, "cause": "构建内联CJS造成第二份声明状态；改为createRequire加载同一复制产物。响应头测试已在启动失败时正常释放监听。" },
+    { "directory": "temp/application-protocol-shared-registration-after-acceptance-GuSnKf", "tests": 25, "passed": 19, "failed": 6, "exitCode": 1, "durationMs": 32274.2915, "cause": "Playwright route未拦自定义协议；CSP事件按规范只含scheme；127.0.0.1被强制离线解析保护拦截。" },
+    { "directory": "temp/application-protocol-cors-diagnostic-acceptance-jkm00Y", "tests": 8, "passed": 5, "failed": 3, "exitCode": 1, "durationMs": 2887.957625, "cause": "首脚本和实际CSP通过；两窗HTTP请求均ERR_NAME_NOT_RESOLVED，尚未触及CORS。" },
+    { "directory": "temp/application-protocol-compatibility-after-acceptance-Soy4sn", "tests": 25, "passed": 25, "failed": 0, "exitCode": 0, "durationMs": 21996.93925 },
+    { "directory": "temp/application-protocol-media-psd-after-acceptance-4muBQ0", "tests": 15, "passed": 15, "failed": 0, "exitCode": 0, "durationMs": 250652.304125 }
+  ],
+  "checks": "每轮references-before、eslint src/tests、size、build、references-after退出0；各目录result.json与manifest.json保存HEAD、输入及out清单。运行期间所有写入者冻结。各定向数量不相加充当累计验收。",
+  "actualEvidence": {
+    "webSecurity": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-regression-OXl9aa/privileged-web-security.json",
+    "storage": "/var/folders/0p/qx88g7w15_9gy_n2d7ggqcc40000gn/T/momentum-protocol-storage-FZL0Bt/application-protocol-storage.json",
+    "verified": "双窗真实Vue及构建脚本；无CORS阻断、有CORS返回200/type cors；四个请求实际到localhost动态端口/custom-api/v1并带momentum-app://bundle Origin；DOM内联脚本未执行且可信强制CSP事件；退出与重启exit0。媒体合法选择预览、生成工作流及两指定PSD和公开夹具RGBA零差异。"
+  },
+  "fixtureChanges": [
+    "启动器仅增加全部保护安装后的同步生产CJS声明；保留网络、子进程、系统、文件及webview保护，未取消ready断言。",
+    "首脚本探针改为测试侧Electron协议固定两个响应，保生产窗口/来源/CSP/preload，不代表生产资源handler；后者由双窗真实页面测试另验。",
+    "预览加载门控由loadFile改loadURL；外链来源夹具匹配固定应用入口；保原像素和拒绝断言。",
+    "按Chromium134 StripURLForUseInReport对非HTTP(S)/WS(S)仅返回scheme核对CSP documentURI；完整页面入口仍独立严格校验。",
+    "127.0.0.1诊断被原host-resolver-rules拦截，改用保护已允许的localhost，保动态端口、路径前缀和CORS正反例，未扩大保护豁免。"
+  ],
+  "remaining": [
+    "生产CSP允许http:/https:连接；任意非localhost HTTP实际网络、开发服务与ASAR业务入口尚未实跑，不能仅据CSP字符串宣称全面兼容。",
+    "静态媒体完整Buffer响应不构成Range流媒体验收；未增加用户文件协议。",
+    "三类必要外部验收仍未验证；最终累计all未运行，还不能收工。"
+  ]
+}

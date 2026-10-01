@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "fixtures": [
+    {
+      "id": "yun-jian-qi-lin",
+      "path": "psd/云间麒麟.psd",
+      "sha256": "b60f61ca07ba99d22bc5cec2de3f9b29b5b2d397925438e290f1ef649e00197b"
+    },
+    {
+      "id": "xing-kong",
+      "path": "psd/星空.psd",
+      "sha256": "a1cd270115d88bbf715ce1786f87e6d8a36bb6790db168542ae2ccb732300435"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-15",
+  "scope": "用户要求的主代理收工硬性门禁",
+  "verification": {
+    "directory": "temp/completion-gate-acceptance-B1LTiq",
+    "passed": 1,
+    "failed": 0,
+    "durationMs": 65.233875,
+    "referencesBefore": 0,
+    "lint": 0,
+    "size": 0,
+    "build": 0,
+    "referencesAfter": 0
+  },
+  "liveGate": {
+    "command": "node scripts/check-completion-gate.mjs",
+    "canFinish": false,
+    "conclusion": "还不能收工",
+    "reason": "计划必做未完成、现有网页安全负例失败、三类外部验收未验证、缺少最终累计验收。"
+  },
+  "boundaries": [
+    "原计划文件未修改，既有待办仅更新状态。",
+    "脚本是主代理每轮主动运行的门禁，不是常驻后台服务。",
+    "子代理返回与状态标记不能替代验收证据；门禁检查累计全量阶段和当前源码产物清单，外部证据须明确真实环境。",
+    "源码仍含未提交webSecurity候选，此次门禁测试通过不表示该候选通过。",
+    "首次建立新门禁，无旧产品行为可复现；以逐项负例检查失败封闭。"
+  ]
+}
