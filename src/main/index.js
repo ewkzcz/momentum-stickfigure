@@ -30,6 +30,7 @@ if (process.platform === 'win32') {
 
 // 导入 gemini 服务
 import { registerFalApiHandlers, unregisterFalApiHandlers } from './gemini-image-api/gemini-image-ipc.js'
+import { registerVideoApiHandlers, unregisterVideoApiHandlers } from './video-api/video-ipc.js'
 // 导入 PSD 服务
 import { stopPSDWorkers } from './psd-worker-queue.mjs'
 import { stopOwnedTasks } from './owned-process-tasks.mjs'
@@ -106,6 +107,7 @@ app.whenReady().then(async () => {
 
   // 注册 Fal.ai IPC 处理器
   registerFalApiHandlers()
+  registerVideoApiHandlers()
 
   // 注册 PSD API IPC 处理器
   registerPSDApiHandlers()
@@ -199,6 +201,7 @@ app.on('will-quit', (event) => {
   unregisterFileOperationHandlers()
   unregisterCustomDialogHandlers()
   unregisterFalApiHandlers()
+  unregisterVideoApiHandlers()
   unregisterPSDApiHandlers()
   unregisterTemplateStorageHandlers()
   unregisterPromptTemplateHandlers()

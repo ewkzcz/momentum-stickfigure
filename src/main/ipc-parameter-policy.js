@@ -118,6 +118,20 @@ export function assertGeminiOptions(value) {
   if (value.inputImages !== undefined) assertPathList(value.inputImages)
 }
 
+export function assertVideoOptions(value) {
+  assertRecord(value, '视频配置')
+  for (const key of ['apiKey', 'baseUrl', 'model', 'resolution', 'aspectRatio', 'taskId', 'url', 'projectRoot', 'outputDir', 'logDir']) {
+    if (value[key] !== undefined) assertText(value[key], 32768, key)
+  }
+  if (value.prompt !== undefined) assertText(value.prompt, 64 * 1024, '提示词')
+  if (value.duration !== undefined && (!Number.isInteger(value.duration) || value.duration < 1 || value.duration > 60)) throw new TypeError('视频时长无效')
+  if (value.generateAudio !== undefined && typeof value.generateAudio !== 'boolean') throw new TypeError('generateAudio参数必须是布尔值')
+  if (value.referenceImages !== undefined) {
+    if (!Array.isArray(value.referenceImages) || value.referenceImages.length > 9) throw new TypeError('参考图列表无效')
+    for (const item of value.referenceImages) assertText(item, 32768, '参考图地址')
+  }
+}
+
 export function assertLocalProcessOptions(value, nested = false) {
   assertRecord(value, '本地处理')
   for (const key of ['pythonHome', 'pythonPath', 'removebgWeightsDir', 'removebgWeightsPath', 'highresWeightsDir', 'highresWeightsPath', 'outputDir', 'outputPath', 'weightsDir', 'modelId', 'videoPath', 'apiKey', 'apiBaseUrl', 'aiModel']) {

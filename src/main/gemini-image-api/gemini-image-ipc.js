@@ -21,7 +21,7 @@ import {
   getImageInfo
 } from './gemini-image-utils.js';
 
-async function prepareOutput(event, options) {
+export async function prepareOutput(event, options) {
   for (const field of ['outputDir', 'editOutputDir', 'logDir']) {
     if (typeof options[field] === 'string' && options[field].split(/[\\/]/).includes('..')) throw new Error('输出路径不允许父级回退');
   }

@@ -149,6 +149,13 @@ contextBridge.exposeInMainWorld('promptTemplates', {
   }
 })
 
+// 暴露视频生成 API：提交、查询任务与下载结果
+contextBridge.exposeInMainWorld('videoApi', {
+  submit: (options) => ipcRenderer.invoke('video-submit', options),
+  query: (options) => ipcRenderer.invoke('video-query', options),
+  download: (options) => ipcRenderer.invoke('video-download', options)
+})
+
 // 暴露 Fal.ai API
 contextBridge.exposeInMainWorld('falApi', {
   /**
