@@ -195,6 +195,7 @@ const iconMap = {
   'generate': '🍌',
   'hd-toolkit': '🪄',
   'video-subtitle-ocr': '📝',
+  'script-studio': '📜',
   'video-studio': '🎬',
   'settings-creative': '🧩',
   'settings': '⚙️',
@@ -289,6 +290,10 @@ const menuOptions = [
       {
         label: '抠图高清插件',
         key: 'hd-toolkit'
+      },
+      {
+        label: '剧本创作台',
+        key: 'script-studio'
       },
       {
         label: 'AI视频创作',

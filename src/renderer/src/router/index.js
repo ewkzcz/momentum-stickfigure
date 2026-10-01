@@ -13,6 +13,7 @@ import DialogFramePage from '../components/pages/DialogFramePage/DialogFramePage
 import SettingsPage from '../components/pages/SettingsPage/SettingsPage.vue'
 import HdToolkitPage from '../components/pages/HdToolkitPage/HdToolkitPage.vue'
 import VideoSubtitleOcrPage from '../components/pages/VideoSubtitleOcrPage/VideoSubtitleOcrPage.vue'
+import ScriptStudioPage from '../components/pages/ScriptStudioPage/ScriptStudioPage.vue'
 import VideoStudioPage from '../components/pages/VideoStudioPage/VideoStudioPage.vue'
 import SkillsCenterPage from '../components/pages/SkillsCenterPage/SkillsCenterPage.vue'
 
@@ -46,6 +47,7 @@ const router = createRouter({
       component: AiGeneratePage,
       meta: { keepAlive: true }
     },
+    { path: '/script-studio', name: 'script-studio', component: ScriptStudioPage, meta: { keepAlive: true } },
     { path: '/video-studio', name: 'video-studio', component: VideoStudioPage, meta: { keepAlive: true } },
     { 
       path: '/hd-toolkit', 
