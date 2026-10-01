@@ -18,7 +18,7 @@
 | --- | --- |
 | 人物调整 | 导入 PSD，切换图层、动作和表情，管理部件与预设，导出图片 |
 | 多视角排版 | 布局多个画面、调整图片与图层、导出作品 |
-| 人物对话与幻想框 | 编辑文字、气泡和装饰框，生成透明背景图片 |
+| 人物对话、幻想框 | 编辑文字、气泡和装饰框，生成透明背景图片 |
 | AI 绘图 | “直接生成”与“Agent 增强”两种方式，支持 Gemini 和 gpt-image-2 系列模型，参数共用，带生成记录管理 |
 | 剧本创作台 | 按“设定 → 梗概 → 人物 → 世界观 → 大纲 → 逐集正文 → 分镜”分步创作短剧、电影、动画或小说 |
 | 视频创作台 | “直接生成”与“Agent 增强”两种方式，支持 Seedance 等视频模型，带生成记录管理 |
@@ -29,15 +29,7 @@
 
 
 
-### 2、简笔画人物PSD调整
-
-上传 PSD 后，在下方按分组切换动作、表情和部件，上方画布实时预览，可保存为预设或拖出导出图片。拖动中间的分隔条调整上下区域比例，在画布上滚动鼠标滚轮缩放人物。
-
-![人物调整](./assets/screenshots/action-expression.png)
-
-
-
-### 3、AI 绘图
+### 2、AI 绘图
 
 在「AI → AI绘图」中选择“直接生成”或“Agent 增强”。
 
@@ -51,13 +43,9 @@ Agent 增强模式：用日常语言描述需求，Agent 结合已启用的图�
 
 <img src="./assets/screenshots/drama-heroine.jpg" alt="Agent 增强生成的短剧女主概念图" width="800" />
 
-支持参考生成历史记录：
-
-![AI 绘图：生成记录详情](./assets/screenshots/image-history-detail.png)
 
 
-
-### 4、视频创作台
+### 3、视频创作台
 
 在「AI → 视频创作台」中填写提示词，选择模型、分辨率、比例、时长和是否生成音频后提交。任务完成后在右侧播放，可保存到输出目录。生成记录的管理方式与 AI 绘图相同。
 
@@ -69,7 +57,7 @@ Agent 增强模式：用日常语言描述需求，Agent 结合已启用的图�
 
 
 
-### 5、剧本创作台
+### 4、剧本创作台
 
 在「AI → 剧本创作台」新建项目并选择作品类型（竖屏短剧、电视剧、电影、动画/漫剧、小说）。
 
@@ -93,7 +81,99 @@ Agent 增强模式：用日常语言描述需求，Agent 结合已启用的图�
 
 
 
-### 6、创作相关设置
+### 5、简笔画人物PSD调整
+
+上传 PSD 后，在下方按分组切换动作、表情和部件，上方画布实时预览，可保存为预设或拖出导出图片。拖动中间的分隔条调整上下区域比例，在画布上滚动鼠标滚轮缩放人物。
+
+![人物调整](./assets/screenshots/action-expression.png)
+
+#### 通用控制
+
+![通用控制面板](./assets/screenshots/psd-common-controls.png)
+
+鼠标移到按钮上会显示功能提示。如果遇到标签不显示，点一下「重置」按钮。
+
+![悬浮功能提示](./assets/screenshots/psd-tooltip.png)
+
+
+
+#### 图层结构
+
+提供完整的 PSD 图层结构调整功能，并提供多组快捷控制。
+
+![图层结构](./assets/screenshots/psd-layer-tree.png)
+
+
+
+#### 画布缩放 / 区域调整
+
+区域调整演示：
+
+![区域调整](./assets/screenshots/psd-region-adjust.png)
+
+画布缩放演示：
+
+![画布缩放](./assets/screenshots/psd-canvas-zoom.png)
+
+
+
+### 6、人物对话与幻想框
+
+#### 人物对话
+
+作用：智能排版对话。在文本框里每行写一句话，生成对应数量的透明背景对话框图片。
+
+![文本内容](./assets/screenshots/dialog-preview.png)
+
+![预览结果](./assets/screenshots/dialog-result.png)
+
+![设置面板](./assets/screenshots/dialog-settings.png)
+
+支持上传并保存自定义对话框图片、水平/垂直镜像，以及更合理的排版。
+
+![上传自定义模板](./assets/screenshots/dialog-upload-template.png)
+
+
+
+#### 幻想框
+
+> **注意：对话框图片内部必须是白色填充的，否则无法删除为透明像素。**
+
+效果展示：
+
+![幻想框效果](./assets/screenshots/frame-effect.png)
+
+![嵌入方式](./assets/screenshots/frame-embed-mode.png)
+
+对话框图片支持任意比例缩放宽高，**人物图片只支持等比缩放**。控制技巧：优先使用滚轮缩放图片。
+
+![缩放控制](./assets/screenshots/frame-scale.png)
+
+
+
+### 7、字幕提取
+
+上传一个视频，帮你提取字幕。主要用途是高精度提取想要参考学习的爆款视频的字幕。
+
+市面上的字幕提取工具基本都基于语音识别，对于同音字和专有名词处理效果一般（如「他」与「她」、「云溪」与「云熙」等）。本插件直接识别画面上的字幕文字，一般情况下效果会好于语音识别，当然也无法保证 100% 正确。
+
+![字幕提取界面](./assets/screenshots/subtitle-ocr.png)
+
+这是插件识别的结果，人名与原视频保持一致，错误率较低：
+
+![插件识别结果](./assets/screenshots/subtitle-ocr-result.png)
+
+如果是语音识别的，人名和专有名词过多时，修改起来比较麻烦：
+
+![与语音识别对比](./assets/screenshots/subtitle-asr-compare.png)
+
+AI 纠错时，违规文案会丢失一些句子：
+
+![AI 纠错丢句](./assets/screenshots/subtitle-ai-loss.png)
+
+
+
+### 8、创作相关设置
 
 AI视频设置：在「设置 → AI视频设置」中填写中转站地址和 API 密钥，点击“获取模型列表”查询可用的视频模型，并设置默认分辨率、比例、时长和音频。
 
