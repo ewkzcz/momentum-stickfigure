@@ -22,7 +22,10 @@ export function assertImageDimensions(width, height, scale = 1) {
 }
 const owners = new WeakMap()
 const destroyedOwners = new WeakSet()
-const identity = stat => `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}:${stat.ctimeMs}`
+// 不纳入 dev：Electron 的 asar fs 包装在 Windows 上令 stat/lstat 的 dev 为 0，
+// 而同一文件 fstat 返回真实卷号；下方按路径与按描述符的身份需互相比对，
+// 纳入 dev 会使比对恒不相等。卷维度的区分由 canonical 真实路径比对覆盖。
+const identity = stat => `${stat.ino}:${stat.size}:${stat.mtimeMs}:${stat.ctimeMs}`
 function state(owner) {
   if (!owner || owner.isDestroyed() || destroyedOwners.has(owner)) throw new Error('媒体来源已关闭')
   let value = owners.get(owner)
