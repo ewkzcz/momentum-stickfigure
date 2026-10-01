@@ -156,6 +156,33 @@ contextBridge.exposeInMainWorld('videoApi', {
   download: (options) => ipcRenderer.invoke('video-download', options)
 })
 
+// 暴露创作工作台 API：Skills、文本模型、图片/视频小 Agent、剧本项目
+/** 订阅主进程推送；处理流程：1、包装回调，2、返回取消订阅函数。 */
+const subscribeCreative = (channel, callback) => {
+  // 1、只把载荷交给回调，不暴露 IPC 事件对象。
+  const listener = (_event, payload) => { if (typeof callback === 'function') callback(payload) }
+  ipcRenderer.on(channel, listener)
+  // 2、调用方在组件卸载时取消订阅。
+  return () => ipcRenderer.removeListener(channel, listener)
+}
+contextBridge.exposeInMainWorld('creativeApi', {
+  listSkills: (options) => ipcRenderer.invoke('creative-skills-list', options),
+  installBuiltinSkills: (options) => ipcRenderer.invoke('creative-skills-install', options),
+  readSkill: (options) => ipcRenderer.invoke('creative-skill-read', options),
+  testLlm: (options) => ipcRenderer.invoke('creative-llm-test', options),
+  generateText: (options) => ipcRenderer.invoke('creative-llm-generate', options),
+  runAgent: (options) => ipcRenderer.invoke('creative-agent-run', options),
+  cancel: (options) => ipcRenderer.invoke('creative-cancel', options),
+  listScripts: (options) => ipcRenderer.invoke('creative-script-list', options),
+  loadScript: (options) => ipcRenderer.invoke('creative-script-load', options),
+  saveScript: (options) => ipcRenderer.invoke('creative-script-save', options),
+  deleteScript: (options) => ipcRenderer.invoke('creative-script-delete', options),
+  exportScript: (options) => ipcRenderer.invoke('creative-script-export', options),
+  saveImage: (options) => ipcRenderer.invoke('creative-save-image', options),
+  onTextDelta: (callback) => subscribeCreative('creative-llm-delta', callback),
+  onAgentEvent: (callback) => subscribeCreative('creative-agent-event', callback)
+})
+
 // 暴露 Fal.ai API
 contextBridge.exposeInMainWorld('falApi', {
   /**

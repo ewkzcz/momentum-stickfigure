@@ -15,6 +15,12 @@ import { grantSelectedReads } from './file-access-policy.js'
 import { grantExportFile, grantExportDirectory } from './export-write-policy.js'
 import { configuredOutputPurpose, grantConfiguredOutput } from './configured-output-policy.js'
 
+// 创作工作台目录需要在授权根内读取文件，提示文案与仅输出的用途区分开。
+const FOLDER_DIALOG_TEXT = {
+  'skills-root': { title: '选择 Skills 文件夹', message: '允许本窗口读取该文件夹中的 Skills，并可在其中安装内置 Skills' },
+  'script-projects': { title: '选择剧本项目文件夹', message: '允许本窗口在该文件夹中读取和保存剧本项目' }
+}
+
 /**
  * 注册文件选择、临时图片保存与目录打开接口。
  * 处理流程：
@@ -81,8 +87,8 @@ export function registerFolderSelectHandler() {
       
       const result = await dialog.showOpenDialog(window, {
         properties: ['openDirectory'],
-        title: options.purpose ? '选择导出文件夹' : '选择项目根路径',
-        message: options.purpose ? '允许本窗口按所选用途在文件夹内保存输出；不会授予读取或执行权限' : '请选择用于存储项目文件的根目录'
+        title: FOLDER_DIALOG_TEXT[options.purpose]?.title || (options.purpose ? '选择导出文件夹' : '选择项目根路径'),
+        message: FOLDER_DIALOG_TEXT[options.purpose]?.message || (options.purpose ? '允许本窗口按所选用途在文件夹内保存输出；不会授予读取或执行权限' : '请选择用于存储项目文件的根目录')
       })
       
       if (result.canceled) {

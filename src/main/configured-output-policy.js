@@ -7,11 +7,14 @@ import { isTrustedIpcSender } from './ipc-sender-policy.js'
 
 const owners = new WeakMap()
 const closed = new WeakSet()
-const purposes = new Set(['canvas-output', 'gemini-output', 'ocr-output'])
+// skills-root / script-projects 是创作工作台的用户目录：Skills 需要在授权根内读取，剧本项目需要读写。
+const purposes = new Set(['canvas-output', 'gemini-output', 'ocr-output', 'skills-root', 'script-projects'])
 const defaults = {
   'canvas-output': [path.join(os.homedir(), 'Pictures', 'MomentumStickFigure'), path.join(os.homedir(), 'Pictures', '简笔画导出')],
   'gemini-output': [path.join(os.homedir(), 'Pictures', 'GeminiImage')],
-  'ocr-output': [path.join(os.homedir(), 'Documents', 'VideoSubtitles')]
+  'ocr-output': [path.join(os.homedir(), 'Documents', 'VideoSubtitles')],
+  'skills-root': [path.join(os.homedir(), 'Documents', 'MomentumCreative', 'skills')],
+  'script-projects': [path.join(os.homedir(), 'Documents', 'MomentumCreative', 'scripts')]
 }
 export function configuredOutputPurpose(purpose) { return purposes.has(purpose) }
 function absolute(value) {
