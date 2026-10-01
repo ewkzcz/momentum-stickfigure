@@ -7,6 +7,7 @@
  *   gemini-output    AI 生图输出目录（Agent 生成图片与保存）
  */
 import { ipcMain } from 'electron';
+import axios from 'axios';
 import fs from 'node:fs';
 import path from 'node:path';
 import { isTrustedIpcSender } from '../ipc-sender-policy.js';
@@ -18,12 +19,14 @@ import { callLlm } from './llm-client.js';
 import { listSkills, readSkill, readSkillFile, installBuiltinSkills, buildSkillContext } from './skill-store.js';
 import { runCreativeAgent } from './agent-runner.js';
 import { listProjects, loadProject, saveProject, deleteProject, exportMarkdown } from './script-store.js';
+import { buildApiUrl } from '../../shared/api-url.js';
 
 const CHANNELS = [
   'creative-skills-list', 'creative-skills-install', 'creative-skill-read',
   'creative-llm-test', 'creative-llm-generate', 'creative-agent-run', 'creative-cancel',
   'creative-script-list', 'creative-script-load', 'creative-script-save', 'creative-script-delete', 'creative-script-export',
-  'creative-save-image'
+  'creative-save-image',
+  'creative-list-models'
 ];
 const running = new Map();
 
@@ -188,6 +191,29 @@ export function registerCreativeHandlers() {
     const file = path.join(dir, `agent-${Date.now()}.${match[1] === 'jpeg' ? 'jpg' : match[1]}`);
     fs.writeFileSync(file, Buffer.from(match[2], 'base64'));
     return { path: file };
+  });
+
+  registerModelListHandler();
+}
+
+/**
+ * 注册模型列表通道。
+ * 处理流程：
+ * 1、用用户填写的地址和密钥请求 /v1/models，只返回模型 ID 与接口类型。
+ */
+function registerModelListHandler() {
+  // 1、模型列表。
+  handle('creative-list-models', async (_event, { baseUrl, apiKey }) => {
+    assertText(baseUrl, 4096, '接口地址');
+    assertText(apiKey, 4096, 'API 密钥');
+    if (!apiKey) throw new Error('请先填写 API 密钥');
+    try {
+      const { data } = await axios.get(buildApiUrl(baseUrl, 'v1/models').href, { headers: { Authorization: `Bearer ${apiKey}` }, timeout: 30000 });
+      return (Array.isArray(data?.data) ? data.data : []).map((item) => ({ id: String(item.id), types: item.supported_endpoint_types || [] }));
+    } catch (error) {
+      const body = error.response?.data;
+      throw new Error(error.response ? `获取模型失败：HTTP ${error.response.status} ${body?.error?.message || body?.message || ''}` : `获取模型失败：${error.message}`);
+    }
   });
 }
 

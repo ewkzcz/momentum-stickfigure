@@ -16,6 +16,7 @@ import VideoSubtitleOcrPage from '../components/pages/VideoSubtitleOcrPage/Video
 import ScriptStudioPage from '../components/pages/ScriptStudioPage/ScriptStudioPage.vue'
 import VideoStudioPage from '../components/pages/VideoStudioPage/VideoStudioPage.vue'
 import SkillsCenterPage from '../components/pages/SkillsCenterPage/SkillsCenterPage.vue'
+import VideoSettingsPage from '../components/pages/VideoSettingsPage/VideoSettingsPage.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -109,8 +110,9 @@ const router = createRouter({
       component: SettingsPage,
       meta: { keepAlive: true, settingsTab: 'gemini' }
     },
-    // Skills 与模型设置：归在设置菜单下，页面独立实现（SettingsPage 已达规模上限）。
+    // 创作相关设置子页面：归在设置菜单下，页面独立实现（SettingsPage 已达规模上限）。
     { path: '/settings/creative', name: 'settings-creative', component: SkillsCenterPage, meta: { keepAlive: true } },
+    { path: '/settings/video', name: 'settings-video', component: VideoSettingsPage, meta: { keepAlive: true } },
     { 
       path: '/settings/hd-toolkit', 
       name: 'settings-hd-toolkit', 

@@ -179,6 +179,7 @@ contextBridge.exposeInMainWorld('creativeApi', {
   deleteScript: (options) => ipcRenderer.invoke('creative-script-delete', options),
   exportScript: (options) => ipcRenderer.invoke('creative-script-export', options),
   saveImage: (options) => ipcRenderer.invoke('creative-save-image', options),
+  listModels: (options) => ipcRenderer.invoke('creative-list-models', options),
   onTextDelta: (callback) => subscribeCreative('creative-llm-delta', callback),
   onAgentEvent: (callback) => subscribeCreative('creative-agent-event', callback)
 })

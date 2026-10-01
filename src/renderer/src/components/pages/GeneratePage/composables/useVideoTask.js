@@ -2,13 +2,14 @@
 import { ref, reactive, onBeforeUnmount } from 'vue'
 import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-config.js'
 import { resolveGeminiProjectRoot } from '@renderer/utils/geminiOutputConfig.js'
+import { resolveVideoConnection } from '@renderer/components/creative/useVideoSettings.js'
 
 const POLL_INTERVAL_MS = 4000
 const MAX_POLL_MINUTES = 30
 
-/** 读取生图设置中的连接与目录配置；处理流程：1、解析本地存储，失败时返回空配置。 */
-function loadConnectionConfig() {
-  // 1、与生图共用同一份设置，视频不再单独配置密钥。
+/** 读取输出目录配置；处理流程：1、视频保存到 AI 生图设置的输出目录，解析失败时返回空配置。 */
+function loadOutputConfig() {
+  // 1、目录授权沿用 AI 生图设置。
   try {
     return JSON.parse(localStorage.getItem(GEMINI_IMAGE_CONFIG_STORAGE_KEY) || localStorage.getItem('fal-config') || '{}')
   } catch {
@@ -39,11 +40,10 @@ export function useVideoTask(message) {
 
   /** 组装带连接信息的基础参数；处理流程：1、合并密钥、地址和输出目录。 */
   const baseParams = () => {
-    // 1、输出目录交给主进程做授权校验。
-    const config = loadConnectionConfig()
+    // 1、连接信息来自 AI 视频设置，输出目录交给主进程做授权校验。
+    const config = loadOutputConfig()
     return {
-      apiKey: config.apiKey,
-      baseUrl: config.baseUrl,
+      ...resolveVideoConnection(),
       projectRoot: resolveGeminiProjectRoot(config),
       outputDir: config.outputDir || 'output',
       logDir: config.logDir || 'logs'
@@ -87,7 +87,7 @@ export function useVideoTask(message) {
     if (isBusy.value) return
     const base = baseParams()
     if (!base.apiKey) {
-      message.error('请先在「AI生图设置」中配置 API 密钥')
+      message.error('请先在「设置 → AI视频设置」中配置 API 密钥')
       return
     }
     if (!options.prompt?.trim()) {

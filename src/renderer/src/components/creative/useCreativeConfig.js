@@ -3,9 +3,9 @@ import { reactive, ref, computed } from 'vue'
 import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-config.js'
 import { resolveGeminiProjectRoot } from '@renderer/utils/geminiOutputConfig.js'
 import { buildImageModelParams } from '@renderer/utils/imageRequestOptions.js'
+import { useVideoSettings, resolveVideoConnection } from './useVideoSettings.js'
 
 export const CREATIVE_CONFIG_STORAGE_KEY = 'creative-config'
-export const VIDEO_OPTIONS_STORAGE_KEY = 'video-generate-options'
 
 const DEFAULT_CONFIG = {
   llm: { baseUrl: 'https://api.aixoras.com', apiKey: '', model: '', protocol: 'chat' },
@@ -112,19 +112,17 @@ function buildAgentImageConfig(aspectRatio) {
   }
 }
 
-/** 组装 Agent 视频参数；处理流程：1、连接信息来自生图设置，模型参数来自视频页上次选择。 */
+/** 组装 Agent 视频参数；处理流程：1、连接信息与参数都来自 AI 视频设置（与直接生成共用）。 */
 function buildAgentVideoConfig() {
-  // 1、视频页的参数选择持久化在单独的键里。
-  const settings = loadImageSettings()
-  const options = readJson(VIDEO_OPTIONS_STORAGE_KEY)
+  // 1、取当前共享设置的快照。
+  const video = useVideoSettings()
   return {
-    apiKey: settings.apiKey || '',
-    baseUrl: settings.baseUrl || '',
-    model: options.model || 'seedance-2.0-fast',
-    resolution: options.resolution || '720p',
-    duration: Number.isInteger(options.duration) ? options.duration : 5,
-    aspectRatio: options.aspectRatio || '16:9',
-    ...(typeof options.generateAudio === 'boolean' ? { generateAudio: options.generateAudio } : {})
+    ...resolveVideoConnection(),
+    model: video.model,
+    resolution: video.resolution,
+    duration: Number.isInteger(video.duration) ? video.duration : 5,
+    aspectRatio: video.aspectRatio,
+    generateAudio: Boolean(video.generateAudio)
   }
 }
 

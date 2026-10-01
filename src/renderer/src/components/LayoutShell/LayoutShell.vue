@@ -198,6 +198,7 @@ const iconMap = {
   'script-studio': '📜',
   'video-studio': '🎬',
   'settings-creative': '🧩',
+  'settings-video': '🎬',
   'settings': '⚙️',
   'settings-stickfigure': '🎨',
   'settings-hotkeys': '⌨️',
@@ -316,6 +317,10 @@ const menuOptions = [
       {
         label: 'AI生图设置',
         key: 'settings-gemini'
+      },
+      {
+        label: 'AI视频设置',
+        key: 'settings-video'
       },
       {
         label: 'Skills与模型设置',
