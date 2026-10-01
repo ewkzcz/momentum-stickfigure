@@ -11,7 +11,6 @@
         @update:value="value => emit('update-field', 'baseUrl', value)"
         placeholder="请输入中转站地址"
       />
-      <n-button style="margin-left: 8px;" @click="applyAixorasPreset">Aixoras 预设</n-button>
     </n-form-item>
 
     <n-form-item label="生图模型" path="model">
@@ -174,12 +173,6 @@ const emit = defineEmits(['update-field', 'select-project-root', 'reset-project-
 
 const isOpenAiModel = computed(() => resolveImageProtocol(props.config.model) === 'openai')
 
-/** 填入 Aixoras 网关地址；处理流程：1、写入地址，模型仍为 Gemini 时切到 gpt-image-2。 */
-const applyAixorasPreset = () => {
-  // 1、该网关不提供 Gemini 2.5 模型，避免保存后仍请求不可用模型。
-  emit('update-field', 'baseUrl', 'https://aixoras.com')
-  if (resolveImageProtocol(props.config.model) !== 'openai') emit('update-field', 'model', 'gpt-image-2')
-}
 </script>
 
 <style scoped>
