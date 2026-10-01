@@ -1,6 +1,6 @@
 # 时刻简笔画创作工具
 
-时刻简笔画工具是一款面向简笔画创作者的应用，提供从素材调整、多视角排版 到 AI 生图的一站式创作流程。
+时刻简笔画工具是一款面向简笔画创作者的应用，提供从素材调整、多视角排版、剧本创作到 AI 生图和 AI 视频的一站式创作流程。
 
 点击 **欢迎回来👏** 按钮即可进入主界面。支持离线免登录使用，核心代码已开源，可自由进行二次开发和定制。
 
@@ -8,20 +8,116 @@
 
 ![](./assets/%E9%A6%96%E9%A1%B5.png)
 
-## 功能
+
+
+## 一、功能
+
+### 1、功能一览
 
 | 工具 | 用途 |
 | --- | --- |
 | 人物调整 | 导入 PSD，切换图层、动作和表情，管理部件与预设，导出图片 |
 | 多视角排版 | 布局多个画面、调整图片与图层、导出作品 |
 | 人物对话与幻想框 | 编辑文字、气泡和装饰框，生成透明背景图片 |
-| 图片处理 | 图片编辑、抠图与高清放大 |
-| AI 生图 | 使用自行配置的 API 密钥生成和编辑图片 |
+| AI 绘图 | “直接生成”与“Agent 增强”两种方式，支持 Gemini 和 gpt-image-2 系列模型，参数共用，带生成记录管理 |
+| 剧本创作台 | 按“设定 → 梗概 → 人物 → 世界观 → 大纲 → 逐集正文 → 分镜”分步创作短剧、电影、动画或小说 |
+| 视频创作台 | “直接生成”与“Agent 增强”两种方式，支持 Seedance 等视频模型，带生成记录管理 |
+| 图像处理 | 图片编辑、抠图与高清放大 |
 | 字幕提取 | 使用本地 PaddleOCR 提取视频字幕，可选 AI 纠错 |
-| 设置 | 配置导出目录、快捷键、主题和工具参数，导入导出配置 |
+| 设置 | 配置导出目录、快捷键、主题、AI 生图、AI 视频、文本模型和 Skills，导入导出配置 |
 | 教程与交流 | 查看官方教程、使用帮助和 QQ 官方群二维码 |
 
-## 本地运行
+
+
+### 2、简笔画人物PSD调整
+
+上传 PSD 后，在下方按分组切换动作、表情和部件，上方画布实时预览，可保存为预设或拖出导出图片。拖动中间的分隔条调整上下区域比例，在画布上滚动鼠标滚轮缩放人物。
+
+![人物调整](./assets/screenshots/action-expression.png)
+
+
+
+### 3、AI 绘图
+
+在「AI → AI绘图」中选择“直接生成”或“Agent 增强”。
+
+![AI 绘图：直接生成](./assets/screenshots/image-generate.png)
+
+Agent 增强模式：用日常语言描述需求，Agent 结合已启用的图片类 Skills 写出完整提示词，再调用生图接口。
+
+![AI 绘图：Agent 增强](./assets/screenshots/image-agent-run.png)
+
+生成结果展示：
+
+<img src="./assets/screenshots/drama-heroine.jpg" alt="Agent 增强生成的短剧女主概念图" width="800" />
+
+支持参考生成历史记录：
+
+![AI 绘图：生成记录详情](./assets/screenshots/image-history-detail.png)
+
+
+
+### 4、视频创作台
+
+在「AI → 视频创作台」中填写提示词，选择模型、分辨率、比例、时长和是否生成音频后提交。任务完成后在右侧播放，可保存到输出目录。生成记录的管理方式与 AI 绘图相同。
+
+![视频创作台：直接生成](./assets/screenshots/video-generate.png)
+
+“Agent 增强”使用视频类 Skills 写提示词并提交任务，剧本创作台的分镜可以一键发送到这里。
+
+![视频创作台：Agent 增强](./assets/screenshots/video-agent.png)
+
+
+
+### 5、剧本创作台
+
+在「AI → 剧本创作台」新建项目并选择作品类型（竖屏短剧、电视剧、电影、动画/漫剧、小说）。
+
+1、项目设定：填写题材、受众、基调、集数，以及完整的提示词（发给 AI 的固定角色与规则说明，每种类型都有默认模板），并勾选要使用的剧本 Skills。
+
+![剧本创作台：项目设定](./assets/screenshots/script-settings.png)
+
+2、逐层生成：依次生成故事梗概、人物小传、世界观与场景、分集大纲。每一层都可以修改，修改后的内容会约束后面各层的生成。
+
+![剧本创作台：分集大纲](./assets/screenshots/script-outline.png)
+
+3、逐集写作：在大纲页点击“按大纲创建分集”，再到“正文”中逐集写作。写完可自动生成本集摘要，作为下一集的前情；也可以让 AI 审稿。
+
+![剧本创作台：逐集正文](./assets/screenshots/script-episode.png)
+
+4、分镜：把正文转成可拍分镜表，再发送到视频创作台或 AI 绘图的 Agent 增强。
+
+![剧本创作台：分镜](./assets/screenshots/script-storyboard.png)
+
+项目自动保存到所选文件夹，可导出为 Markdown。
+
+
+
+### 6、创作相关设置
+
+AI视频设置：在「设置 → AI视频设置」中填写中转站地址和 API 密钥，点击“获取模型列表”查询可用的视频模型，并设置默认分辨率、比例、时长和音频。
+
+![AI视频设置](./assets/screenshots/video-settings.png)
+
+文本模型设置：在「设置 → 文本模型设置」中填写文本模型的地址、密钥、模型名和接口协议，点击“测试连接”。剧本创作台和两处 Agent 增强都使用这个模型。
+
+![文本模型设置](./assets/screenshots/llm-settings.png)
+
+Skills设置：Skill 是一份写给 AI 的方法说明（一个包含 `SKILL.md` 的文件夹），启用后 AI 会按其中的方法写提示词或剧本。
+
+在「设置 → Skills设置」中选择 Skills 文件夹，点击“安装内置 Skills”，或在“获取更多 Skills”中打开推荐的 GitHub 仓库，把含 `SKILL.md` 的目录复制进文件夹后点击“刷新”，再逐个打开开关启用。
+
+![Skills设置](./assets/screenshots/skills-settings.png)
+
+![获取更多 Skills](./assets/screenshots/skills-discover.png)
+
+各处填写 API 密钥的输入框下方都有“对接中转站”按钮，可打开中转站注册页。本软件仅提供接口对接能力，服务由第三方提供。
+
+
+
+## 二、本地运行与打包
+
+### 1、本地运行
 
 环境要求：Node.js ≥ 20.19（推荐 22 LTS 或 24 LTS），npm 随 Node.js 一并安装。进入项目目录后执行：
 
@@ -41,7 +137,9 @@ npm run build
 npm start
 ```
 
-## 打包
+
+
+### 2、打包
 
 ```sh
 # 当前平台的应用目录
@@ -54,24 +152,59 @@ npm run build:mac
 
 macOS 默认生成未签名、未公证的应用。如需分发使用，请自行完成签名与公证流程。
 
-## 可选服务与环境
 
-### AI 功能
 
-AI 功能需要自行配置中转站。在「生图设置」和「字幕提取」页面分别填写服务地址与 API 密钥。地址默认留空，支持 HTTP、HTTPS、自定义端口和路径前缀。模型可用性与费用由所选服务提供方决定。
+## 三、可选服务与环境
+
+### 1、AI 服务
+
+AI 功能需要自行配置中转站（转发 AI 请求的接口服务）。各功能的配置位置：
+
+| 功能 | 配置位置 |
+| --- | --- |
+| AI 绘图 | 设置 → AI生图设置 |
+| 视频创作台 | 设置 → AI视频设置（未填写时沿用 AI生图设置的地址和密钥） |
+| 剧本创作台、Agent 增强 | 设置 → 文本模型设置 |
+| 字幕 AI 纠错 | 字幕提取页面 |
+
+地址默认留空，支持 HTTP、HTTPS、自定义端口和路径前缀。模型可用性与费用由所选服务提供方决定。
+
+各处填写 API 密钥的输入框下方都有“对接中转站”按钮，可打开中转站注册页。本软件仅提供接口对接能力，服务由第三方提供。
 
 中转站需要兼容以下接口：
 
 | 功能 | 请求路径 |
 | --- | --- |
 | Gemini 生图与编辑 | `/v1beta/models/{model}:generateContent` |
+| gpt-image 生图与编辑 | `/v1/images/generations`、`/v1/images/edits`；服务支持时使用 `/async` 异步提交并通过 `/v1/images/tasks/{task_id}` 查询 |
+| 视频生成 | `/v1/video/generations`、`/v1/video/generations/{task_id}` |
+| 文本模型 | `/v1/chat/completions` 或 `/v1/responses`，在文本模型设置中选择 |
+| 模型列表 | `/v1/models`（AI视频设置中的“获取模型列表”） |
 | 字幕 AI 纠错 | `/v1/chat/completions` |
 
 填写服务基础地址即可，例如 `https://gateway.example.com`。若地址中已包含 `/v1` 或 `/v1beta`，程序不会重复拼接版本路径。自定义地址仅替换服务端地址，接口协议不变，请确保所选服务兼容上表所列接口。
 
-AI 请求会向所使用的服务发送提示词和用户选中的图片或字幕。仅使用人物、排版和对话框工具无需这些服务。
+AI 请求会向所使用的服务发送提示词、用户选中的图片或字幕、剧本内容以及已启用 Skill 的正文。仅使用人物、排版和对话框工具无需这些服务。
 
-### 抠图、高清与 OCR
+
+
+### 2、Skills
+
+Skills 文件夹中每个子目录是一个 Skill，必须包含 `SKILL.md`（开头写 `name`、`description`），可附带 `references/`、`assets/` 参考资料。格式兼容 Claude、Codex 等工具使用的 Agent Skills。分类按名称和描述自动识别，也可以在 `SKILL.md` 开头写 `category: image`、`video` 或 `script` 指定。
+
+内置 Skills 原文收录自以下开源项目，安装时附带各自的 LICENSE：
+
+| Skill | 来源 | 许可证 |
+| --- | --- | --- |
+| gpt-image-prompting（图片） | [RBYHNDRDS/gpt-image-prompting-skill](https://github.com/RBYHNDRDS/gpt-image-prompting-skill) | MIT |
+| seedance-prompt（视频） | [zhouwei713/seedance-prompt](https://github.com/zhouwei713/seedance-prompt) | MIT |
+| short-drama（剧本） | [dingmike/short-dramas](https://github.com/dingmike/short-dramas) | MIT |
+
+从其他仓库下载的 Skill 由其作者维护，使用前请查看对应许可证和内容。
+
+
+
+### 3、抠图、高清与 OCR
 
 在「设置 > 抠图高清设置」中选择 Python 解释器、模型权重目录和输出目录。建议使用独立的 Python 3.10 虚拟环境。详细配置步骤可通过 QQ 交流群获取。
 
@@ -81,73 +214,39 @@ AI 请求会向所使用的服务发送提示词和用户选中的图片或字�
 
 Python 环境、模型权重、及第三方素材均需用户自行准备。各模型与素材的使用须遵守其各自的许可协议。
 
-## 数据与隐私
+
+
+## 四、数据与隐私
 
 本版本为免登录离线版，已移除登录认证、账号管理、机器码检测、使用时长统计及自动更新等联网功能。
 
-应用配置存储在系统应用数据目录下的 `momentum-stick-figure-open` 文件夹；共享设置和提示词模板存储在 `~/.config/momentum-stickfigure-open/`。输出图片和字幕保存到工具中配置的目录。开源版本采用独立配置目录。
+- 应用配置存储在系统应用数据目录下的 `momentum-stick-figure-open` 文件夹；
 
-API 密钥保存在本机配置文件中，导出配置时也可能包含密钥。请勿将个人配置、日志或备份文件上传至公开仓库或分享给他人。
+- 共享设置和提示词模板存储在 `~/.config/momentum-stickfigure-open/`；
+- 输出图片、视频和字幕保存到工具中配置的目录；
+- AI 绘图与视频创作台的生成记录保存在应用数据目录的 `creative-history` 文件夹；
+- Skills 和剧本项目默认保存在 `文稿/MomentumCreative/` 下，可在页面中改为其他文件夹。
 
-## 开发与贡献
+开源版本采用独立配置目录。API 密钥保存在本机配置文件中，导出配置时也可能包含 AI 生图密钥；文本模型密钥不包含在配置导出和自动备份中。请勿将个人配置、日志或备份文件上传至公开仓库或分享给他人。
 
-技术栈为 Electron 35、Vue 3、Vite、Pinia 和 Naive UI。
+
+
+## 五、开发与贡献
+
+技术栈为 Electron 35、Vue 3、Vite、Pinia、Naive UI、Python、Node.js 等。
 
 欢迎提交 Issue 和 Pull Request！反馈问题时请附上操作系统、软件版本、复现步骤和脱敏日志；提交代码前请确保完成构建，并实际运行相关页面进行验证。
 
-### 本地回归验证
 
-```sh
-npm run lint
-npm run check:size
-npm run build
-npm test
-```
 
-`lint` 当前覆盖新增测试工具、存储模块、主进程入口及独立预览页，后续随拆分扩展，不代表旧源码已全量通过检查。`check:size` 报告六个遗留超限文件，拒绝新增超限和遗留增长；阶段验收使用 `npm run check:size -- --strict`，要求全部手写源码不超过 2000 行。
-
-测试使用 Node 内置测试器和 Playwright 的 Electron 驱动，无需额外下载 Chromium。当前保留两组测试，可通过 `npm run test:psd`、`npm run test:storage` 分别执行；PSD 任务取消及恢复测试将在任务隔离实现时接入。
-
-- PSD 测试走真实人物页上传、逐组显隐、部件选择、预设快照、缩放、独立预览及拖出图片落盘，对比解码后的 RGBA，固定零容差。`npm run test:preview` 额外验证小 PNG、带偏移二进制视图和旧数据地址经过实际预览窗口后与发送前输入逐像素一致，无需私人素材。
-- 配置测试通过实际 IPC 写入真实临时目录，等待落盘，关闭整个进程后重启读取；另在文件写入边界注入故障，验证旧数据仍可恢复。
-- 桌面启动前隔离主目录、应用数据、日志、临时文件与输出目录，不继承用户 API 密钥。原生选择器、剪贴板、快捷键和拖拽接收边界由测试控制；这些结果不代表跨应用拖拽、系统快捷键、第三方登录或真实 AI/Python 服务已验收。
-
-两份本地 PSD 不随仓库分发，默认清单为 `tests/fixtures/local-psd.json`。缺少素材或参考时测试明确失败，不会静默跳过。可用 `MOMENTUM_FIXTURE_MANIFEST` 指定相同结构的授权素材清单，`MOMENTUM_FIXTURE_ROOT` 指定素材根目录，`MOMENTUM_REFERENCE_DIR` 指定独立参考目录。
-
-参考必须在业务修改前从已核验的原版建立，显式运行 `npm run test:record`；默认目录为本地忽略的 `temp/regression-reference-v2`。参考目录只允许首次创建，图像和清单设为只读；失败的采集保留现场，未写完整清单的目录不可验收。回归命令不会生成或覆盖预期结果。修改后出现像素差异时，应修复实现，不能重新采集参考来消除失败。
-
-补充素材由 `tests/fixtures/generate-psd.mjs` 确定性生成，包含独立灰度蒙版、连续剪切层及正片叠底/滤色/叠加模式。`node tests/fixtures/generate-psd.mjs --verify` 检查结构、字节一致性和拒绝覆盖；`node tests/record-synthetic.mjs` 显式采集真实人物页参考，素材生成器的文档合成图不能作为业务渲染的期望值。小图片预览字节范围问题修复后使用独立的 `synthetic-preview-range-fixed` 参考目录，原私人素材的100幅参考保持不变。
-
-`node tests/record-presets.mjs preset-lifecycle-new-environment-v1` 显式采集跨PSD预设恢复、删除及重启参考，独立环境名称只接受小写英文、数字和连字符。以 `MOMENTUM_PRESET_REFERENCE` 指定该目录，至少两次独立回放通过后才可接受候选。布局回归固定 Chromium 视口为1024×700、像素比例为1，并模拟页面焦点；在macOS上仅固定原生窗口尺寸不足以固定截图。布局截图只隐藏瞬时通知和工具提示，连续实际帧稳定后按RGBA零差异核验，运行环境与图像一起记录。此测试不代表原生窗口尺寸或焦点行为验收。
-
-每次运行的实际图片、状态、日志及隔离检查留在命令输出标明的临时目录，仅供本地核查，请勿上传私人素材和原始日志。
-
-主画布与预设悬浮预览可单独运行 `node --test tests/canvas-preset-hover.test.mjs`，覆盖真实鼠标移入、移动、移出及两种预览开关，核验浮层 PNG 和布局。此独立参考来自 `b2aad27` 的未迁移源码，默认子目录为 `canvas-preset-hover-renderer1024-dpr1-v1`；`tests/record-hover-preview.mjs` 只允许在该基准提交、业务源码干净时显式创建新目录，回归不会自动补建或覆盖参考。
-
-`node --test tests/psd-session.test.mjs` 验证两份不同素材各自编辑、三种互斥设置、十轮往返及关闭重导入。会话参考来自 `59eefa6`，录制入口 `tests/record-psd-session.mjs` 要求该基准提交、干净源码和独占新目录。原有前手叶图层场景和28项会话断言保持不变。
-
-后发图层关闭后返回时像素变化的问题已作独立最小修复：`handleLayerVisibilityChange` 返回绘制回调的 Promise，让页面已有的 `await` 真正等待绘制完成后再反向同步通用开关。PSD 合成、蒙版、混合模式等算法不变；这不代表所有绘制入口的并发问题都已解决。`node --test tests/psd-session-hair.test.mjs` 已接入 `npm test`，保留原公开操作、完整DOM恢复和编辑/首次返回RGBA零差异断言，并分别持续六秒逐帧观察，四个早期/后期结果都必须匹配独立规范图，而非只要求两幅结果相等。
-
-经明确授权，两份原素材完整100场景中仅星空 `group-10-toggle`、`group-10-restore` 使用独立的 `layer-render-completion-v1` 参考，另外98场景包括后续预览和导出仍读取原参考，零容差不变。两个分组和后发规范图均来自 `a33579b` 原算法：各自独立重放原操作后，通过公开「表情互斥」关闭/开启、每次等待完整画布十二帧稳定，再严格断言完整DOM与控制状态不变，最后证明与候选像素一致。旧参考永久只读，不能用旧失败返回图或修复程序的输出自行批准新参考。
-
-`tests/helpers/layer-render-reference.mjs` 的有限清单固定素材哈希、原场景名、原PNG摘要、运行环境和新参考摘要；缺新文件、环境不符或清单改变均直接失败，没有自动录制或回退。新PNG和manifest只保存在本地忽略目录，素材和私人图片不得提交。`tests/record-layer-render-completion.mjs <候选调查目录>` 是独立显式入口，要求 `a33579b` 原源码干净、完整100场景及后发候选证据，并重建旧程序重新执行上述独立核验；新目录独占创建且文件只读，不能覆盖已有版本。
-
-`node tests/verify-layer-render-completion.mjs targeted` 运行后发、Promise完成/拒绝及覆盖边界测试；`node tests/verify-layer-render-completion.mjs all` 执行完整 `npm test`，前后逐项校验全部260个旧参考及新目录哈希。只检查参考可用 `references`。详细脱敏依据见 `tests/evidence/layer-render-completion-20260906.json`；原后发失败证据仍保留。`lint` 已追加 `useLayerTree.js`。
-
-## 联系方式
+## 六、联系方式
 
 软件使用问题或获取帮助，可加入 QQ 群咨询：902990261
 
-<img src="./assets/QQ%E4%BA%A4%E6%B5%81%E7%BE%A4.png" alt="QQ 交流群二维码" width="320" />
 
-技术交流请添加微信，并备注【技术交流】或说明来意：
 
-<img src="./assets/%E5%BE%AE%E4%BF%A1%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F.jpg" alt="微信联系方式二维码" width="320" />
+## 七、许可证
 
-## 许可证
-
-项目源码采用 [MIT License](LICENSE)。第三方依赖及素材保留各自许可，本软件不承担相关责任。
+项目源码采用 [MIT License](LICENSE)。第三方依赖、素材及内置 Skills 保留各自许可，本软件不承担相关责任。
 
 本软件不提供任何第三方中转站或 AI 服务，仅提供接口对接能力。请用户自行甄别服务提供方，谨防上当受骗。
-
-
