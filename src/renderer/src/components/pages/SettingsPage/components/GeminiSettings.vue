@@ -11,7 +11,55 @@
         @update:value="value => emit('update-field', 'baseUrl', value)"
         placeholder="请输入中转站地址"
       />
+      <n-button style="margin-left: 8px;" @click="applyAixorasPreset">Aixoras 预设</n-button>
     </n-form-item>
+
+    <n-form-item label="生图模型" path="model">
+      <n-select
+        :value="config.model"
+        @update:value="value => emit('update-field', 'model', value)"
+        :options="IMAGE_MODEL_OPTIONS"
+        filterable
+        tag
+        placeholder="选择或输入模型名称"
+      />
+      <template #feedback>
+        <n-text depth="3" style="font-size: 12px;">
+          gpt-image-2 系列等走 OpenAI 图像接口；gemini 开头的模型走 Gemini 接口。可直接输入网关支持的其他模型名
+        </n-text>
+      </template>
+    </n-form-item>
+
+    <template v-if="isOpenAiModel">
+      <n-form-item label="图像质量" path="quality">
+        <n-select
+          :value="config.quality"
+          @update:value="value => emit('update-field', 'quality', value)"
+          :options="IMAGE_QUALITY_OPTIONS"
+        />
+      </n-form-item>
+      <n-form-item label="清晰度档位" path="imageTier">
+        <n-select
+          :value="config.imageTier"
+          @update:value="value => emit('update-field', 'imageTier', value)"
+          :options="IMAGE_TIER_OPTIONS"
+        />
+        <template #feedback>
+          <n-text depth="3" style="font-size: 12px;">
+            按所选比例换算尺寸：标准约 1K，2K 长边 2560，4K 长边 3840（总像素不超过 4K）
+          </n-text>
+        </template>
+      </n-form-item>
+      <n-form-item label="每次生成张数" path="numImages">
+        <n-input-number
+          :value="config.numImages"
+          @update:value="value => emit('update-field', 'numImages', value || 1)"
+          :min="1"
+          :max="MAX_IMAGE_COUNT"
+          :precision="0"
+        />
+      </n-form-item>
+    </template>
 
     <n-form-item label="API 密钥" path="apiKey" required>
       <n-input
@@ -104,12 +152,30 @@
 
 <script setup>
 /** Gemini 生图设置表单：展示父级配置并转发输入、路径与重置事件。 */
-defineProps({
+import { computed } from 'vue'
+import {
+  IMAGE_MODEL_OPTIONS,
+  IMAGE_QUALITY_OPTIONS,
+  IMAGE_TIER_OPTIONS,
+  MAX_IMAGE_COUNT,
+  resolveImageProtocol
+} from '@shared/image-models.js'
+
+const props = defineProps({
   config: { type: Object, required: true },
   isSelectingFolder: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['update-field', 'select-project-root', 'reset-project-root'])
+
+const isOpenAiModel = computed(() => resolveImageProtocol(props.config.model) === 'openai')
+
+/** 填入 Aixoras 网关地址；处理流程：1、写入地址，模型仍为 Gemini 时切到 gpt-image-2。 */
+const applyAixorasPreset = () => {
+  // 1、该网关不提供 Gemini 2.5 模型，避免保存后仍请求不可用模型。
+  emit('update-field', 'baseUrl', 'https://aixoras.com')
+  if (resolveImageProtocol(props.config.model) !== 'openai') emit('update-field', 'model', 'gpt-image-2')
+}
 </script>
 
 <style scoped>

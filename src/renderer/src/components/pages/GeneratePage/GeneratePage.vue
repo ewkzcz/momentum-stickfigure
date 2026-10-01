@@ -566,7 +566,8 @@ const aspectRatioOptions = [
   { label: '9:16 竖屏', value: '9:16' },
   { label: '2:3 竖版', value: '2:3' },
   { label: '3:2 横版', value: '3:2' },
-  { label: '1:2 极窄竖版', value: '1:2' }
+  { label: '1:2 极窄竖版', value: '1:2' },
+  { label: '21:9 超宽', value: '21:9' }
 ]
 
 const promptTemplates = [

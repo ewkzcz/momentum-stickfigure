@@ -70,7 +70,11 @@ export function registerFalApiHandlers() {
         model: config.model,
         logPath: config.logFile,
         savePath: config.outputDir,
-        ...(options.aspectRatio ? { aspectRatio: options.aspectRatio } : {})
+        ...(options.aspectRatio ? { aspectRatio: options.aspectRatio } : {}),
+        quality: options.quality,
+        size: options.size,
+        imageTier: options.imageTier,
+        numImages: options.numImages
       };
 
       const result = await apiWrapper('generate', apiParams);
@@ -131,7 +135,11 @@ export function registerFalApiHandlers() {
         logPath: config.logFile,
         savePath: config.editOutputDir,
         inputImages: options.inputImages,
-        ...(options.aspectRatio ? { aspectRatio: options.aspectRatio } : {})
+        ...(options.aspectRatio ? { aspectRatio: options.aspectRatio } : {}),
+        quality: options.quality,
+        size: options.size,
+        imageTier: options.imageTier,
+        numImages: options.numImages
       };
 
       const result = await apiWrapper('edit', editParams);

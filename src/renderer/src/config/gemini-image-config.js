@@ -15,6 +15,10 @@ export const DEFAULT_GEMINI_IMAGE_CONFIG = {
   apiKey: '',
   baseUrl: DEFAULT_BASE_URL,
   model: 'gemini-2.5-flash-image',
+  // OpenAI 协议模型（gpt-image-2 系列等）使用的附加参数
+  quality: 'auto',
+  imageTier: 'standard',
+  numImages: 1,
   timeoutMinutes: 5,
   
   // 路径配置

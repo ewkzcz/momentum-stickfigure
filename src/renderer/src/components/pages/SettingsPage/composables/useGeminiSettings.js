@@ -48,6 +48,10 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
   const geminiConfig = reactive({
     apiKey: '',
     baseUrl: '',
+    model: 'gemini-2.5-flash-image',
+    quality: 'auto',
+    imageTier: 'standard',
+    numImages: 1,
     projectRoot: getDefaultProjectRoot(), // 提供默认的绝对路径
     outputDir: 'output',
     editOutputDir: 'output',
@@ -258,6 +262,10 @@ export function useGeminiSettings({ message, showSaveRestartTip, appVersion, isA
       // 更新所有属性
       if (Object.prototype.hasOwnProperty.call(imported, 'apiKey')) geminiConfig.apiKey = imported.apiKey || ''
       geminiConfig.baseUrl = imported.baseUrl || ''
+      geminiConfig.model = imported.model || 'gemini-2.5-flash-image'
+      geminiConfig.quality = imported.quality || 'auto'
+      geminiConfig.imageTier = imported.imageTier || 'standard'
+      geminiConfig.numImages = Number(imported.numImages) || 1
       geminiConfig.projectRoot = imported.projectRoot || getDefaultProjectRoot()
       geminiConfig.outputDir = imported.outputDir || 'output'
       geminiConfig.editOutputDir = imported.editOutputDir || imported.outputDir || 'output'

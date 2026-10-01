@@ -240,6 +240,7 @@ import { sanitizeFileName } from '../../ActionExpressionPage/utils/stringUtils.j
 import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-config.js'
 import { buildGeminiDragConfig } from '@renderer/utils/geminiOutputConfig.js'
 import { filterGeminiExceptionMessage } from '@renderer/utils/errorFilters.js'
+import { buildImageModelParams } from '@renderer/utils/imageRequestOptions.js'
 import PromptTemplateTrigger from '@renderer/components/shared/PromptTemplateTrigger.vue'
 
 // 定义事件
@@ -400,7 +401,8 @@ const aspectRatioOptions = [
   { label: '9:16 (竖屏)', value: '9:16' },
   { label: '2:3 (竖版)', value: '2:3' },
   { label: '3:2 (横版)', value: '3:2' },
-  { label: '1:2 (竖版)', value: '1:2' }
+  { label: '1:2 (竖版)', value: '1:2' },
+  { label: '21:9 (超宽)', value: '21:9' }
 ]
 
 // 当前选中的模板
@@ -840,7 +842,7 @@ const handleGenerate = async () => {
         // 传递API配置
         apiKey: userConfig.apiKey,
         baseUrl: userConfig.baseUrl,
-        model: 'gemini-2.5-flash-image',
+        ...buildImageModelParams(userConfig),
         projectRoot: projectRoot,
         editOutputDir: userConfig.editOutputDir || 'output',
         logDir: userConfig.logDir || 'logs'
@@ -860,7 +862,7 @@ const handleGenerate = async () => {
         // 传递API配置
         apiKey: userConfig.apiKey,
         baseUrl: userConfig.baseUrl,
-        model: 'gemini-2.5-flash-image',
+        ...buildImageModelParams(userConfig),
         projectRoot: projectRoot,
         outputDir: userConfig.outputDir || 'output',
         logDir: userConfig.logDir || 'logs'

@@ -149,8 +149,8 @@ test('生图设置：输入、选择取消重置、保存校验与URL规范化�
     await openSettings(desktop)
     const page = desktop.page
     assert.deepEqual(await values(page), initial)
-    assert.deepEqual(await page.locator('.settings-tab-content:visible .n-form-item-label').allTextContents(), fields.map(([, label], index) => index < 2 ? `${label}\u00a0*` : label))
-    assert.equal(await page.locator('.settings-tab-content:visible input').count(), 5)
+    assert.deepEqual(await page.locator('.settings-tab-content:visible .n-form-item-label').allTextContents(), ['中转站地址\u00a0*', '生图模型', 'API 密钥\u00a0*', '保存根目录', '图片保存路径', '日志路径'])
+    assert.equal(await page.locator('.settings-tab-content:visible input').count(), 6)
     assert.equal(await item(page, 'API 密钥').locator('input').getAttribute('type'), 'password')
     assert.equal(await item(page, '保存根目录').locator('input').getAttribute('readonly'), '')
     await layout(desktop, 'initial', evidence)

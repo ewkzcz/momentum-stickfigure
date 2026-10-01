@@ -3,6 +3,7 @@ import { TaskType, TaskStatus } from '@renderer/stores/taskStore.js'
 import { GEMINI_IMAGE_CONFIG_STORAGE_KEY } from '@renderer/config/gemini-image-config.js'
 import { resolveGeminiProjectRoot } from '@renderer/utils/geminiOutputConfig.js'
 import { filterGeminiExceptionMessage } from '@renderer/utils/errorFilters.js'
+import { buildImageModelParams } from '@renderer/utils/imageRequestOptions.js'
 
 /**
  * 组织生图、抠图、高清及结果链式处理流程。
@@ -137,7 +138,7 @@ export function useGenerateWorkflow({
           inputImages,
           apiKey: userConfig.apiKey,
           baseUrl: userConfig.baseUrl,
-          model: 'gemini-2.5-flash-image',
+          ...buildImageModelParams(userConfig),
           projectRoot,
           editOutputDir: userConfig.editOutputDir || 'output',
           logDir: userConfig.logDir || 'logs'
@@ -151,7 +152,7 @@ export function useGenerateWorkflow({
           prompt: promptText,  // 使用清理后的提示词
           apiKey: userConfig.apiKey,
           baseUrl: userConfig.baseUrl,
-          model: 'gemini-2.5-flash-image',
+          ...buildImageModelParams(userConfig),
           projectRoot,
           outputDir: userConfig.outputDir || 'output',
           logDir: userConfig.logDir || 'logs'
